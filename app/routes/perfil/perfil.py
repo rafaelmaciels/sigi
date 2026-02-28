@@ -3,29 +3,32 @@ from flask_login import login_required, current_user
 from app.extensions import db
 from app.models import User
 from .forms import EditarPerfilForm, AlterarSenhaForm
-from utils.logs import registrar_log   # ✅ importar o logger
+from utils.logs import registrar_log            # ✅ importar o logger
+from app.decorators import permission_required  # 👈 importa o decorator
 
 perfil_bp = Blueprint("perfil", __name__, url_prefix="/perfil")
 
 @perfil_bp.route("/", methods=["GET", "POST"])
 @login_required
+@permission_required("perfil", "view")      # 👈 agora protege visualização de perfil
 def meu_perfil():
     form = AlterarSenhaForm()
     if form.validate_on_submit():
         if current_user.check_password(form.senha_atual.data):
             current_user.set_password(form.nova_senha.data)
             db.session.commit()
-            registrar_log(current_user.nome, "Alterou a própria senha", "sucesso")  # ✅ log
+            registrar_log(current_user.nome, "Alterou a própria senha", "sucesso")
             flash("Senha alterada com sucesso!", "success")
             return redirect(url_for("perfil.meu_perfil"))
         else:
-            registrar_log(current_user.nome, "Tentativa de alterar senha com senha atual incorreta", "erro")  # ✅ log
+            registrar_log(current_user.nome, "Tentativa de alterar senha com senha atual incorreta", "erro")
             flash("Senha atual incorreta.", "danger")
 
     return render_template("perfil/meu_perfil.html", usuario=current_user, form=form)
 
 @perfil_bp.route("/editar", methods=["GET", "POST"])
 @login_required
+@permission_required("perfil", "edit")   # 👈 protege edição de perfil
 def editar_perfil():
     form = EditarPerfilForm(obj=current_user)
     if form.validate_on_submit():
@@ -37,10 +40,8 @@ def editar_perfil():
         if "role" in request.form:
             current_user.role = request.form["role"]
 
-        # ❌ Foto removida daqui, será gerenciada apenas em Configurações
-
         db.session.commit()
-        registrar_log(current_user.nome, "Editou o próprio perfil", "sucesso")  # ✅ log
+        registrar_log(current_user.nome, "Editou o próprio perfil", "sucesso")
         flash("Perfil atualizado com sucesso!", "success")
         return redirect(url_for("perfil.meu_perfil"))
 
@@ -48,16 +49,17 @@ def editar_perfil():
 
 @perfil_bp.route("/senha", methods=["GET", "POST"])
 @login_required
+@permission_required("perfil", "password")   # 👈 protege alteração de senha
 def alterar_senha():
     form = AlterarSenhaForm()
     if form.validate_on_submit():
         if current_user.check_password(form.senha_atual.data):
             current_user.set_password(form.nova_senha.data)
             db.session.commit()
-            registrar_log(current_user.nome, "Alterou a senha no perfil do usuário", "sucesso")  # ✅ log
+            registrar_log(current_user.nome, "Alterou a senha no perfil do usuário", "sucesso")
             flash("Senha alterada com sucesso!", "success")
             return redirect(url_for("perfil.meu_perfil"))
         else:
-            registrar_log(current_user.nome, "Tentativa de alterar senha no perfil do usuário com senha atual incorreta", "erro")  # ✅ log
+            registrar_log(current_user.nome, "Tentativa de alterar senha no perfil do usuário com senha atual incorreta", "erro")
             flash("Senha atual incorreta.", "danger")
     return render_template("perfil/alterar_senha.html", form=form, usuario=current_user)

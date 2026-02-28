@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, SubmitField, FileField
+from flask_wtf.file import FileField
+from wtforms import StringField, PasswordField, SelectField, SubmitField
 from wtforms.validators import DataRequired, Email, Length, Optional
 
 class NovoUsuarioForm(FlaskForm):
@@ -15,17 +16,20 @@ class NovoUsuarioForm(FlaskForm):
         "Senha",
         validators=[DataRequired(message="Informe a senha"), Length(min=6, message="A senha deve ter pelo menos 6 caracteres")]
     )
-    role = SelectField(
-        "Papel",
-        choices=[("admin", "Administrador"), ("user", "Usuário")],
-        validators=[DataRequired(message="Selecione o papel")]
+    # 🔹 Campo Nível ajustado para trabalhar com is_admin
+    is_admin = SelectField(
+        "Nível",
+        choices=[("true", "Administrador"), ("false", "Usuário")],
+        validators=[DataRequired(message="Selecione o nível")],
+        default="false"
     )
     ativo = SelectField(
         "Status",
         choices=[("true", "Ativo"), ("false", "Inativo")],
-        validators=[DataRequired(message="Selecione o status")]
+        validators=[DataRequired(message="Selecione o status")],
+        default="true"
     )
-    foto = FileField("Foto de Perfil")  # 🔹 novo campo
+    foto = FileField("Foto de Perfil")
     submit = SubmitField("Criar Usuário")
 
 
@@ -42,15 +46,16 @@ class EditarUsuarioForm(FlaskForm):
         "Senha (opcional)",
         validators=[Optional(), Length(min=6, message="A senha deve ter pelo menos 6 caracteres")]
     )
-    role = SelectField(
-        "Papel",
-        choices=[("admin", "Administrador"), ("user", "Usuário")],
-        validators=[DataRequired(message="Selecione o papel")]
+    # 🔹 Campo Nível ajustado para trabalhar com is_admin
+    is_admin = SelectField(
+        "Nível",
+        choices=[("true", "Administrador"), ("false", "Usuário")],
+        validators=[DataRequired(message="Selecione o nível")]
     )
     ativo = SelectField(
         "Status",
         choices=[("true", "Ativo"), ("false", "Inativo")],
         validators=[DataRequired(message="Selecione o status")]
     )
-    foto = FileField("Foto de Perfil")  # 🔹 novo campo
+    foto = FileField("Foto de Perfil")
     submit = SubmitField("Salvar Alterações")

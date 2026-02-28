@@ -1,11 +1,12 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.extensions import db                     # ✅ importa db da extensions.py
-from app.models import Patrimonio                 # ✅ importa Patrimonio do pacote app.models
+from app.extensions import db                           # ✅ importa db da extensions.py
+from app.models import Patrimonio                       # ✅ importa Patrimonio do pacote app.models
 from app.routes.patrimonio.forms import PatrimonioForm  # ✅ ajusta para app.routes
 from datetime import datetime
 from werkzeug.datastructures import MultiDict
 from flask_login import login_required, current_user    # 👈 protege rotas com Flask-Login
-from utils.logs import registrar_log                     # 👈 importa função de log
+from utils.logs import registrar_log                    # 👈 importa função de log
+from app.decorators import permission_required 		# 👈 importa o decorator
 
 patrimonio_bp = Blueprint("patrimonio", __name__, url_prefix="/patrimonios")
 
@@ -37,6 +38,7 @@ def _to_float(value):
 # -----------------------------
 @patrimonio_bp.route("/", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("patrimonios", "view")
 def listar_patrimonios():
     page = request.args.get("page", 1, type=int)
 
@@ -51,6 +53,7 @@ def listar_patrimonios():
 # -----------------------------
 @patrimonio_bp.route("/novo", methods=["GET", "POST"])
 @login_required   # 👈 protege a rota
+@permission_required("patrimonios", "create")
 def novo_patrimonio():
     if request.method == "POST":
         formdata = MultiDict(request.form)
@@ -84,6 +87,7 @@ def novo_patrimonio():
 # -----------------------------
 @patrimonio_bp.route("/editar/<int:id>", methods=["GET", "POST"])
 @login_required   # 👈 protege a rota
+@permission_required("patrimonios", "edit")
 def editar_patrimonio(id):
     item = Patrimonio.query.get_or_404(id)
 
@@ -118,6 +122,7 @@ def editar_patrimonio(id):
 # -----------------------------
 @patrimonio_bp.route("/excluir/<int:id>", methods=["POST"])
 @login_required   # 👈 protege a rota
+@permission_required("patrimonios", "delete")
 def excluir_patrimonio(id):
     item = Patrimonio.query.get_or_404(id)
     db.session.delete(item)
@@ -133,6 +138,7 @@ def excluir_patrimonio(id):
 # -----------------------------
 @patrimonio_bp.route("/buscar", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("patrimonios", "view")
 def buscar_patrimonios():
     termo = request.args.get("q", "").strip().lower()
     page = request.args.get("page", 1, type=int)
@@ -169,6 +175,7 @@ def buscar_patrimonios():
 # -----------------------------
 @patrimonio_bp.route("/inventario", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("patrimonios", "view")
 def inventario():
     categoria = request.args.get("categoria", "").strip()
     situacao = request.args.get("situacao", "").strip()

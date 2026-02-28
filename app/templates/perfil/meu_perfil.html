@@ -4,15 +4,21 @@
 {% block content %}
 <div class="container mt-4">
 
-  <!-- Botão de voltar -->
-  <div class="mb-3 d-flex justify-content-end">
+  <!-- Cabeçalho com título e botão voltar alinhados -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-person text-primary me-2"></i> Meu Perfil</h2>
     <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary" title="Voltar para Dashboard">
       <i class="bi bi-arrow-left-circle"></i>
     </a>
   </div>
 
-  <!-- Título sem ícone -->
-  <h2><i class="bi bi-person text-primary me-2"></i> Meu Perfil</h2>
+  <!-- Informação discreta -->
+  <div class="card shadow-sm mb-4 border-light">
+    <div class="card-body text-muted small">
+      <i class="bi bi-info-circle"></i> 
+      Aqui você pode visualizar seus dados pessoais e alterar sua senha de acesso ao sistema.
+    </div>
+  </div>
 
   <div class="row mt-3">
     <!-- Coluna esquerda: informações -->
@@ -39,12 +45,10 @@
           <p><strong>Nome:</strong> {{ usuario.nome }}</p>
           <p><strong>Email:</strong> {{ usuario.email }}</p>
           <p><strong>Nível:</strong>
-            {% if usuario.role == 'admin' %}
+            {% if usuario.is_admin %}
               <span class="badge bg-danger">Administrador</span>
-            {% elif usuario.role == 'user' %}
-              <span class="badge bg-primary">Usuário</span>
             {% else %}
-              <span class="badge bg-secondary">{{ usuario.role }}</span>
+              <span class="badge bg-primary">Usuário</span>
             {% endif %}
           </p>
           <p><strong>Status:</strong>
@@ -96,9 +100,15 @@
             </div>
 
             <!-- Botão -->
-            <button type="submit" class="btn btn-warning">
-              <i class="bi bi-check-circle"></i> Alterar Senha
-            </button>
+            {% if has_permission("perfil", "password") %}
+              <button type="submit" class="btn btn-warning">
+                <i class="bi bi-check-circle"></i> Alterar Senha
+              </button>
+            {% else %}
+              <button type="button" class="btn btn-warning" disabled>
+                <i class="bi bi-lock"></i> Sem permissão para alterar
+              </button>
+            {% endif %}
           </form>
         </div>
       </div>

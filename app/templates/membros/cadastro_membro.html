@@ -28,10 +28,11 @@
         <div class="tab-content mt-3" id="cadastroTabsContent">
           <!-- Dados Pessoais -->
           <div class="tab-pane fade show active" id="dados" role="tabpanel">
-            <div class="mb-3">
-              {{ form.foto.label(class="form-label") }}
-              {{ form.foto(class="form-control") }}
-            </div>
+	    <div class="mb-3">
+	      {{ form.foto.label(class="form-label") }}
+	      {{ form.foto(class="form-control", accept="image/*") }}
+	      <small class="form-text text-muted">Somente imagens JPG ou PNG são permitidas.</small>
+	    </div>
 
             <div class="row">
               <div class="col-md-6 mb-3">
@@ -127,6 +128,7 @@
           </div>
           <!-- Eclesiástico -->
           <div class="tab-pane fade" id="eclesiastico" role="tabpanel">
+          
             <div class="row">
               <div class="col-md-4 mb-3">
                 {{ form.batizado.label(class="form-label") }}

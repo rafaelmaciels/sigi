@@ -3,14 +3,17 @@ from datetime import datetime, date
 from collections import defaultdict
 import csv, io, os
 from werkzeug.utils import secure_filename
+import uuid
+from sqlalchemy import or_
 
-from app.extensions import db                   # ✅ importa db da extensions.py
-from app.models import Financeiro               # ✅ importa Financeiro do pacote app.models
-from app.routes.financeiro.forms import (       # ✅ ajusta para app.routes
+from app.extensions import db
+from app.models import Financeiro
+from app.routes.financeiro.forms import (
     EntradaForm, SaidaForm, FiltroRelatorioForm, ComprovanteForm
 )
-from flask_login import login_required, current_user   # 👈 protege rotas com Flask-Login
-from utils.logs import registrar_log             # 👈 importa função de log
+from flask_login import login_required, current_user
+from utils.logs import registrar_log
+from app.decorators import permission_required
 
 financeiro_bp = Blueprint("financeiro", __name__, url_prefix="/financeiro")
 
@@ -21,20 +24,21 @@ def currency_format(value):
         return "R$ 0,00"
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+# -----------------------------
+# 📄 Dashboard Financeiro
+# -----------------------------
 @financeiro_bp.route('/')
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "view")
 def financeiro():
-    # Resumo: totais
     total_entradas = db.session.query(db.func.coalesce(db.func.sum(Financeiro.valor), 0.0)).filter(Financeiro.tipo=="Entrada").scalar()
     total_saidas = db.session.query(db.func.coalesce(db.func.sum(Financeiro.valor), 0.0)).filter(Financeiro.tipo=="Saída").scalar()
     saldo = (total_entradas or 0.0) - (total_saidas or 0.0)
 
-    # Gráficos por mês (últimos 6 meses)
     def month_key(d: date):
         return d.strftime("%m-%Y")
 
     ultimos = sorted({month_key(r.data) for r in Financeiro.query.all()}, key=lambda x: datetime.strptime("01-"+x, "%d-%m-%Y"))[-6:]
-
     por_mes = {m: {"Entradas": 0.0, "Saídas": 0.0} for m in ultimos}
     for r in Financeiro.query.all():
         mk = month_key(r.data)
@@ -58,13 +62,36 @@ def financeiro():
         saidas_data=saidas_data
     )
 
+# -----------------------------
+# 📄 Entradas
+# -----------------------------
 @financeiro_bp.route('/entradas', methods=['GET', 'POST'])
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "view")
 def entradas():
     form = EntradaForm()
+
+    # 🔹 Criação de nova entrada
     if form.validate_on_submit():
+        if not current_user.has_permission("financeiro", "create"):
+            flash("Você não tem permissão para criar entradas.", "danger")
+            registrar_log(current_user.nome, "Tentou criar entrada sem permissão", "falha")
+            return redirect(url_for("financeiro.entradas"))
+
         raw_valor = request.form.get('valor', '')
         valor_float = float(str(raw_valor).replace(',', '.'))
+
+        # 🔹 Upload do comprovante com hash e pasta organizada em static/uploads/financeiro
+        comprovante_file = request.files.get("comprovante")
+        comprovante_path = None
+        if comprovante_file and comprovante_file.filename:
+            ext = os.path.splitext(comprovante_file.filename)[1].lower()
+            filename = f"{uuid.uuid4().hex}{ext}"
+            upload_dir = os.path.join(current_app.root_path, "static", "uploads", "financeiro")
+            os.makedirs(upload_dir, exist_ok=True)
+            filepath = os.path.join(upload_dir, filename)
+            comprovante_file.save(filepath)
+            comprovante_path = f"/static/uploads/financeiro/{filename}"
 
         nova = Financeiro(
             tipo="Entrada",
@@ -72,19 +99,72 @@ def entradas():
             valor=valor_float,
             data=form.data.data,
             descricao=form.descricao.data,
-            conta=form.conta.data
+            conta=form.conta.data,
+            usuario=current_user.nome,
+            comprovante=comprovante_path
         )
         db.session.add(nova)
         db.session.commit()
-        registrar_log(current_user.nome, f"Registrou entrada: {nova.descricao}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Registrou entrada: {nova.descricao}", "sucesso")
         flash("Entrada registrada com sucesso!", "success")
         return redirect(url_for('financeiro.entradas'))
 
-    registros = Financeiro.query.filter_by(tipo="Entrada").order_by(Financeiro.data.desc()).all()
-    return render_template('financeiro/entradas.html', form=form, entradas=registros)
+    # 🔹 Filtros (um único campo para buscar em tipo, conta e descrição)
+    filtro = request.args.get("filtro")
+    filtro_data_inicio = request.args.get("inicio")
+    filtro_data_fim = request.args.get("fim")
 
+    query = Financeiro.query.filter_by(tipo="Entrada")
+    if filtro:
+        query = query.filter(
+            or_(
+                Financeiro.tipo.ilike(f"%{filtro}%"),
+                Financeiro.conta.ilike(f"%{filtro}%"),
+                Financeiro.descricao.ilike(f"%{filtro}%")
+            )
+        )
+    if filtro_data_inicio and filtro_data_fim:
+        query = query.filter(Financeiro.data.between(filtro_data_inicio, filtro_data_fim))
+
+    # 🔹 Paginação
+    page = request.args.get("page", 1, type=int)
+    registros = query.order_by(Financeiro.data.desc()).paginate(page=page, per_page=10, error_out=False)
+
+    # 🔹 Totais
+    hoje = date.today()
+    total_mes = db.session.query(db.func.sum(Financeiro.valor)).filter(
+        Financeiro.tipo == "Entrada",
+        db.extract("month", Financeiro.data) == hoje.month,
+        db.extract("year", Financeiro.data) == hoje.year
+    ).scalar() or 0
+
+    total_ano = db.session.query(db.func.sum(Financeiro.valor)).filter(
+        Financeiro.tipo == "Entrada",
+        db.extract("year", Financeiro.data) == hoje.year
+    ).scalar() or 0
+
+    ultima = Financeiro.query.filter_by(tipo="Entrada").order_by(Financeiro.data.desc()).first()
+
+    return render_template(
+        "financeiro/entradas.html",
+        form=form,
+        entradas=registros.items,
+        pagination=registros,
+        total_mes=total_mes,
+        total_ano=total_ano,
+        ultima=ultima,
+        filtro=filtro,
+        filtro_data_inicio=filtro_data_inicio,
+        filtro_data_fim=filtro_data_fim
+    )
+
+
+# -----------------------------
+# 📄 Excluir Entradas
+# -----------------------------
 @financeiro_bp.route('/entradas/excluir/<int:id>', methods=['POST'])
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "delete")
 def excluir_entrada(id):
     entrada = Financeiro.query.get_or_404(id)
     if entrada.tipo != "Entrada":
@@ -94,50 +174,98 @@ def excluir_entrada(id):
     try:
         db.session.delete(entrada)
         db.session.commit()
-        registrar_log(current_user.nome, f"Excluiu entrada: {entrada.descricao}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Excluiu entrada: {entrada.descricao}", "sucesso")
         flash("Entrada excluída com sucesso!", "success")
     except Exception:
         db.session.rollback()
-        registrar_log(current_user.nome, f"Erro ao excluir entrada: {entrada.descricao}", "erro")  # 👈 log
+        registrar_log(current_user.nome, f"Erro ao excluir entrada: {entrada.descricao}", "erro")
         flash("Erro ao excluir entrada.", "danger")
 
     return redirect(url_for('financeiro.entradas'))
+    
 
-# ➡️ Nova rota para editar Entrada
-@financeiro_bp.route('/entradas/editar/<int:id>', methods=['GET', 'POST'])
-@login_required   # 👈 protege a rota
+# -----------------------------
+# 📄 Excluir Comprovante
+# -----------------------------
+@financeiro_bp.route('/excluir_comprovante/<int:id>', methods=['POST'])
+@login_required
+@permission_required("financeiro", "edit")
+def excluir_comprovante(id):
+    entrada = Financeiro.query.get_or_404(id)
+
+    if entrada.comprovante:
+        filepath = os.path.join(current_app.root_path, entrada.comprovante.lstrip("/"))
+        try:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        except Exception as e:
+            flash(f"Erro ao excluir arquivo: {e}", "danger")
+
+        entrada.comprovante = None
+        db.session.commit()
+
+        registrar_log(current_user.nome, f"Excluiu comprovante da entrada {entrada.id}", "sucesso")
+        flash("Comprovante excluído com sucesso!", "success")
+    else:
+        flash("Nenhum comprovante para excluir.", "warning")
+
+    return redirect(url_for("financeiro.editar_entrada", id=id))
+
+
+# -----------------------------
+# 📄 Editar Entrada
+# -----------------------------
+@financeiro_bp.route('/editar_entrada/<int:id>', methods=['GET', 'POST'])
+@login_required
+@permission_required("financeiro", "edit")
 def editar_entrada(id):
     entrada = Financeiro.query.get_or_404(id)
-    if entrada.tipo != "Entrada":
-        flash("Registro inválido para edição.", "danger")
-        return redirect(url_for('financeiro.entradas'))
-
     form = EntradaForm(obj=entrada)
+
     if form.validate_on_submit():
+        entrada.tipo = "Entrada"
         entrada.categoria = form.tipo_receita.data
         entrada.valor = float(str(form.valor.data).replace(',', '.'))
         entrada.data = form.data.data
         entrada.descricao = form.descricao.data
         entrada.conta = form.conta.data
+        entrada.usuario = current_user.nome  # ✅ sempre logado
+
+        # Só adiciona comprovante se não existir
+        if not entrada.comprovante:
+            comprovante_file = request.files.get("comprovante")
+            if comprovante_file and comprovante_file.filename:
+                ext = os.path.splitext(comprovante_file.filename)[1].lower()
+                filename = f"{uuid.uuid4().hex}{ext}"
+                upload_dir = os.path.join(current_app.root_path, "static", "uploads", "financeiro")
+                os.makedirs(upload_dir, exist_ok=True)
+                filepath = os.path.join(upload_dir, filename)
+                comprovante_file.save(filepath)
+                entrada.comprovante = f"/static/uploads/financeiro/{filename}"
+
         db.session.commit()
-        registrar_log(current_user.nome, f"Editou entrada: {entrada.descricao}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Editou entrada: {entrada.descricao}", "sucesso")
         flash("Entrada atualizada com sucesso!", "success")
-        return redirect(url_for('financeiro.entradas'))
+        return redirect(url_for("financeiro.entradas"))
 
-    return render_template('financeiro/editar_entrada.html', form=form, entrada=entrada)
+    return render_template("financeiro/editar_entrada.html", form=form, entrada=entrada)
 
 
 # -----------------------------
-# 📄 Rotas de Saídas
+# 📄 Saídas
 # -----------------------------
-from flask_login import login_required, current_user   # 👈 protege rotas com Flask-Login
-from utils.logs import registrar_log                   # 👈 importa função de log
-
 @financeiro_bp.route('/saidas', methods=['GET', 'POST'])
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "view")
 def saidas():
     form = SaidaForm()
     if form.validate_on_submit():
+        # 🔹 exige permissão de criação
+        if not current_user.has_permission("financeiro", "create"):
+            flash("Você não tem permissão para criar saídas.", "danger")
+            registrar_log(current_user.nome, "Tentou criar saída sem permissão", "falha")
+            return redirect(url_for("financeiro.saidas"))
+
         raw_valor = request.form.get('valor', '')
         valor_float = float(str(raw_valor).replace(',', '.'))
 
@@ -151,15 +279,17 @@ def saidas():
         )
         db.session.add(nova)
         db.session.commit()
-        registrar_log(current_user.nome, f"Registrou saída: {nova.descricao}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Registrou saída: {nova.descricao}", "sucesso")
         flash("Saída registrada com sucesso!", "success")
         return redirect(url_for('financeiro.saidas'))
 
     registros = Financeiro.query.filter_by(tipo="Saída").order_by(Financeiro.data.desc()).all()
     return render_template('financeiro/saidas.html', form=form, saidas=registros)
 
+
 @financeiro_bp.route('/saidas/excluir/<int:id>', methods=['POST'])
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "delete")
 def excluir_saida(id):
     saida = Financeiro.query.get_or_404(id)
     if saida.tipo != "Saída":
@@ -169,18 +299,19 @@ def excluir_saida(id):
     try:
         db.session.delete(saida)
         db.session.commit()
-        registrar_log(current_user.nome, f"Excluiu saída: {saida.descricao}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Excluiu saída: {saida.descricao}", "sucesso")
         flash("Saída excluída com sucesso!", "success")
     except Exception:
         db.session.rollback()
-        registrar_log(current_user.nome, f"Erro ao excluir saída: {saida.descricao}", "erro")  # 👈 log
+        registrar_log(current_user.nome, f"Erro ao excluir saída: {saida.descricao}", "erro")
         flash("Erro ao excluir saída.", "danger")
 
     return redirect(url_for('financeiro.saidas'))
+    
 
-# ➡️ Nova rota para editar Saída
 @financeiro_bp.route('/saidas/editar/<int:id>', methods=['GET', 'POST'])
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "edit")
 def editar_saida(id):
     saida = Financeiro.query.get_or_404(id)
     if saida.tipo != "Saída":
@@ -191,21 +322,24 @@ def editar_saida(id):
     if form.validate_on_submit():
         saida.categoria = form.categoria.data
         saida.valor = float(str(form.valor.data).replace(',', '.'))
+        saida.valor = float(str(form.valor.data).replace(',', '.'))
         saida.data = form.data.data
         saida.descricao = form.descricao.data
         saida.conta = form.conta.data
         db.session.commit()
-        registrar_log(current_user.nome, f"Editou saída: {saida.descricao}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Editou saída: {saida.descricao}", "sucesso")
         flash("Saída atualizada com sucesso!", "success")
         return redirect(url_for('financeiro.saidas'))
 
     return render_template('financeiro/editar_saida.html', form=form, saida=saida)
 
+
 # -----------------------------
-# 📄 Rotas de Relatórios, Exportação e Comprovantes
+# 📄 Relatórios
 # -----------------------------
 @financeiro_bp.route('/relatorios', methods=['GET', 'POST'])
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "view")
 def relatorios():
     form = FiltroRelatorioForm()
     query = Financeiro.query
@@ -220,25 +354,28 @@ def relatorios():
         if form.categoria.data:
             query = query.filter(Financeiro.categoria.ilike(f"%{form.categoria.data}%"))
 
-    registros = query.order_by(Financeiro.data.desc()).all()
+    # 🔹 Paginação
+    page = request.args.get("page", 1, type=int)
+    registros = query.order_by(Financeiro.data.desc()).paginate(page=page, per_page=15, error_out=False)
 
-    total = sum(r.valor for r in registros)
-    total_entradas = sum(r.valor for r in registros if r.tipo == "Entrada")
-    total_saidas = sum(r.valor for r in registros if r.tipo == "Saída")
+    # 🔹 Totais (com base em todos os registros filtrados, não só da página atual)
+    todos_registros = query.all()
+    total = sum(r.valor for r in todos_registros)
+    total_entradas = sum(r.valor for r in todos_registros if r.tipo == "Entrada")
+    total_saidas = sum(r.valor for r in todos_registros if r.tipo == "Saída")
 
-    # Agrupar por categoria para gráfico de pizza
     por_categoria = defaultdict(float)
-    for r in registros:
+    for r in todos_registros:
         por_categoria[r.categoria] += float(r.valor)
 
     categorias_labels = list(por_categoria.keys())
     categorias_data = [por_categoria[c] for c in categorias_labels]
 
-    registrar_log(current_user.nome, "Gerou relatório financeiro", "sucesso")  # 👈 log
+    registrar_log(current_user.nome, "Gerou relatório financeiro", "sucesso")
     return render_template(
         'financeiro/relatorios.html',
         form=form,
-        registros=registros,
+        registros=registros,   # 🔹 objeto de paginação
         total=total,
         total_entradas=total_entradas,
         total_saidas=total_saidas,
@@ -246,8 +383,13 @@ def relatorios():
         categorias_data=categorias_data
     )
 
+
+# -----------------------------
+# 📄 Exportação CSV
+# -----------------------------
 @financeiro_bp.route('/export.csv')
-@login_required   # 👈 protege a rota
+@login_required
+@permission_required("financeiro", "view")
 def export_csv():
     inicio_str = request.args.get('inicio')
     fim_str = request.args.get('fim')
@@ -285,39 +427,46 @@ def export_csv():
             "Sim" if r.conciliado else "Não"
         ])
 
-    registrar_log(current_user.nome, "Exportou relatório financeiro em CSV", "sucesso")  # 👈 log
+    registrar_log(current_user.nome, "Exportou relatório financeiro em CSV", "sucesso")
     return Response(output.getvalue(), mimetype='text/csv',
                     headers={"Content-Disposition": "attachment; filename=relatorio_financeiro.csv"})
 
-@financeiro_bp.route('/comprovantes', methods=['GET', 'POST'])
-@login_required   # 👈 protege a rota
+
+# -----------------------------
+# 📄 Comprovantes (Consulta)
+# -----------------------------
+@financeiro_bp.route('/comprovantes', methods=['GET'])
+@login_required
+@permission_required("financeiro", "view")
 def comprovantes():
-    form = ComprovanteForm()
-    if form.validate_on_submit():
-        filename = secure_filename(form.arquivo.data.filename)
-        destino = os.path.join(current_app.config['UPLOAD_FOLDER'], 'comprovantes')
-        os.makedirs(destino, exist_ok=True)
-        filepath = os.path.join(destino, filename)
-        form.arquivo.data.save(filepath)
+    filtro = request.args.get("filtro")
+    inicio = request.args.get("inicio")
+    fim = request.args.get("fim")
 
-        novo = Financeiro(
-            tipo="Comprovante",
-            categoria="Upload",
-            valor=0.0,
-            data=form.data.data,
-            descricao=form.descricao.data,
-            comprovante=filename
-        )
-        db.session.add(novo)
-        db.session.commit()
-        registrar_log(current_user.nome, f"Enviou comprovante: {filename}", "sucesso")  # 👈 log
-        flash("Comprovante enviado com sucesso!", "success")
-        return redirect(url_for('financeiro.comprovantes'))
+    query = Financeiro.query.filter(
+        Financeiro.tipo.in_(["Entrada", "Saída"]),
+        Financeiro.comprovante.isnot(None)
+    )
 
-    registros = Financeiro.query.filter_by(tipo="Comprovante").order_by(Financeiro.data.desc()).all()
+    if filtro:
+        query = query.filter(Financeiro.descricao.ilike(f"%{filtro}%"))
+
+    if inicio and fim:
+        query = query.filter(Financeiro.data.between(inicio, fim))
+
+    # 🔹 Paginação com limite de 15 por página
+    page = request.args.get("page", 1, type=int)
+    registros = query.order_by(Financeiro.data.desc()).paginate(page=page, per_page=15, error_out=False)
+
+    # 🔹 Agrupar por mês/ano (apenas os itens da página atual)
     por_mes = defaultdict(list)
-    for r in registros:
+    for r in registros.items:
         chave = r.data.strftime("%m-%Y")
         por_mes[chave].append(r)
 
-    return render_template('financeiro/comprovantes.html', form=form, por_mes=por_mes)
+    return render_template(
+        "financeiro/comprovantes.html",
+        por_mes=por_mes,
+        pagination=registros if registros.total >= 15 else None  # só mostra paginação se tiver 15 ou mais
+    )
+

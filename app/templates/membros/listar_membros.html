@@ -8,13 +8,17 @@
     <h2><i class="bi bi-people text-primary me-2"></i> Membros</h2>
     <div class="d-flex gap-2">
       <!-- 🔹 Botão Link Visitante abre modal -->
-      <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#visitanteLinkModal">
-        <i class="bi bi-link-45deg me-1"></i> Link Visitante
-      </button>
+      {% if has_permission("membros", "view") %}
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#visitanteLinkModal">
+          <i class="bi bi-link-45deg me-1"></i> Link Visitante
+        </button>
+      {% endif %}
       <!-- Botão Novo Membro -->
-      <a href="{{ url_for('member.cadastro_membro') }}" class="btn btn-success">
-        <i class="bi bi-person-plus me-1"></i> Novo Membro
-      </a>
+      {% if has_permission("membros", "create") %}
+        <a href="{{ url_for('member.cadastro_membro') }}" class="btn btn-success">
+          <i class="bi bi-person-plus me-1"></i> Novo Membro
+        </a>
+      {% endif %}
     </div>
   </div>
 
@@ -32,6 +36,7 @@
       <span>Buscar</span>
     </button>
   </form>
+
   <div class="table-responsive shadow-sm">
     <table class="table table-striped table-hover align-middle">
       <thead class="table-primary">
@@ -44,7 +49,9 @@
           <th>Dizimista</th>
           <th>Status</th>
           <th>Função</th>
-          <th class="text-center">Ações</th>
+          {% if has_permission("membros", "view") or has_permission("membros", "edit") or has_permission("membros", "delete") %}
+            <th class="text-center">Ações</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -85,43 +92,51 @@
               {% endif %}
             </td>
             <td>{{ membro.funcao }}</td>
-            <td class="text-center">
-              <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-gear"></i> Ações
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('member.editar_membro', id=membro.id) }}">
-                      <i class="bi bi-pencil-square me-1 text-primary"></i> Editar & Visualizar
-                    </a>
-                  </li>
-                  <li>
-                    <!-- Botão que abre o modal de exclusão -->
-                    <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ membro.id }}">
-                      <i class="bi bi-trash me-1"></i> Excluir
-                    </button>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('member.imprimir_ficha_pdf', id=membro.id) }}" 
-                        target="_blank" rel="noopener noreferrer">
-                      <i class="bi bi-printer me-1 text-success"></i> Imprimir Ficha
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('member.carteira_membro', id=membro.id) }}">
-                      <i class="bi bi-card-text me-1 text-info"></i> Carteira
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('member.carta_recomendacao', id=membro.id) }}"
-                        target="_blank" rel="noopener noreferrer">
-                      <i class="bi bi-file-earmark-pdf me-1 text-secondary"></i> Carta de Recomendação (PDF)
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </td>
+            {% if has_permission("membros", "view") or has_permission("membros", "edit") or has_permission("membros", "delete") %}
+              <td class="text-center">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-gear"></i> Ações
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    {% if has_permission("membros", "edit") or has_permission("membros", "view") %}
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('member.editar_membro', id=membro.id) }}">
+                          <i class="bi bi-pencil-square me-1 text-primary"></i> Editar & Visualizar
+                        </a>
+                      </li>
+                    {% endif %}
+                    {% if has_permission("membros", "delete") %}
+                      <li>
+                        <!-- Botão que abre o modal de exclusão -->
+                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ membro.id }}">
+                          <i class="bi bi-trash me-1"></i> Excluir
+                        </button>
+                      </li>
+                    {% endif %}
+                    {% if has_permission("membros", "view") %}
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('member.imprimir_ficha_pdf', id=membro.id) }}" 
+                            target="_blank" rel="noopener noreferrer">
+                          <i class="bi bi-printer me-1 text-success"></i> Imprimir Ficha
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('member.carteira_membro', id=membro.id) }}">
+                          <i class="bi bi-card-text me-1 text-info"></i> Carteira
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('member.carta_recomendacao', id=membro.id) }}"
+                            target="_blank" rel="noopener noreferrer">
+                          <i class="bi bi-file-earmark-pdf me-1 text-secondary"></i> Carta de Recomendação (PDF)
+                        </a>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </div>
+              </td>
+            {% endif %}
           </tr>
           {% endfor %}
         {% else %}
@@ -149,101 +164,105 @@
 
 {% block modals %}
   {% for membro in membros.items %}
-    <!-- 🔹 Modal de confirmação de exclusão -->
-    <div class="modal fade" id="confirmDelete{{ membro.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ membro.id }}" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-gradient-base">
-            <h5 class="modal-title" id="confirmDeleteLabel{{ membro.id }}">Confirmar Exclusão</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <div class="modal-body">
-            Tem certeza que deseja excluir o membro <strong>{{ membro.nome }}</strong>?<br>
-            Esta ação não poderá ser desfeita.
-          </div>
-          <div class="modal-footer">
-            <form method="POST" action="{{ url_for('member.excluir_membro', id=membro.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash me-1"></i> Excluir
+    {% if has_permission("membros", "delete") %}
+      <!-- 🔹 Modal de confirmação de exclusão -->
+      <div class="modal fade" id="confirmDelete{{ membro.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ membro.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-gradient-base">
+              <h5 class="modal-title" id="confirmDeleteLabel{{ membro.id }}">Confirmar Exclusão</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              Tem certeza que deseja excluir o membro <strong>{{ membro.nome }}</strong>?<br>
+              Esta ação não poderá ser desfeita.
+            </div>
+            <div class="modal-footer">
+              <form method="POST" action="{{ url_for('member.excluir_membro', id=membro.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">
+                  <i class="bi bi-trash me-1"></i> Excluir
+                </button>
+              </form>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
               </button>
-            </form>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              <i class="bi bi-x-circle me-1"></i> Cancelar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  {% endfor %}
-
-  <!-- 🔹 Modal: Link de Cadastro de Visitantes -->
-  <div class="modal fade" id="visitanteLinkModal" tabindex="-1" aria-labelledby="visitanteLinkModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <!-- Cabeçalho com gradiente -->
-        <div class="modal-header bg-gradient-base text-white">
-          <h5 class="modal-title" id="visitanteLinkModalLabel">
-            <i class="bi bi-person-plus me-2"></i> Link de Cadastro de Visitantes
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-
-        <div class="modal-body">
-          <p class="mb-2">Compartilhe este link para que visitantes possam se cadastrar na sua igreja:</p>
-
-          <div class="input-group mb-3">
-            <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-            <input type="text" class="form-control no-edit" value="{{ visitante_link_url }}" readonly>
-            <button class="btn btn-outline-secondary" type="button" onclick="copyLink('{{ visitante_link_url }}')">
-              Copiar
-            </button>
-          </div>
-
-          <!-- CSS embutido na própria página -->
-          <style>
-            .no-edit[readonly] {
-              cursor: not-allowed;
-              background-color: #e9ecef;
-              color: #6c757d;
-            }
-            .no-edit[readonly]:focus {
-              outline: none !important;
-              box-shadow: none !important;
-              border-color: #ced4da;
-            }
-          </style>
-
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <strong>Compartilhar via:</strong>
-            <a class="btn btn-success btn-sm d-flex align-items-center" target="_blank"
-               href="https://wa.me/?text={{ visitante_link_url | urlencode }}">
-              <i class="bi bi-whatsapp me-1"></i> WhatsApp
-            </a>
-            <button class="btn btn-primary btn-sm d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#qrCollapse" aria-expanded="false" aria-controls="qrCollapse">
-              <i class="bi bi-qr-code me-1"></i> QR Code
-            </button>
-          </div>
-
-          <div class="collapse" id="qrCollapse">
-            <div class="card card-body text-center">
-              {% if visitante_link_url %}
-              <img class="img-fluid mx-auto d-block" style="max-width: 150px;"
-                   src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ visitante_link_url | urlencode }}"
-                   alt="QR Code do link de cadastro">
-              <p class="mt-2 text-muted">📱 Escaneie o QR Code com o celular</p>
-              {% endif %}
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="bi bi-x-circle me-1"></i> Fechar
-          </button>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {% if has_permission("membros", "view") %}
+    <!-- 🔹 Modal: Link de Cadastro de Visitantes -->
+    <div class="modal fade" id="visitanteLinkModal" tabindex="-1" aria-labelledby="visitanteLinkModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <!-- Cabeçalho com gradiente -->
+          <div class="modal-header bg-gradient-base text-white">
+            <h5 class="modal-title" id="visitanteLinkModalLabel">
+              <i class="bi bi-person-plus me-2"></i> Link de Cadastro de Visitantes
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+
+          <div class="modal-body">
+            <p class="mb-2">Compartilhe este link para que visitantes possam se cadastrar na sua igreja:</p>
+
+            <div class="input-group mb-3">
+              <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+              <input type="text" class="form-control no-edit" value="{{ visitante_link_url }}" readonly>
+              <button class="btn btn-outline-secondary" type="button" onclick="copyLink('{{ visitante_link_url }}')">
+                Copiar
+              </button>
+            </div>
+
+            <!-- CSS embutido na própria página -->
+            <style>
+              .no-edit[readonly] {
+                cursor: not-allowed;
+                background-color: #e9ecef;
+                color: #6c757d;
+              }
+              .no-edit[readonly]:focus {
+                outline: none !important;
+                box-shadow: none !important;
+                border-color: #ced4da;
+              }
+            </style>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <strong>Compartilhar via:</strong>
+              <a class="btn btn-success btn-sm d-flex align-items-center" target="_blank"
+                 href="https://wa.me/?text={{ visitante_link_url | urlencode }}">
+                <i class="bi bi-whatsapp me-1"></i> WhatsApp
+              </a>
+              <button class="btn btn-primary btn-sm d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#qrCollapse" aria-expanded="false" aria-controls="qrCollapse">
+                <i class="bi bi-qr-code me-1"></i> QR Code
+              </button>
+            </div>
+
+            <div class="collapse" id="qrCollapse">
+              <div class="card card-body text-center">
+                {% if visitante_link_url %}
+                <img class="img-fluid mx-auto d-block" style="max-width: 150px;"
+                     src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ visitante_link_url | urlencode }}"
+                     alt="QR Code do link de cadastro">
+                <p class="mt-2 text-muted">📱 Escaneie o QR Code com o celular</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle me-1"></i> Fechar
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  {% endif %}
 
   <!-- 🔹 Script para alerta flash ao copiar -->
   <script>

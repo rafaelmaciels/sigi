@@ -1,0 +1,7 @@
+<VirtualHost *:80>
+    ServerName sigigreja.ddns.net
+    ServerAlias www.sigigreja.ddns.net
+
+    # 🔒 Redireciona todo tráfego HTTP para HTTPS
+    Redirect permanent / https://sigigreja.ddns.net/
+</VirtualHost>

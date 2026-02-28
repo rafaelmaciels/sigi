@@ -1,12 +1,14 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, abort, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
+from flask_login import current_user
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage   # ✅ valida uploads
 from app.extensions import db
 from app.models import User
-from functools import wraps
 from .forms import NovoUsuarioForm, EditarUsuarioForm
 from utils.logs import registrar_log
+from app.decorators import permission_required   # 👈 importa o decorator global
 import os
+from sqlalchemy.exc import IntegrityError
 
 usuarios_bp = Blueprint("usuarios", __name__, url_prefix="/usuarios")
 
@@ -14,87 +16,91 @@ usuarios_bp = Blueprint("usuarios", __name__, url_prefix="/usuarios")
 def get_upload_folder():
     return os.path.join(current_app.root_path, "static", "uploads")
 
-# Decorator para garantir acesso apenas a administradores
-def admin_required(f):
-    @wraps(f)
-    @login_required
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != "admin":
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
-
 @usuarios_bp.route("/")
-@admin_required
+@permission_required("usuarios", "view")   # 👈 exige permissão de leitura
 def usuarios_page():
-    usuarios = User.query.all()
+    page = request.args.get("page", 1, type=int)
+    usuarios = User.query.order_by(User.nome).paginate(page=page, per_page=5)
     return render_template("configuracoes/usuarios.html", usuarios=usuarios)
 
 @usuarios_bp.route("/novo", methods=["GET", "POST"])
-@admin_required
+@permission_required("usuarios", "create")   # 👈 exige permissão de criação
 def novo_usuario():
     form = NovoUsuarioForm()
     if form.validate_on_submit():
-        novo = User(
+        existente = User.query.filter_by(email=form.email.data).first()
+        if existente:
+            flash("Já existe um usuário com este e-mail.", "danger")
+            return redirect(url_for("configuracoes.usuarios.novo_usuario"))
+
+        usuario = User(
             nome=form.nome.data,
             email=form.email.data,
-            role=form.role.data,
-            ativo=(form.ativo.data == "true")
+            ativo=(form.ativo.data == "true"),
+            is_admin=(form.is_admin.data == "true")
         )
-        novo.set_password(form.senha.data)
+        usuario.set_password(form.senha.data)
 
-        # Primeiro commit para gerar o ID
-        db.session.add(novo)
-        db.session.commit()
+        try:
+            db.session.add(usuario)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Erro ao criar usuário. E-mail duplicado ou inválido.", "danger")
+            return redirect(url_for("configuracoes.usuarios.novo_usuario"))
 
-        # Foto (se enviada)
-        if form.foto.data:
+        if form.foto.data and isinstance(form.foto.data, FileStorage):
             foto = form.foto.data
             ext = os.path.splitext(foto.filename)[1].lower()
             if ext not in [".jpg", ".jpeg", ".png"]:
                 flash("Formato inválido. Use JPG ou PNG.", "danger")
+                return redirect(url_for("configuracoes.usuarios.novo_usuario"))
             else:
-                filename = secure_filename(f"user_{novo.id}{ext}")
+                filename = secure_filename(f"user_{usuario.id}{ext}")
                 upload_folder = get_upload_folder()
                 os.makedirs(upload_folder, exist_ok=True)
                 path = os.path.join(upload_folder, filename)
                 foto.save(path)
-                novo.foto = filename
-                db.session.commit()  # segundo commit para atualizar a foto
+                usuario.foto = filename
+                db.session.commit()
 
-        registrar_log(current_user.nome, f"Criou usuário: {novo.email}", "sucesso")
-        flash(f"Usuário {novo.nome} criado com sucesso!", "success")
+        registrar_log(current_user.nome, f"Criou usuário: {usuario.email}", "sucesso")
+        flash(f"Usuário {usuario.nome} criado com sucesso!", "success")
         return redirect(url_for("configuracoes.usuarios.usuarios_page"))
     return render_template("configuracoes/novo_usuario.html", form=form)
-    
 
 @usuarios_bp.route("/<int:id>/editar", methods=["GET", "POST"])
-@admin_required
+@permission_required("usuarios", "edit")   # 👈 exige permissão de edição
 def editar_usuario(id):
     usuario = User.query.get_or_404(id)
     form = EditarUsuarioForm(obj=usuario)
     if request.method == "GET":
         form.ativo.data = "true" if usuario.ativo else "false"
+        form.is_admin.data = "true" if usuario.is_admin else "false"
 
     if form.validate_on_submit():
+        existente = User.query.filter(User.email == form.email.data, User.id != usuario.id).first()
+        if existente:
+            flash("Este e-mail já está em uso por outro usuário.", "danger")
+            return redirect(url_for("configuracoes.usuarios.editar_usuario", id=id))
+
         usuario.nome = form.nome.data
         usuario.email = form.email.data
-        usuario.role = form.role.data
         usuario.ativo = (form.ativo.data == "true")
+        usuario.is_admin = (form.is_admin.data == "true")
         if form.senha.data:
             usuario.set_password(form.senha.data)
 
-        # Foto (se enviada)
-        if form.foto.data:
+        if form.foto.data and isinstance(form.foto.data, FileStorage):
             foto = form.foto.data
             ext = os.path.splitext(foto.filename)[1].lower()
             if ext not in [".jpg", ".jpeg", ".png"]:
                 flash("Formato inválido. Use JPG ou PNG.", "danger")
+                return redirect(url_for("configuracoes.usuarios.editar_usuario", id=id))
             else:
                 upload_folder = get_upload_folder()
                 os.makedirs(upload_folder, exist_ok=True)
 
-                # Remove foto antiga se existir
                 if usuario.foto:
                     old_path = os.path.join(upload_folder, usuario.foto)
                     if os.path.exists(old_path):
@@ -105,19 +111,23 @@ def editar_usuario(id):
                 foto.save(path)
                 usuario.foto = filename
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Erro ao atualizar usuário. E-mail duplicado ou inválido.", "danger")
+            return redirect(url_for("configuracoes.usuarios.editar_usuario", id=id))
+
         registrar_log(current_user.nome, f"Editou usuário: {usuario.email}", "sucesso")
-        flash(f"Usuário {novo.nome} atualizado com sucesso!", "success")
+        flash(f"Usuário {usuario.nome} atualizado com sucesso!", "success")
         return redirect(url_for("configuracoes.usuarios.usuarios_page"))
     return render_template("configuracoes/editar_usuario.html", form=form, usuario=usuario)
-    
 
 @usuarios_bp.route("/<int:id>/excluir", methods=["POST"])
-@admin_required
+@permission_required("usuarios", "delete")   # 👈 exige permissão de exclusão
 def excluir_usuario(id):
     usuario = User.query.get_or_404(id)
 
-    # 🔹 Remove foto física se existir
     if usuario.foto:
         upload_folder = get_upload_folder()
         path = os.path.join(upload_folder, usuario.foto)
@@ -132,21 +142,20 @@ def excluir_usuario(id):
     return redirect(url_for("configuracoes.usuarios.usuarios_page"))
 
 @usuarios_bp.route("/<int:id>/toggle", methods=["POST"])
-@admin_required
+@permission_required("usuarios", "edit")   # 👈 exige permissão de edição
 def toggle_usuario(id):
     usuario = User.query.get_or_404(id)
     usuario.ativo = not usuario.ativo
     db.session.commit()
     registrar_log(current_user.nome, f"Trocou status do usuário: {usuario.email} para {'ativo' if usuario.ativo else 'inativo'}", "sucesso")
     flash(
-        f"Usuário {novo.nome} foi {'ativado' if usuario.ativo else 'desativado'}.",
+        f"Usuário {usuario.nome} foi {'ativado' if usuario.ativo else 'desativado'}.",
         "success" if usuario.ativo else "warning"
     )
     return redirect(url_for("configuracoes.usuarios.usuarios_page"))
 
-
 @usuarios_bp.route("/<int:id>/remover_foto", methods=["POST"])
-@admin_required
+@permission_required("usuarios", "edit")   # 👈 exige permissão de edição
 def remover_foto(id):
     usuario = User.query.get_or_404(id)
 
@@ -154,11 +163,9 @@ def remover_foto(id):
         upload_folder = get_upload_folder()
         path = os.path.join(upload_folder, usuario.foto)
 
-        # Remove arquivo físico
         if os.path.exists(path):
             os.remove(path)
 
-        # Limpa campo no banco
         usuario.foto = None
         db.session.commit()
 

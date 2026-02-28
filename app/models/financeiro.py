@@ -1,5 +1,5 @@
 from datetime import datetime
-from app.extensions import db	# ✅ importa o db único centralizado em app/extensions.py
+from app.extensions import db   # ✅ importa o db único centralizado em app/extensions.py
 
 # -----------------------------
 # 💰 Financeiro
@@ -24,6 +24,9 @@ class Financeiro(db.Model):
     conciliado = db.Column(db.Boolean, default=False)
     comprovante = db.Column(db.String(200))
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # 🔹 Novo campo para registrar quem lançou a entrada/saída
+    usuario = db.Column(db.String(100))
 
     def __init__(self, **kwargs):
         tipo = kwargs.get("tipo")

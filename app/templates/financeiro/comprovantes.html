@@ -4,32 +4,117 @@
 <div class="container mt-4">
   <h2><i class="bi bi-file-earmark-text"></i> Comprovantes</h2>
 
-  <form method="POST" enctype="multipart/form-data" class="mb-4">
-    {{ form.hidden_tag() }}
-    <div class="mb-3">
-      {{ form.arquivo.label }} {{ form.arquivo(class="form-control") }}
+  <!-- Card informativo fixo -->
+  <div class="card border-info shadow-sm mb-4">
+    <div class="card-body text-muted small">
+      <i class="bi bi-info-circle"></i> 
+      Use os filtros para localizar comprovantes por descrição, intervalo de datas ou mês específico. 
+      Exemplo: para ver apenas Janeiro, selecione início <strong>01/01/2026</strong> e fim <strong>31/01/2026</strong>.
     </div>
-    <div class="mb-3">
-      {{ form.data.label }} {{ form.data(class="form-control") }}
+  </div>
+
+  <!-- Filtros -->
+  <form method="GET" class="row g-3 mb-3">
+    <div class="col-md-4">
+      <input type="text" name="filtro" value="{{ request.args.get('filtro','') }}" 
+             class="form-control" placeholder="Buscar por Tipo de Receita, Conta ou Descrição">
     </div>
-    <div class="mb-3">
-      {{ form.descricao.label }} {{ form.descricao(class="form-control") }}
+    <div class="col-md-3">
+      <input type="date" name="inicio" value="{{ request.args.get('inicio','') }}" class="form-control">
     </div>
-    {{ form.submit(class="btn btn-primary") }}
+    <div class="col-md-3">
+      <input type="date" name="fim" value="{{ request.args.get('fim','') }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-outline-primary w-100">
+        <i class="bi bi-filter"></i> Filtrar
+      </button>
+    </div>
   </form>
 
   <hr>
-  <h4>Comprovantes por mês</h4>
-  {% for mes, lista in por_mes.items() %}
-    <h5 class="mt-3">{{ mes }}</h5>
-    <ul class="list-group">
-      {% for r in lista %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          {{ r.data.strftime('%d/%m/%Y') }} - {{ r.descricao or 'Sem descrição' }}
-          <a href="{{ url_for('static', filename='uploads/comprovantes/' ~ r.comprovante) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Ver</a>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endfor %}
+  {% if por_mes %}
+    {% set meses = {
+      'January':'Janeiro','February':'Fevereiro','March':'Março','April':'Abril',
+      'May':'Maio','June':'Junho','July':'Julho','August':'Agosto',
+      'September':'Setembro','October':'Outubro','November':'Novembro','December':'Dezembro'
+    } %}
+    {% for mes, lista in por_mes.items() %}
+      <h4 class="mt-4">
+        Comprovantes mês {{ meses[lista[0].data.strftime('%B')] }} {{ lista[0].data.strftime('%Y') }}
+      </h4>
+      <div class="table-responsive shadow-sm" style="max-height:400px; overflow-y:auto;">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Categoria</th>
+              <th>Descrição</th>
+              <th>Valor</th>
+              <th>Usuário</th>
+              <th>Comprovante</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in lista %}
+              <tr>
+                <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
+                <td>
+                  {% if r.tipo == 'Entrada' %}
+                    <span class="badge bg-success">Entrada</span>
+                  {% else %}
+                    <span class="badge bg-danger">Saída</span>
+                  {% endif %}
+                </td>
+                <td>{{ r.categoria or 'Sem categoria' }}</td>
+                <td>{{ r.descricao or 'Sem descrição' }}</td>
+                <td><span class="badge bg-success">{{ r.valor|currency }}</span></td>
+                <td>{{ r.usuario or '' }}</td>
+                <td>
+                  <a href="{{ r.comprovante }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-eye"></i> Ver
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+
+    <!-- Paginação -->
+    {% if pagination %}
+      <div class="d-flex justify-content-center mt-3">
+        <ul class="pagination">
+          {% if pagination.has_prev %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('financeiro.comprovantes', page=pagination.prev_num, filtro=request.args.get('filtro'), inicio=request.args.get('inicio'), fim=request.args.get('fim')) }}">
+                &laquo; Anterior
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
+          {% endif %}
+
+          <li class="page-item disabled">
+            <span class="page-link">Página {{ pagination.page }} de {{ pagination.pages }}</span>
+          </li>
+
+          {% if pagination.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('financeiro.comprovantes', page=pagination.next_num, filtro=request.args.get('filtro'), inicio=request.args.get('inicio'), fim=request.args.get('fim')) }}">
+                Próxima &raquo;
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Próxima &raquo;</span></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+  {% else %}
+    <p class="text-muted">Nenhum comprovante encontrado.</p>
+  {% endif %}
 </div>
 {% endblock %}

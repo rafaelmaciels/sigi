@@ -7,6 +7,7 @@ from app.models.log import Log
 from datetime import datetime, timezone
 from flask import request
 from app.extensions import db
+from app.decorators import permission_required  # 🔹 import do decorator
 
 atas_bp = Blueprint("atas", __name__, url_prefix="/atas")
 
@@ -35,6 +36,7 @@ def registrar_log(usuario, tarefa, resultado="sucesso"):
 # 📋 Listar atas com paginação 
 # -----------------------------
 @atas_bp.route("/")
+@permission_required("atas", "view")
 def listar_atas():
     page = request.args.get("page", 1, type=int)
     termo = request.args.get("q", "", type=str)
@@ -52,6 +54,7 @@ def listar_atas():
     return render_template("documentos/atas/atas.html", atas=atas, termo=termo)
 
 @atas_bp.route("/buscar", methods=["GET"])
+@permission_required("atas", "view")
 def buscar_atas():
     termo = request.args.get("q", "").strip().lower()
     page = request.args.get("page", 1, type=int)
@@ -82,6 +85,7 @@ def buscar_atas():
 # 📝 Criar nova ata 
 # -----------------------------
 @atas_bp.route("/nova", methods=["GET", "POST"])
+@permission_required("atas", "create")
 def nova_ata():
     form = AtaForm()
     if form.validate_on_submit():
@@ -116,6 +120,7 @@ def nova_ata():
     return render_template("documentos/atas/nova_ata.html", form=form)
 
 @atas_bp.route("/<int:id>")
+@permission_required("atas", "view")
 def ver_ata(id):
     ata = Ata.query.get_or_404(id)
     return render_template("documentos/atas/ver_ata.html", ata=ata)
@@ -125,6 +130,7 @@ def ver_ata(id):
 # ✏️ Editar ata existente 
 # -----------------------------
 @atas_bp.route("/<int:id>/editar", methods=["GET", "POST"])
+@permission_required("atas", "edit")
 def editar_ata(id):
     ata = Ata.query.get_or_404(id)
     if ata.data_emissao and hasattr(ata.data_emissao, "date"):
@@ -166,6 +172,7 @@ def editar_ata(id):
 # 🗑️ Excluir ata existente 
 # -----------------------------
 @atas_bp.route("/<int:id>/excluir", methods=["POST", "GET"])
+@permission_required("atas", "delete")
 def excluir_ata(id):
     ata = Ata.query.get_or_404(id)
     db.session.delete(ata)

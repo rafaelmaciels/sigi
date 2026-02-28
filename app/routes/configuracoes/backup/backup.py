@@ -1,30 +1,21 @@
-from flask import Blueprint, render_template, flash, redirect, url_for, abort, send_file
-from flask_login import login_required, current_user
-from functools import wraps
+from flask import Blueprint, render_template, flash, redirect, url_for, send_file
+from flask_login import current_user
 from dotenv import load_dotenv
 import os, subprocess, re, tempfile, zipfile, urllib.parse
 from datetime import datetime
 
 from utils.logs import registrar_log
+from app.decorators import permission_required   # 👈 importa o decorator global
 
 backup_bp = Blueprint("backup", __name__, url_prefix="/backup")
 
-def admin_required(f):
-    @wraps(f)
-    @login_required
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != "admin":
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
-
 @backup_bp.route("/", methods=["GET"])
-@admin_required
+@permission_required("config", "view")   # 👈 exige permissão de configuração
 def backup_page():
     return render_template("configuracoes/backup.html")
 
 @backup_bp.route("/gerar", methods=["POST"])
-@admin_required
+@permission_required("config", "edit")   # 👈 exige permissão de edição/configuração
 def gerar_backup():
     load_dotenv()
     db_url = os.getenv("DATABASE_URL")

@@ -26,6 +26,9 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, os.environ.get('UPLOAD_FOLDER', 'app/static/uploads'))
     TEMPLATES_AUTO_RELOAD = True
 
+    # 🔒 Limite máximo de upload (2 MB por exemplo)
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # 2 MB
+
     # -----------------------------
     # 📧 Configuração de E-mail
     # -----------------------------
@@ -49,11 +52,29 @@ class Config:
     # Duração do cookie "remember me" do Flask-Login
     REMEMBER_COOKIE_DURATION = timedelta(minutes=int(os.environ.get('REMEMBER_TIMEOUT', 30)))
 
+
 class DevelopmentConfig(Config):
     DEBUG = True
 
+
 class ProductionConfig(Config):
     DEBUG = False
+
+    # 🔒 Cookies só trafegam via HTTPS
+    SESSION_COOKIE_SECURE = True
+    REMEMBER_COOKIE_SECURE = True
+
+    # 🔒 Proteção contra CSRF também só via HTTPS
+    WTF_CSRF_SSL_STRICT = True
+
+    # 🔒 SameSite evita envio de cookies em requisições cross-site
+    SESSION_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+
+    # 🔒 Cookies HttpOnly (não acessíveis via JavaScript)
+    SESSION_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_HTTPONLY = True
+
 
 # -----------------------------
 # 🌍 Seleção automática de ambiente

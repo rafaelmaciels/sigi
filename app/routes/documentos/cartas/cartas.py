@@ -3,6 +3,7 @@ from datetime import datetime
 from app import db
 from app.models import Carta, Member   # ✅ agora usamos o modelo Carta
 from .forms import CartaForm
+from app.decorators import permission_required	# 🔹 import do decorator
 
 cartas_bp = Blueprint("cartas", __name__, url_prefix="/cartas")
 
@@ -11,6 +12,7 @@ cartas_bp = Blueprint("cartas", __name__, url_prefix="/cartas")
 # 📋 Listar cartas com paginação 
 # ------------------------------------------
 @cartas_bp.route("/")
+@permission_required("cartas", "view")
 def listar_cartas():
     page = request.args.get("page", 1, type=int)
     cartas = (
@@ -25,6 +27,7 @@ def listar_cartas():
 # 🔍 Buscar cartas por título, remetente ou destinatário 
 # ---------------------------------------------------------
 @cartas_bp.route("/buscar", methods=["GET"])
+@permission_required("cartas", "view")
 def buscar_cartas():
     termo = request.args.get("q", "").strip().lower()
     page = request.args.get("page", 1, type=int)
@@ -59,6 +62,7 @@ def buscar_cartas():
 # 👁️ Visualizar detalhes de uma carta 
 # ---------------------------------------
 @cartas_bp.route("/<int:id>")
+@permission_required("cartas", "view")
 def visualizar_carta(id):
     carta = Carta.query.get_or_404(id)
     return render_template("documentos/cartas/carta_detalhe.html", carta=carta)
@@ -68,6 +72,7 @@ def visualizar_carta(id):
 # ➕ Criar nova carta 
 # --------------------------------------
 @cartas_bp.route("/nova", methods=["GET", "POST"])
+@permission_required("cartas", "create")
 def nova_carta():
     form = CartaForm()
     # 🔹 Preenche o select de membros com opção inicial segura
@@ -96,6 +101,7 @@ def nova_carta():
 # ✏️ Editar carta existente 
 # ----------------------------------
 @cartas_bp.route("/<int:id>/editar", methods=["GET", "POST"])
+@permission_required("cartas", "edit")
 def editar_carta(id):
     carta = Carta.query.get_or_404(id)
     form = CartaForm(obj=carta)
@@ -127,6 +133,7 @@ def editar_carta(id):
 # 🗑️ Excluir carta 
 # ---------------------------
 @cartas_bp.route("/<int:id>/excluir", methods=["POST"])
+@permission_required("cartas", "delete")
 def excluir_carta(id):
     carta = Carta.query.get_or_404(id)
     db.session.delete(carta)

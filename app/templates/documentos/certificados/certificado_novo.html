@@ -10,40 +10,42 @@
   <form method="POST">
     {{ form.hidden_tag() }}
 
-    <!-- Título -->
-    <div class="mb-3">
-      {{ form.titulo.label(class="form-label") }}
-      {{ form.titulo(class="form-control", placeholder="Digite o título do certificado") }}
-    </div>
+    <div class="row g-3">
+      <!-- Título -->
+      <div class="col-md-6">
+        {{ form.titulo.label(class="form-label") }}
+        {{ form.titulo(class="form-control", placeholder="Digite o título do certificado") }}
+      </div>
 
-    <!-- Nome do participante -->
-    <div class="mb-3">
-      {{ form.criado_por.label(class="form-label") }}
-      {{ form.criado_por(class="form-control", placeholder="Nome do participante") }}
-    </div>
+      <!-- Nome do participante -->
+      <div class="col-md-6">
+        {{ form.criado_por.label(class="form-label") }}
+        {{ form.criado_por(class="form-control", placeholder="Nome do participante") }}
+      </div>
 
-    <!-- Evento -->
-    <div class="mb-3">
-      {{ form.evento.label(class="form-label") }}
-      {{ form.evento(class="form-control", placeholder="Nome do evento") }}
-    </div>
+      <!-- Evento -->
+      <div class="col-md-6">
+        {{ form.evento.label(class="form-label") }}
+        {{ form.evento(class="form-control", placeholder="Nome do evento") }}
+      </div>
 
-    <!-- Data de emissão -->
-    <div class="mb-3">
-      {{ form.data_emissao.label(class="form-label") }}
-      {{ form.data_emissao(class="form-control", type="date") }}
-    </div>
+      <!-- Data de emissão -->
+      <div class="col-md-6">
+        {{ form.data_emissao.label(class="form-label") }}
+        {{ form.data_emissao(class="form-control", type="date") }}
+      </div>
 
-    <!-- Corpo do certificado -->
-    <div class="mb-3">
-      {{ form.corpo.label(class="form-label") }}
-      {{ form.corpo(class="form-control", rows="4", placeholder="Texto do certificado") }}
-    </div>
+      <!-- Corpo do certificado -->
+      <div class="col-md-12">
+        {{ form.corpo.label(class="form-label") }}
+        {{ form.corpo(class="form-control", rows="4", placeholder="Texto do certificado") }}
+      </div>
 
-    <!-- Situação -->
-    <div class="mb-3">
-      {{ form.situacao.label(class="form-label") }}
-      {{ form.situacao(class="form-select") }}
+      <!-- Situação -->
+      <div class="col-md-6">
+        {{ form.situacao.label(class="form-label") }}
+        {{ form.situacao(class="form-select") }}
+      </div>
     </div>
 
     <!-- Botões -->

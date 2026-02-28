@@ -1,10 +1,17 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, TextAreaField, DateField, FileField, SubmitField
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import StringField, SelectField, TextAreaField, DateField, SubmitField
 from wtforms.validators import DataRequired, Optional, Email
 from datetime import date
 
 class MemberForm(FlaskForm):
-    foto = FileField("Foto", validators=[Optional()])
+    foto = FileField(
+        "Foto",
+        validators=[
+            Optional(),
+            FileAllowed(["jpg", "jpeg", "png"], "Somente imagens JPG ou PNG são permitidas.")
+        ]
+    )
     nome = StringField("Nome", validators=[DataRequired()])
     data_nascimento = DateField("Data de Nascimento", format="%Y-%m-%d", validators=[Optional()])
     sexo = SelectField("Sexo", choices=[("Masculino", "Masculino"), ("Feminino", "Feminino")], validators=[Optional()])

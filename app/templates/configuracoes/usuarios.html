@@ -10,10 +10,21 @@
     </a>
   </div>
 
+  <!-- Informação abaixo do título -->
+  <p class="text-muted small">
+    <i class="bi bi-info-circle"></i>
+    Nesta página você pode visualizar, criar, editar e excluir usuários do sistema. 
+    O e-mail deve ser único e o status indica se o usuário está ativo ou inativo.
+  </p>
+
   <!-- Botão para criar novo usuário -->
-  <a href="{{ url_for('configuracoes.usuarios.novo_usuario') }}" class="btn btn-success mb-3">
-    <i class="bi bi-person-plus"></i> Criar Usuário
-  </a>
+  <div class="text-start mb-1">
+    {% if has_permission("usuarios", "create") %}
+      <a href="{{ url_for('configuracoes.usuarios.novo_usuario') }}" class="btn btn-success mb-3">
+        <i class="bi bi-person-plus"></i> Criar Usuário
+      </a>
+    {% endif %}
+  </div>
 
   <!-- Tabela de usuários -->
   <div class="table-responsive shadow-sm">
@@ -29,7 +40,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for u in usuarios %}
+        {% for u in usuarios.items %}
         <tr>
           <td class="text-center">
             {% if u.foto %}
@@ -38,7 +49,6 @@
                    style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:2px solid #0d6efd; 
                           box-shadow:0 2px 4px rgba(0,0,0,0.2); display:inline-block; vertical-align:middle;">
             {% else %}
-              <!-- Avatar circular sem foto -->
               <div style="width:50px; height:50px; border-radius:50%; border:2px solid #dee2e6;
                           display:inline-flex; align-items:center; justify-content:center;
                           box-shadow:0 2px 4px rgba(0,0,0,0.2); background-color:#f8f9fa; vertical-align:middle;">
@@ -48,7 +58,13 @@
           </td>
           <td>{{ u.nome }}</td>
           <td>{{ u.email }}</td>
-          <td><span class="badge bg-info">{{ u.role }}</span></td>
+          <td>
+            {% if u.is_admin %}
+              <span class="badge bg-danger">Administrador</span>
+            {% else %}
+              <span class="badge bg-primary">Usuário</span>
+            {% endif %}
+          </td>
           <td>
             {% if u.ativo %}
               <span class="badge bg-success">Ativo</span>
@@ -58,65 +74,84 @@
           </td>
           <td class="text-center">
             <!-- Ativar/Desativar -->
-            <form method="POST" action="{{ url_for('configuracoes.usuarios.toggle_usuario', id=u.id) }}" style="display:inline;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              {% if u.ativo %}
-                <button type="submit" class="btn btn-sm btn-success" title="Desativar">
-                  <i class="bi bi-check-circle"></i>
-                </button>
-              {% else %}
-                <button type="submit" class="btn btn-sm btn-warning" title="Ativar">
-                  <i class="bi bi-slash-circle"></i>
-                </button>
-              {% endif %}
-            </form>
+            {% if has_permission("usuarios", "edit") %}
+              <form method="POST" action="{{ url_for('configuracoes.usuarios.toggle_usuario', id=u.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% if u.ativo %}
+                  <button type="submit" class="btn btn-sm btn-success" title="Desativar">
+                    <i class="bi bi-check-circle"></i>
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-sm btn-warning" title="Ativar">
+                    <i class="bi bi-slash-circle"></i>
+                  </button>
+                {% endif %}
+              </form>
+            {% endif %}
 
             <!-- Editar -->
-            <a href="{{ url_for('configuracoes.usuarios.editar_usuario', id=u.id) }}" 
-               class="btn btn-sm btn-primary me-1" title="Editar">
-              <i class="bi bi-pencil-square"></i>
-            </a>
+            {% if has_permission("usuarios", "edit") %}
+              <a href="{{ url_for('configuracoes.usuarios.editar_usuario', id=u.id) }}" 
+                 class="btn btn-sm btn-primary" title="Editar">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+            {% endif %}
 
             <!-- Excluir -->
-            <button type="button" class="btn btn-sm btn-danger" 
-                    data-bs-toggle="modal" data-bs-target="#confirmDeleteUser{{ u.id }}" 
-                    title="Excluir">
-              <i class="bi bi-trash"></i>
-            </button>
+            {% if has_permission("usuarios", "delete") %}
+              <button type="button" class="btn btn-sm btn-danger" 
+                      data-bs-toggle="modal" data-bs-target="#confirmDeleteUser{{ u.id }}" 
+                      title="Excluir">
+                <i class="bi bi-trash"></i>
+              </button>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+
+  <!-- Contador de registros de usuários -->
+  {% if usuarios.items %}
+    <p class="mt-2 text-muted">
+       {{ usuarios.items|length }} usuários nesta página
+    </p>
+  {% endif %}
+
+  <!-- 🔹 Inclusão da paginação -->
+  {% set pagination = usuarios %}
+  {% include "pagination/pagination.html" %}
 </div>
 {% endblock %}
 
 {% block modals %}
-  {% for u in usuarios %}
-    <div class="modal fade" id="confirmDeleteUser{{ u.id }}" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg border-0">
-          <div class="modal-header bg-gradient-base text-white">
-            <h5 class="modal-title">Confirmar Exclusão</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            Tem certeza que deseja excluir o usuário <strong>{{ u.nome }}</strong>?
-          </div>
-          <div class="modal-footer">
-            <form method="POST" action="{{ url_for('configuracoes.usuarios.excluir_usuario', id=u.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Excluir
+  {% for u in usuarios.items %}
+    {% if has_permission("usuarios", "delete") %}
+      <div class="modal fade" id="confirmDeleteUser{{ u.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-gradient-base text-white">
+              <h5 class="modal-title">Confirmar Exclusão</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              Tem certeza que deseja excluir o usuário <strong>{{ u.nome }}</strong>?
+            </div>
+            <div class="modal-footer">
+              <form method="POST" action="{{ url_for('configuracoes.usuarios.excluir_usuario', id=u.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">
+                  <i class="bi bi-trash"></i> Excluir
+                </button>
+              </form>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle"></i> Cancelar
               </button>
-            </form>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              <i class="bi bi-x-circle"></i> Cancelar
-            </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    {% endif %}
   {% endfor %}
 {% endblock %}

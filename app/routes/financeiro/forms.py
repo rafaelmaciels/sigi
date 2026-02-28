@@ -14,8 +14,29 @@ class EntradaForm(FlaskForm):
     valor = DecimalField("Valor (R$)", validators=[DataRequired(), NumberRange(min=0)], places=2)
     data = DateField("Data", format='%Y-%m-%d', validators=[DataRequired()])
     descricao = StringField("Descrição", validators=[Optional()])
-    conta = SelectField("Conta", choices=[("Caixa", "Caixa"), ("Banco", "Banco")], validators=[DataRequired()])
+    conta = SelectField("Conta", choices=[
+        ("Caixa", "Caixa"),
+        ("Banco do Brasil", "Banco do Brasil"),
+        ("Bradesco", "Bradesco"),
+        ("Itaú", "Itaú"),
+        ("Santander", "Santander"),
+        ("Nubank", "Nubank"),
+        ("Inter", "Inter"),
+        ("BTG Pactual", "BTG Pactual"),
+        ("Sicoob", "Sicoob"),
+        ("Sicredi", "Sicredi"),
+        ("Mercado Pago", "Mercado Pago"),
+        ("PagBank", "PagBank"),
+        ("Dinheiro", "Dinheiro"),   
+        ("Pix", "Pix"),             
+        ("Outro", "Outro")
+    ], validators=[DataRequired()])
+    
+    comprovante = FileField("Comprovante", validators=[
+        FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], "Somente imagens ou PDF!")
+    ])
     submit = SubmitField("Salvar")
+
 
 class SaidaForm(FlaskForm):
     categoria = SelectField("Tipo de Despesa", choices=[
@@ -29,8 +50,25 @@ class SaidaForm(FlaskForm):
     valor = DecimalField("Valor (R$)", validators=[DataRequired(), NumberRange(min=0)], places=2)
     data = DateField("Data", format='%Y-%m-%d', validators=[DataRequired()])
     descricao = StringField("Descrição", validators=[Optional()])
-    conta = SelectField("Conta", choices=[("Caixa", "Caixa"), ("Banco", "Banco")], validators=[DataRequired()])
+    conta = SelectField("Conta", choices=[
+        ("Caixa", "Caixa"),
+        ("Banco do Brasil", "Banco do Brasil"),
+        ("Bradesco", "Bradesco"),
+        ("Itaú", "Itaú"),
+        ("Santander", "Santander"),
+        ("Nubank", "Nubank"),
+        ("Inter", "Inter"),
+        ("BTG Pactual", "BTG Pactual"),
+        ("Sicoob", "Sicoob"),
+        ("Sicredi", "Sicredi"),
+        ("Mercado Pago", "Mercado Pago"),
+        ("PagBank", "PagBank"),
+        ("Dinheiro", "Dinheiro"),   
+        ("Pix", "Pix"),            
+        ("Outro", "Outro")
+    ], validators=[DataRequired()])
     submit = SubmitField("Salvar")
+
 
 class FiltroRelatorioForm(FlaskForm):
     inicio = DateField("Início", format='%d-%m-%Y', validators=[Optional()])
@@ -42,6 +80,7 @@ class FiltroRelatorioForm(FlaskForm):
     ], validators=[Optional()])
     categoria = StringField("Categoria", validators=[Optional()])
     submit = SubmitField("Filtrar")
+
 
 class ComprovanteForm(FlaskForm):
     arquivo = FileField("Comprovante", validators=[

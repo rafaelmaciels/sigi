@@ -4,6 +4,17 @@
 <div class="container mt-4">
   <h2 class="mb-4"><i class="bi bi-journal-text text-primary"></i> Relatórios</h2>
 
+  <!-- Card informativo -->
+  <div class="card border-info shadow-sm mb-4">
+    <div class="card-body text-muted small">
+      <i class="bi bi-info-circle"></i> 
+      Use os filtros abaixo para gerar relatórios personalizados. 
+      Você pode selecionar um período, tipo <strong>(Entrada ou Saída)</strong> e categoria. 
+      Também é possível exportar os resultados em CSV ou PDF.
+    </div>
+  </div>
+
+  <!-- Filtros -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <form method="POST">
@@ -36,7 +47,6 @@
                                categoria=form.categoria.data if form.categoria.data else '') }}">
             Exportar CSV
           </a>
-          <!-- Botão PDF (placeholder para implementar depois) -->
           <a class="btn btn-outline-danger" href="#">
             Exportar PDF
           </a>
@@ -45,6 +55,7 @@
     </div>
   </div>
 
+  <!-- Totais e gráfico -->
   <div class="row g-4">
     <div class="col-md-4">
       <div class="card shadow-sm">
@@ -60,7 +71,6 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="card-title"><i class="bi bi-pie-chart"></i> Por categoria</h5>
-          <!-- Gráfico menor -->
           <div style="height:200px;">
             <canvas id="pieChart"></canvas>
           </div>
@@ -69,35 +79,76 @@
     </div>
   </div>
 
+  <!-- Registros -->
   <div class="card shadow-sm mt-4">
     <div class="card-body">
       <h5 class="card-title">Registros</h5>
-      <table class="table table-striped align-middle">
-        <thead>
-          <tr>
-            <th>Data</th><th>Tipo</th><th>Categoria</th><th>Conta</th><th>Descrição</th><th>Valor (R$)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in registros %}
-          <tr>
-            <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
-            <td>{{ r.tipo }}</td>
-            <td>{{ r.categoria }}</td>
-            <td>{{ r.conta }}</td>
-            <td>{{ r.descricao or '-' }}</td>
-            <td>{{ r.valor|currency }}</td>
-          </tr>
+      <div class="table-responsive shadow-sm">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Categoria</th>
+              <th>Conta</th>
+              <th>Descrição</th>
+              <th>Valor (R$)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in registros.items %}
+            <tr>
+              <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
+              <td>
+                {% if r.tipo == 'Entrada' %}
+                  <span class="badge bg-success">Entrada</span>
+                {% else %}
+                  <span class="badge bg-danger">Saída</span>
+                {% endif %}
+              </td>
+              <td>{{ r.categoria }}</td>
+              <td>{{ r.conta }}</td>
+              <td>{{ r.descricao or '-' }}</td>
+              <td><span class="badge bg-secondary">{{ r.valor|currency }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted">Nenhum registro no período.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginação -->
+      {% if registros.pages > 1 %}
+      <div class="d-flex justify-content-center mt-3">
+        <ul class="pagination">
+          {% if registros.has_prev %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('financeiro.relatorios', page=registros.prev_num) }}">&laquo; Anterior</a>
+            </li>
           {% else %}
-          <tr><td colspan="6" class="text-center text-muted">Nenhum registro no período.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
+          {% endif %}
+
+          <li class="page-item disabled">
+            <span class="page-link">Página {{ registros.page }} de {{ registros.pages }}</span>
+          </li>
+
+          {% if registros.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('financeiro.relatorios', page=registros.next_num) }}">Próxima &raquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Próxima &raquo;</span></li>
+          {% endif %}
+        </ul>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
 <script>
   const labels = {{ categorias_labels|tojson }};
   const dataVals = {{ categorias_data|tojson }};

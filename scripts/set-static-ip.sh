@@ -20,10 +20,16 @@ network:
     $INTERFACE:
       dhcp4: no
       addresses: [$STATIC_IP]
-      gateway4: $GATEWAY
       nameservers:
         addresses: [$DNS]
+      routes:
+        - to: default
+          via: $GATEWAY
 EOL
+
+# === AJUSTAR PERMISSÕES ===
+echo ">> Ajustando permissões do arquivo Netplan..."
+sudo chmod 600 $NETPLAN_FILE
 
 # === APLICAR CONFIGURAÇÃO ===
 echo ">> Aplicando configuração Netplan..."

@@ -9,54 +9,52 @@
     <h2 class="text-success">
       <i class="bi bi-envelope-plus me-2"></i> Nova Carta
     </h2>
-    <a href="{{ url_for('documentos.cartas.listar_cartas') }}" class="btn btn-secondary">
-      <i class="bi bi-arrow-left me-1"></i> Voltar
-    </a>
   </div>
 
   <!-- Formulário -->
   <form method="POST" action="{{ url_for('documentos.cartas.nova_carta') }}">
     {{ form.hidden_tag() }}
 
-    <div class="mb-3">
-      <label class="form-label">Título</label>
-      {{ form.titulo(class="form-control") }}
-    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Título</label>
+        {{ form.titulo(class="form-control") }}
+      </div>
 
-    <!-- 🔹 Campo de seleção de membro -->
-    <div class="mb-3">
-      <label class="form-label">Membro</label>
-      {{ form.membro_id(class="form-select") }}
-    </div>
+      <div class="col-md-6">
+        <label class="form-label">Membro</label>
+        {{ form.membro_id(class="form-select") }}
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Remetente</label>
-      {{ form.remetente(class="form-control") }}
-    </div>
+      <div class="col-md-6">
+        <label class="form-label">Remetente</label>
+        {{ form.remetente(class="form-control") }}
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Destinatário</label>
-      {{ form.destinatario(class="form-control") }}
-    </div>
+      <div class="col-md-6">
+        <label class="form-label">Destinatário</label>
+        {{ form.destinatario(class="form-control") }}
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Cidade</label>
-      {{ form.cidade(class="form-control") }}
-    </div>
+      <div class="col-md-6">
+        <label class="form-label">Cidade</label>
+        {{ form.cidade(class="form-control") }}
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Situação</label>
-      {{ form.situacao(class="form-select") }}
-    </div>
+      <div class="col-md-6">
+        <label class="form-label">Situação</label>
+        {{ form.situacao(class="form-select") }}
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Data de Emissão</label>
-      {{ form.data_emissao(class="form-control", type="date") }}
-    </div>
+      <div class="col-md-6">
+        <label class="form-label">Data de Emissão</label>
+        {{ form.data_emissao(class="form-control", type="date") }}
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Corpo da Carta</label>
-      {{ form.corpo(class="form-control", rows="6") }}
+      <div class="col-md-12">
+        <label class="form-label">Corpo da Carta</label>
+        {{ form.corpo(class="form-control", rows="6") }}
+      </div>
     </div>
 
     <!-- Botões -->

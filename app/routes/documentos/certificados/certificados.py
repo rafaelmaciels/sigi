@@ -3,6 +3,7 @@ from datetime import datetime
 from app import db
 from app.models import Certificado   # ✅ agora usamos o modelo Certificado
 from .forms import CertificadoForm
+from app.decorators import permission_required	# 🔹 import do decorator
 
 certificados_bp = Blueprint("certificados", __name__, url_prefix="/certificados")
 
@@ -10,6 +11,7 @@ certificados_bp = Blueprint("certificados", __name__, url_prefix="/certificados"
 # 📋 Listar certificados com paginação e busca
 # -----------------------------
 @certificados_bp.route("/")
+@permission_required("certificados", "view")
 def listar_certificados():
     page = request.args.get("page", 1, type=int)   # página atual
     termo = request.args.get("q", "", type=str)    # termo de busca
@@ -45,6 +47,7 @@ def listar_certificados():
 # 👁️ Visualizar certificado
 # -----------------------------
 @certificados_bp.route("/<int:id>")
+@permission_required("certificados", "view")
 def visualizar_certificado(id):
     certificado = Certificado.query.get_or_404(id)
     return render_template("documentos/certificados/certificado_detalhe.html", certificado=certificado)
@@ -54,6 +57,7 @@ def visualizar_certificado(id):
 # 📝 Criar novo certificado
 # -----------------------------
 @certificados_bp.route("/novo", methods=["GET", "POST"])
+@permission_required("certificados", "create")
 def novo_certificado():
     form = CertificadoForm()
     if form.validate_on_submit():
@@ -76,6 +80,7 @@ def novo_certificado():
 # ✏️ Editar certificado existente
 # -----------------------------
 @certificados_bp.route("/<int:id>/editar", methods=["GET", "POST"])
+@permission_required("certificados", "edit")
 def editar_certificado(id):
     certificado = Certificado.query.get_or_404(id)
     form = CertificadoForm(obj=certificado)
@@ -103,6 +108,7 @@ def editar_certificado(id):
 # 🗑️ Excluir certificado existente
 # -----------------------------
 @certificados_bp.route("/<int:id>/excluir", methods=["POST", "GET"])
+@permission_required("certificados", "delete")
 def excluir_certificado(id):
     certificado = Certificado.query.get_or_404(id)
     titulo = certificado.titulo

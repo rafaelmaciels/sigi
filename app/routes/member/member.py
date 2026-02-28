@@ -11,11 +11,13 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
 from sqlalchemy import func
 from weasyprint import HTML  # ➕ para gerar PDF
+from werkzeug.datastructures import FileStorage
 
 from utils.pagination import paginate_query
 from app.models import Member, PublicLink        # 👈 importa os modelos
 from app.models.log import Log, registrar_log    # 👈 modelo de log
 from app.routes.member.forms import MemberForm   # 👈 formulário
+from app.decorators import permission_required 	 # 👈 importa o decorator
 from app.extensions import db
 
 
@@ -26,6 +28,7 @@ member_bp = Blueprint('member', __name__, url_prefix="/membros")
 # -----------------------------
 @member_bp.route("/", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("membros", "view")
 def listar_membros():
     page = request.args.get("page", 1, type=int)
     termo = request.args.get("q", "")   # 🔹 captura termo de busca
@@ -58,6 +61,7 @@ def listar_membros():
 # -----------------------------
 @member_bp.route("/buscar", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("membros", "view")
 def buscar_membros():
     termo = request.args.get("q", "").strip().lower()
     page = request.args.get("page", 1, type=int)
@@ -89,6 +93,7 @@ def buscar_membros():
 # -----------------------------
 @member_bp.route("/cadastro", methods=["GET", "POST"])
 @login_required
+@permission_required("membros", "create")
 def cadastro_membro():
     form = MemberForm(CombinedMultiDict([request.form, request.files]))
     if request.method == "POST" and form.validate_on_submit():
@@ -156,6 +161,12 @@ def cadastro_membro():
 
         return redirect(url_for("member.listar_membros"))
 
+    # ⚠️ Se chegou aqui, houve erro de validação
+    if request.method == "POST":
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(error, "danger")
+
     return render_template("membros/cadastro_membro.html", form=form)
 
 
@@ -164,6 +175,7 @@ def cadastro_membro():
 # -----------------------------
 @member_bp.route("/editar/<int:id>", methods=["GET", "POST"])
 @login_required
+@permission_required("membros", "edit")
 def editar_membro(id):
     membro = Member.query.get_or_404(id)
     form = MemberForm(CombinedMultiDict([request.form, request.files]), obj=membro)
@@ -204,9 +216,9 @@ def editar_membro(id):
         # membro.data_saida = form.data_saida.data or membro.data_saida
         membro.data_saida = form.data_saida.data if form.data_saida.data else None
 
-        # Upload da foto
+        # Upload da foto (somente se for um arquivo válido)
         foto_file = form.foto.data
-        if foto_file:
+        if isinstance(foto_file, FileStorage) and foto_file.filename:
             filename = secure_filename(foto_file.filename)
             upload_folder = current_app.config['UPLOAD_FOLDER']
             os.makedirs(upload_folder, exist_ok=True)
@@ -225,6 +237,12 @@ def editar_membro(id):
 
         return redirect(url_for("member.listar_membros"))
 
+    # ⚠️ Se chegou aqui, houve erro de validação (ex.: imagem inválida)
+    if request.method == "POST":
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(error, "danger")
+
     return render_template("membros/editar_membro.html", form=form, membro=membro)
 
 
@@ -233,6 +251,7 @@ def editar_membro(id):
 # -----------------------------
 @member_bp.route("/excluir/<int:id>", methods=["POST"])
 @login_required
+@permission_required("membros", "delete")
 def excluir_membro(id):
     membro = Member.query.get_or_404(id)
     nome_membro = membro.nome   # 👈 guarda o nome antes de excluir
@@ -252,6 +271,7 @@ def excluir_membro(id):
 # -----------------------------
 @member_bp.route("/aniversariantes", methods=["GET"])
 @login_required
+@permission_required("membros", "view")
 def aniversariantes_mes():
     # Captura filtros
     mes = request.args.get("mes", type=int)
@@ -303,6 +323,7 @@ def aniversariantes_mes():
 # -----------------------------
 @member_bp.route("/carteira/<int:id>", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("membros", "view")
 def carteira_membro(id):
     membro = Member.query.get_or_404(id)
     return render_template("membros/carteira_modelo.html", membro=membro)
@@ -312,6 +333,7 @@ def carteira_membro(id):
 # -----------------------------
 @member_bp.route("/carta_recomendacao/<int:id>", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("membros", "view")
 def carta_recomendacao(id):
     membro = Member.query.get_or_404(id)
 
@@ -332,6 +354,7 @@ def carta_recomendacao(id):
 # -----------------------------
 @member_bp.route('/membro/<int:id>/ficha/pdf')
 @login_required   # 👈 protege a rota
+@permission_required("membros", "view")
 def imprimir_ficha_pdf(id):
     membro = Member.query.get_or_404(id)
 
@@ -356,6 +379,7 @@ def imprimir_ficha_pdf(id):
 # -----------------------------
 @member_bp.route("/relatorio", methods=["GET"])
 @login_required   # 👈 protege a rota
+@permission_required("membros", "view")
 def relatorio_membros():
     sexo = request.args.get("sexo")
     status = request.args.get("status")
@@ -437,6 +461,7 @@ def relatorio_membros():
 # -----------------------------------------
 @member_bp.route("/relatorio/pdf")
 @login_required   # 👈 protege a rota
+@permission_required("membros", "view")
 def relatorio_membros_pdf():
     sexo = request.args.get("sexo")
     status = request.args.get("status")
@@ -557,6 +582,7 @@ def cadastro_visitante(hash):
 # -----------------------------
 @member_bp.route("/membros/aniversariantes/pdf", methods=["GET"])
 @login_required
+@permission_required("membros", "view")
 def exportar_aniversariantes_pdf():
     # 🔹 Captura filtros da URL
     mes = request.args.get("mes", type=int)

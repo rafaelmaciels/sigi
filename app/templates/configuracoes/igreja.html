@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Dados da Igreja{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- Cabeçalho com título e botão voltar alinhados -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h2><i class="bi bi-building text-info"></i> Dados da Igreja</h2>
+    <a href="{{ url_for('configuracoes.configuracoes') }}" class="btn btn-secondary" title="Voltar para Configurações">
+      <i class="bi bi-arrow-left-circle"></i>
+    </a>
+  </div>
+
+  <!-- Texto informativo -->
+  {% if dados %}
+    <p class="text-muted small">
+      <i class="bi bi-info-circle"></i> Visualize e edite as informações cadastradas da igreja conforme necessário.
+    </p>
+  {% else %}
+    <p class="text-muted small">
+      <i class="bi bi-info-circle"></i> Nenhum dado cadastrado ainda. Cadastre as informações iniciais da igreja para configurar o sistema.
+    </p>
+  {% endif %}
+
+  <!-- Card com informações -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      {% if dados %}
+        <div class="row">
+          <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item"><strong>Nome:</strong> {{ dados.nome }}</li>
+              <li class="list-group-item"><strong>CNPJ:</strong> {{ dados.cnpj|default('-', true) }}</li>
+              <li class="list-group-item"><strong>Endereço:</strong> {{ dados.endereco|default('-', true) }}</li>
+              <li class="list-group-item"><strong>Telefone:</strong> {{ dados.telefone|default('-', true) }}</li>
+              <li class="list-group-item"><strong>Email:</strong> {{ dados.email|default('-', true) }}</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item"><strong>Site:</strong> {{ dados.site|default('-', true) }}</li>
+              <li class="list-group-item"><strong>Pastor Responsável:</strong> {{ dados.pastor_responsavel|default('-', true) }}</li>
+              <li class="list-group-item"><strong>Ano de Fundação:</strong> {{ dados.ano_fundacao|default('-', true) }}</li>
+              <li class="list-group-item"><strong>Versículo Tema:</strong> {{ dados.versiculo_tema|default('-', true) }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Botões alinhados com permissões -->
+        <div class="d-flex justify-content-between mt-4">
+          <div>
+            {% if has_permission("config", "edit") %}
+              <a href="{{ url_for('configuracoes.igreja.editar_igreja') }}" class="btn btn-info me-2">
+                <i class="bi bi-pencil-square"></i> Editar
+              </a>
+            {% endif %}
+            {% if has_permission("config", "delete") %}
+              <!-- Botão que abre modal -->
+              <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteIgreja">
+                <i class="bi bi-trash"></i> Excluir
+              </button>
+            {% endif %}
+          </div>
+          <div>
+            {% if dados.atualizado_em %}
+              <small class="text-muted">
+                <i class="bi bi-info-circle"></i>
+                Última atualização: {{ (dados.atualizado_em|to_local).strftime('%d/%m/%Y') }}
+              </small>
+            {% else %}
+              <small class="text-muted"><i class="bi bi-info-circle"></i> Nunca atualizado</small>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="text-start mt-3">
+          {% if has_permission("config", "edit") %}
+            <a href="{{ url_for('configuracoes.igreja.editar_igreja') }}" class="btn btn-success mb-2">
+              <i class="bi bi-plus-circle"></i> Cadastrar Dados
+            </a>
+          {% endif %}
+          <p class="text-muted">Nenhum dado cadastrado ainda.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% block modals %}
+  <!-- Modal de exclusão -->
+  <div class="modal fade" id="confirmDeleteIgreja" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <!-- 🔹 Cabeçalho com degradê -->
+        <div class="modal-header bg-gradient-base text-white">
+          <h5 class="modal-title" id="confirmDeleteLabel">Confirmar Exclusão</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          Tem certeza que deseja excluir os dados da igreja <strong>{{ dados.nome }}</strong>?<br>
+          Esta ação não poderá ser desfeita.
+        </div>
+        <div class="modal-footer">
+          <form method="POST" action="{{ url_for('configuracoes.igreja.deletar_igreja') }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash me-1"></i> Excluir
+            </button>
+          </form>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% endblock %}

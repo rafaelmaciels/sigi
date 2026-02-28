@@ -1,127 +1,256 @@
-{# templates/financeiro/entradas.html #}
 {% extends "base.html" %}
 {% block title %}Entradas{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4"><i class="bi bi-arrow-down-circle text-success"></i> Entradas (Receitas)</h2>
-
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form method="POST">
-        {{ form.hidden_tag() }}
-        <div class="row g-3">
-          <div class="col-md-3">
-            {{ form.tipo_receita.label(class="form-label") }}
-            {{ form.tipo_receita(class="form-select") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.valor.label(class="form-label") }}
-            {{ form.valor(class="form-control", placeholder="0.00") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.data.label(class="form-label") }}
-            {{ form.data(class="form-control", placeholder="dd/mm/aaaa") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.conta.label(class="form-label") }}
-            {{ form.conta(class="form-select") }}
-          </div>
-          <div class="col-12">
-            {{ form.descricao.label(class="form-label") }}
-            {{ form.descricao(class="form-control", placeholder="Descrição (opcional)") }}
-          </div>
-        </div>
-        <div class="mt-3 d-flex gap-2">
-          <button type="submit" class="btn btn-success">
-            <i class="bi bi-check-circle"></i> Salvar
-          </button>
-          <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-secondary">
-            <i class="bi bi-x-circle"></i> Cancelar
-          </a>
-        </div>
-      </form>
+  
+  <!-- Card informativo -->
+  <div class="card border-info shadow-sm mb-4">
+    <div class="card-body text-muted small">
+      <i class="bi bi-info-circle"></i> 
+        Nesta página você pode registrar e consultar suas <strong>entradas financeiras</strong>. 
+        Utilize os filtros para buscar por período específico. Você também pode visualizar os comprovantes associados.
     </div>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <h5 class="card-title">Histórico de Entradas</h5>
-      <!-- 🔹 Responsividade com scroll horizontal -->
-      <div class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Tipo</th>
-              <th>Conta</th>
-              <th>Descrição</th>
-              <th>Valor (R$)</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if entradas %}
-              {% for r in entradas %}
-              <tr>
-                <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
-                <td>{{ r.categoria }}</td>
-                <td>{{ r.conta }}</td>
-                <td>{{ r.descricao or '-' }}</td>
-                <td>
-                  {{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}
-                </td>
-                <td>
-                  <a href="{{ url_for('financeiro.editar_entrada', id=r.id) }}" class="btn btn-sm btn-outline-warning">
-                    <i class="bi bi-pencil-square"></i> Editar
-                  </a>
-                  <!-- Botão que abre modal de exclusão -->
-                  <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ r.id }}">
-                    <i class="bi bi-trash"></i> Excluir
-                  </button>
-                </td>
-              </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="6" class="text-center text-muted">Nenhuma entrada registrada.</td>
-              </tr>
-            {% endif %}
-          </tbody>
-        </table>
+  <!-- Indicadores rápidos -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm h-100 card-hover">
+        <div class="card-body">
+          <h6 class="card-title text-success"><i class="bi bi-arrow-down-circle"></i> Total do Mês</h6>
+          <h4>R$ {{ ("{:,.2f}".format(total_mes)).replace(",", "X").replace(".", ",").replace("X", ".") }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm h-100 card-hover">
+        <div class="card-body">
+          <h6 class="card-title text-primary"><i class="bi bi-calendar"></i> Total do Ano</h6>
+          <h4>R$ {{ ("{:,.2f}".format(total_ano)).replace(",", "X").replace(".", ",").replace("X", ".") }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm h-100 card-hover">
+        <div class="card-body">
+          <h6 class="card-title text-secondary"><i class="bi bi-clock-history"></i> Última Entrada</h6>
+          <h4>{{ ultima.data.strftime('%d/%m/%Y') if ultima else '-' }}</h4>
+        </div>
       </div>
     </div>
   </div>
-</div>
-{% endblock %}
-{% block modals %}
-  {% for r in entradas %}
-    <!-- 🔹 Modal de confirmação de exclusão -->
-    <div class="modal fade" id="confirmDelete{{ r.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ r.id }}" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-gradient-base">
-            <h5 class="modal-title" id="confirmDeleteLabel{{ r.id }}">Confirmar Exclusão</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+
+  <!-- Formulário de criação -->
+  {% if has_permission("financeiro", "create") %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+          <div class="row g-3">
+            <div class="col-md-3">
+              {{ form.tipo_receita.label }}
+              {{ form.tipo_receita(class="form-select") }}
+            </div>
+            <div class="col-md-3">
+              {{ form.valor.label }}
+              {{ form.valor(class="form-control", placeholder="0,00") }}
+            </div>
+            <div class="col-md-3">
+              {{ form.data.label }}
+              {{ form.data(class="form-control") }}
+            </div>
+            <div class="col-md-3">
+              {{ form.conta.label }}
+              {{ form.conta(class="form-select") }}
+            </div>
+            <div class="col-12">
+              {{ form.descricao.label }}
+              {{ form.descricao(class="form-control", placeholder="Dízimo de João") }}
+            </div>
+            <!-- Upload de comprovante -->
+            <div class="col-12">
+              {{ form.comprovante.label }}
+              {{ form.comprovante(class="form-control") }}
+            </div>
           </div>
-          <div class="modal-body">
-            Tem certeza que deseja excluir a entrada de <strong>{{ r.data.strftime('%d/%m/%Y') }}</strong> no valor de 
-            <strong>{{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>?<br>
-            Esta ação não poderá ser desfeita.
+          <div class="mt-3 d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle"></i> Salvar
+            </button>
+            <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-secondary">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </a>
           </div>
-          <div class="modal-footer">
-            <form method="POST" action="{{ url_for('financeiro.excluir_entrada', id=r.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash me-1"></i> Excluir
-              </button>
-            </form>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              <i class="bi bi-x-circle me-1"></i> Cancelar
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Histórico -->
+  {% if has_permission("financeiro", "view") %}
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Histórico de Entradas</h5>
+
+        <!-- Filtros -->
+        <form method="GET" class="row g-3 mb-3">
+          <div class="col-md-4">
+            <input type="text" name="filtro" class="form-control" 
+                   placeholder="Buscar por Tipo de Receita, Conta ou Descrição">
+          </div>
+          <div class="col-md-3"><input type="date" name="inicio" class="form-control"></div>
+          <div class="col-md-3"><input type="date" name="fim" class="form-control"></div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-primary w-100">
+              <i class="bi bi-filter"></i> Filtrar
             </button>
           </div>
+        </form>
+
+        <div class="table-responsive">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Tipo de Receita</th>
+                <th>Conta</th>
+                <th>Descrição</th>
+                <th>Valor (R$)</th>
+                <th>Usuário</th>
+                <th>Comprovante</th>
+                {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
+                  <th>Ações</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+
+              {% if entradas %}
+                {% for r in entradas %}
+                <tr>
+                  <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
+                  <td>{{ r.categoria }}</td>
+                  <td>{{ r.conta }}</td>
+                  <td>{{ r.descricao or '-' }}</td>
+                  <td>{{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                  <td>{{ r.usuario }}</td>
+                  <td>
+                    {% if r.comprovante %}
+                      <a href="{{ r.comprovante }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-file-earmark-text"></i> Ver
+                      </a>
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                  {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
+                    <td>
+                      {% if has_permission("financeiro", "edit") %}
+                        <a href="{{ url_for('financeiro.editar_entrada', id=r.id) }}" 
+                           class="btn btn-sm btn-outline-warning me-1">
+                          <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                      {% endif %}
+                      {% if has_permission("financeiro", "delete") %}
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#confirmDelete{{ r.id }}">
+                          <i class="bi bi-trash"></i> Excluir
+                        </button>
+                      {% endif %}
+                    </td>
+                  {% endif %}
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted">Nenhuma entrada registrada.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
         </div>
+        <!-- Paginação centralizada e condicional -->
+        {% if pagination.total >= 10 %}
+        <nav class="d-flex justify-content-center mt-3">
+          <ul class="pagination">
+            {% if pagination.has_prev %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('financeiro.entradas', page=pagination.prev_num,
+                  filtro=filtro, inicio=filtro_data_inicio, fim=filtro_data_fim) }}">
+                  &laquo; Anterior
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
+            {% endif %}
+
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if p %}
+                {% if p == pagination.page %}
+                  <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="{{ url_for('financeiro.entradas', page=p,
+                      filtro=filtro, inicio=filtro_data_inicio, fim=filtro_data_fim) }}">{{ p }}</a>
+                  </li>
+                {% endif %}
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+              {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('financeiro.entradas', page=pagination.next_num,
+                  filtro=filtro, inicio=filtro_data_inicio, fim=filtro_data_fim) }}">
+                  Próxima &raquo;
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">Próxima &raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
       </div>
     </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block modals %}
+  {% for r in entradas %}
+    {% if has_permission("financeiro", "delete") %}
+      <div class="modal fade" id="confirmDelete{{ r.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ r.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-gradient-base">
+              <h5 class="modal-title" id="confirmDeleteLabel{{ r.id }}">Confirmar Exclusão</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              Tem certeza que deseja excluir a entrada de <strong>{{ r.data.strftime('%d/%m/%Y') }}</strong> no valor de 
+              <strong>{{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>?<br>
+              Esta ação não poderá ser desfeita.
+            </div>
+            <div class="modal-footer">
+              <form method="POST" action="{{ url_for('financeiro.excluir_entrada', id=r.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">
+                  <i class="bi bi-trash me-1"></i> Excluir
+                </button>
+              </form>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
   {% endfor %}
 {% endblock %}

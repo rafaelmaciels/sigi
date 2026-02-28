@@ -7,9 +7,11 @@
   <!-- Cabeçalho com botão Novo Certificado -->
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h2><i class="bi bi-award text-primary me-2"></i> Certificados</h2>
-    <a href="{{ url_for('documentos.certificados.novo_certificado') }}" class="btn btn-success">
-      <i class="bi bi-plus-circle me-1"></i> Novo Certificado
-    </a>
+    {% if has_permission("certificados", "create") %}
+      <a href="{{ url_for('documentos.certificados.novo_certificado') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle me-1"></i> Novo Certificado
+      </a>
+    {% endif %}
   </div>
 
   <!-- Mensagem de topo -->
@@ -37,7 +39,9 @@
           <th scope="col">Nome</th>
           <th scope="col">Data</th>
           <th scope="col">Situação</th>
-          <th scope="col" class="text-center">Ações</th>
+          {% if has_permission("certificados", "view") or has_permission("certificados", "edit") or has_permission("certificados", "delete") %}
+            <th scope="col" class="text-center">Ações</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -59,18 +63,26 @@
                 <span class="badge bg-secondary">-</span>
               {% endif %}
             </td>
-            <td class="text-center">
-              <a href="{{ url_for('documentos.certificados.visualizar_certificado', id=certificado.id) }}" class="btn btn-sm btn-success">
-                <i class="bi bi-eye"></i>
-              </a>
-              <a href="{{ url_for('documentos.certificados.editar_certificado', id=certificado.id) }}" class="btn btn-sm btn-primary">
-                <i class="bi bi-pencil-square"></i>
-              </a>
-              <!-- Botão que abre modal -->
-              <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ certificado.id }}">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
+            {% if has_permission("certificados", "view") or has_permission("certificados", "edit") or has_permission("certificados", "delete") %}
+              <td class="text-center">
+                {% if has_permission("certificados", "view") %}
+                  <a href="{{ url_for('documentos.certificados.visualizar_certificado', id=certificado.id) }}" class="btn btn-sm btn-success">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                {% endif %}
+                {% if has_permission("certificados", "edit") %}
+                  <a href="{{ url_for('documentos.certificados.editar_certificado', id=certificado.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                {% endif %}
+                {% if has_permission("certificados", "delete") %}
+                  <!-- Botão que abre modal -->
+                  <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ certificado.id }}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                {% endif %}
+              </td>
+            {% endif %}
           </tr>
           {% endfor %}
         {% else %}
@@ -97,31 +109,33 @@
 
 {% block modals %}
   {% for certificado in certificados.items %}
-    <!-- Modal de confirmação de exclusão -->
-    <div class="modal fade" id="confirmDelete{{ certificado.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ certificado.id }}" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-gradient-base">
-            <h5 class="modal-title" id="confirmDeleteLabel{{ certificado.id }}">Confirmar Exclusão</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <div class="modal-body">
-            Tem certeza que deseja excluir o certificado <strong>{{ certificado.titulo }}</strong>?  
-            Esta ação não poderá ser desfeita.
-          </div>
-          <div class="modal-footer">
-            <form method="POST" action="{{ url_for('documentos.certificados.excluir_certificado', id=certificado.id) }}" style="display:inline;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash me-1"></i> Excluir
+    {% if has_permission("certificados", "delete") %}
+      <!-- Modal de confirmação de exclusão -->
+      <div class="modal fade" id="confirmDelete{{ certificado.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ certificado.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-gradient-base">
+              <h5 class="modal-title" id="confirmDeleteLabel{{ certificado.id }}">Confirmar Exclusão</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              Tem certeza que deseja excluir o certificado <strong>{{ certificado.titulo }}</strong>?  
+              Esta ação não poderá ser desfeita.
+            </div>
+            <div class="modal-footer">
+              <form method="POST" action="{{ url_for('documentos.certificados.excluir_certificado', id=certificado.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">
+                  <i class="bi bi-trash me-1"></i> Excluir
+                </button>
+              </form>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
               </button>
-            </form>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              <i class="bi bi-x-circle me-1"></i> Cancelar
-            </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    {% endif %}
   {% endfor %}
 {% endblock %}

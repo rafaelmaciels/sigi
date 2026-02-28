@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template
+# from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager
 from app.extensions import db, mail, migrate
@@ -73,6 +74,15 @@ def create_app(config_class=None):
             'timezone': tz
         }
 
+    # ----------------------------- 
+    # 🔐 Context processor para permissões 
+    # ----------------------------- 
+    @app.context_processor
+    def inject_permissions():
+        from app.models.permissions_helper import has_permission
+        return dict(has_permission=has_permission)
+
+
     # -----------------------------
     # 🕒 Filtro Jinja para converter UTC → timezone local
     # -----------------------------
@@ -102,5 +112,15 @@ def create_app(config_class=None):
     @app.errorhandler(500)
     def internal_error(e):
         return render_template("errors/500.html"), 500
+    
+    @app.errorhandler(413)
+    def request_entity_too_large(e):
+        # pega o limite configurado em bytes
+        max_bytes = app.config.get("MAX_CONTENT_LENGTH", 0)
+        # converte para MB (arredondando)
+        max_mb = int(max_bytes / (1024 * 1024))
+        flash(f"Arquivo muito grande. O limite é {max_mb} MB.", "danger")
+        return redirect(request.referrer or url_for("dashboard.dashboard"))
+
 
     return app

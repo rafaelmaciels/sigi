@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Permissões{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2><i class="bi bi-shield-lock text-secondary"></i> Gerenciar Permissões</h2>
+  <p class="text-muted small">
+    <i class="bi bi-info-circle"></i>
+    Defina quais ações cada usuário pode realizar em diferentes áreas do sistema.
+  </p>
+
+  <div class="card shadow-sm mt-3">
+    <div class="card-body">
+      <form method="POST" autocomplete="off">
+        {{ form.hidden_tag() }}
+
+        <!-- Seleção de usuário -->
+        <div class="mb-3">
+          {{ form.usuario_id.label(class="form-label") }}
+          <select name="usuario_id" class="form-select" onchange="window.location='?usuario_id='+this.value;">
+            {% for id, nome in form.usuario_id.choices %}
+              <option value="{{ id }}" {% if form.usuario_id.data == id %}selected{% endif %}>{{ nome }}</option>
+            {% endfor %}
+          </select>
+          {% for error in form.usuario_id.errors %}
+            <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="row">
+          <!-- Usuários -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-people"></i> Usuários</h5>
+                <div class="form-check">{{ form.usuarios_view(class_="form-check-input") }} {{ form.usuarios_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.usuarios_create(class_="form-check-input") }} {{ form.usuarios_create.label(class="form-check-label") }}</div> <!-- 🔹 novo -->
+                <div class="form-check">{{ form.usuarios_edit(class_="form-check-input") }} {{ form.usuarios_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.usuarios_delete(class_="form-check-input") }} {{ form.usuarios_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configurações -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-gear"></i> Configurações</h5>
+                <div class="form-check">{{ form.config_view(class_="form-check-input") }} {{ form.config_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.config_edit(class_="form-check-input") }} {{ form.config_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.config_delete(class_="form-check-input") }} {{ form.config_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financeiro -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-cash-stack"></i> Financeiro</h5>
+                <div class="form-check">{{ form.financeiro_view(class_="form-check-input") }} {{ form.financeiro_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.financeiro_create(class_="form-check-input") }} {{ form.financeiro_create.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.financeiro_edit(class_="form-check-input") }} {{ form.financeiro_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.financeiro_delete(class_="form-check-input") }} {{ form.financeiro_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mail / Email -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-envelope-at"></i> Email</h5>
+                <div class="form-check">{{ form.mail_view(class_="form-check-input") }} {{ form.mail_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.mail_create(class_="form-check-input") }} {{ form.mail_create.label(class="form-check-label") }}</div> <!-- 🔹 novo -->
+                <div class="form-check">{{ form.mail_edit(class_="form-check-input") }} {{ form.mail_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.mail_delete(class_="form-check-input") }} {{ form.mail_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Atas -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-journal-text"></i> Atas</h5>
+                <div class="form-check">{{ form.atas_view(class_="form-check-input") }} {{ form.atas_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.atas_create(class_="form-check-input") }} {{ form.atas_create.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.atas_edit(class_="form-check-input") }} {{ form.atas_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.atas_delete(class_="form-check-input") }} {{ form.atas_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cartas -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-envelope"></i> Cartas</h5>
+                <div class="form-check">{{ form.cartas_view(class_="form-check-input") }} {{ form.cartas_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.cartas_create(class_="form-check-input") }} {{ form.cartas_create.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.cartas_edit(class_="form-check-input") }} {{ form.cartas_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.cartas_delete(class_="form-check-input") }} {{ form.cartas_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Certificados -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-award"></i> Certificados</h5>
+                <div class="form-check">{{ form.certificados_view(class_="form-check-input") }} {{ form.certificados_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.certificados_create(class_="form-check-input") }} {{ form.certificados_create.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.certificados_edit(class_="form-check-input") }} {{ form.certificados_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.certificados_delete(class_="form-check-input") }} {{ form.certificados_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+	            <!-- Eventos -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calendar-event"></i> Eventos</h5>
+                <div class="form-check">{{ form.eventos_view(class_="form-check-input") }} {{ form.eventos_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.eventos_create(class_="form-check-input") }} {{ form.eventos_create.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.eventos_edit(class_="form-check-input") }} {{ form.eventos_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.eventos_delete(class_="form-check-input") }} {{ form.eventos_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Membros -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-person-badge"></i> Membros</h5>
+                <div class="form-check">{{ form.membros_view(class_="form-check-input") }} {{ form.membros_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.membros_create(class_="form-check-input") }} {{ form.membros_create.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.membros_edit(class_="form-check-input") }} {{ form.membros_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.membros_delete(class_="form-check-input") }} {{ form.membros_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patrimônios -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-box-seam"></i> Patrimônios</h5>
+                <div class="form-check">{{ form.patrimonios_view(class_="form-check-input") }} {{ form.patrimonios_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.patrimonios_create(class_="form-check-input") }} {{ form.patrimonios_create.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.patrimonios_edit(class_="form-check-input") }} {{ form.patrimonios_edit.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.patrimonios_delete(class_="form-check-input") }} {{ form.patrimonios_delete.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Perfil -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-person-circle"></i> Perfil</h5>
+                <div class="form-check">{{ form.perfil_view(class_="form-check-input") }} {{ form.perfil_view.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.perfil_password(class_="form-check-input") }} {{ form.perfil_password.label(class="form-check-label") }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="mt-3 text-start">
+          {{ form.submit(class_="btn btn-primary") }}
+          <a href="{{ url_for('configuracoes.configuracoes') }}" class="btn btn-secondary">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

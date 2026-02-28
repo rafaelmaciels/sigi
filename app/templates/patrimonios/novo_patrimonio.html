@@ -4,61 +4,84 @@
 {% block content %}
 <div class="container mt-4">
   <h2><i class="bi bi-box-seam text-primary me-2"></i> Novo Patrimônio</h2>
+
+  <!-- Informação fixa -->
+  <div class="card shadow-sm mb-4 border-info">
+    <div class="card-body">
+      <h5 class="card-title text-info">
+        <i class="bi bi-info-circle"></i> Importante
+      </h5>
+      <p class="mb-0">
+        Cadastre corretamente os dados do patrimônio para manter o controle atualizado.  
+        Informe <strong>nome</strong>, <strong>descrição</strong>, <strong>categoria</strong>, <strong>número de referência</strong>,  
+        além do <strong>valor</strong>, <strong>data de entrada</strong> e <strong>situação</strong>.  
+        Esses dados serão usados nos relatórios e na gestão dos bens do sistema.
+      </p>
+    </div>
+  </div>
+
   <div class="card shadow-sm mt-3">
     <div class="card-body">
       <form method="POST" action="{{ url_for('patrimonio.novo_patrimonio') }}">
         {{ form.hidden_tag() }}
 
-        <!-- Nome -->
-        <div class="mb-3">
-          {{ form.nome.label(class="form-label") }}
-          {{ form.nome(class="form-control", placeholder="Nome do item") }}
-        </div>
-
-        <!-- Descrição -->
-        <div class="mb-3">
-          {{ form.descricao.label(class="form-label") }}
-          {{ form.descricao(class="form-control", rows="3", placeholder="Uma breve descrição") }}
-        </div>
-
-        <!-- Categoria e Número -->
         <div class="row">
+          <!-- Nome -->
+          <div class="col-md-6 mb-3">
+            {{ form.nome.label(class="form-label") }}
+            {{ form.nome(class="form-control", placeholder="Nome do item") }}
+          </div>
+
+          <!-- Categoria -->
           <div class="col-md-6 mb-3">
             {{ form.categoria.label(class="form-label") }}
             {{ form.categoria(class="form-select") }}
           </div>
+        </div>
+
+        <div class="row">
+          <!-- Número -->
           <div class="col-md-6 mb-3">
             {{ form.numero.label(class="form-label") }}
             {{ form.numero(class="form-control", placeholder="Código ou número de referência") }}
           </div>
-        </div>
 
-        <!-- Valor -->
-        <div class="mb-3">
-          {{ form.valor.label(class="form-label") }}
-          <div class="input-group">
-            <span class="input-group-text">R$</span>
-            {{ form.valor(class="form-control", placeholder="Informe o valor total") }}
+          <!-- Valor -->
+          <div class="col-md-6 mb-3">
+            {{ form.valor.label(class="form-label") }}
+            <div class="input-group">
+              <span class="input-group-text">R$</span>
+              {{ form.valor(class="form-control", placeholder="Informe o valor total") }}
+            </div>
           </div>
         </div>
 
-        <!-- Data da Entrada e Situação -->
         <div class="row">
+          <!-- Data da Entrada -->
           <div class="col-md-6 mb-3">
             {{ form.data_entrada.label(class="form-label") }}
-            <!-- Usa type="date" para calendário -->
             {{ form.data_entrada(class="form-control", type="date") }}
             <small class="text-muted">Formato: dd-mm-aaaa</small>
           </div>
+
+          <!-- Situação -->
           <div class="col-md-6 mb-3">
             {{ form.situacao.label(class="form-label") }}
             {{ form.situacao(class="form-select") }}
           </div>
         </div>
 
+        <!-- Descrição ocupa linha inteira -->
+        <div class="mb-3">
+          {{ form.descricao.label(class="form-label") }}
+          {{ form.descricao(class="form-control", rows="3", placeholder="Uma breve descrição") }}
+        </div>
+
         <!-- Botões -->
-        <div class="mt-3">
-          {{ form.submit(class="btn btn-primary") }}
+        <div class="mt-3 d-flex justify-content-start gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i> Salvar
+          </button>
           <a href="{{ url_for('patrimonio.listar_patrimonios') }}" class="btn btn-secondary">
             <i class="bi bi-x-circle me-1"></i> Cancelar
           </a>
