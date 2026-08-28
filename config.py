@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 from datetime import timedelta
 
@@ -22,11 +23,16 @@ class Config:
         if not os.path.isabs(_sqlite_path):
             _sqlite_path = os.path.normpath(os.path.join(BASE_DIR, _sqlite_path))
         os.makedirs(os.path.dirname(_sqlite_path), exist_ok=True)
-        # Normaliza caminho para URI SQLite (barras normais)
+        # Normaliza caminho para URI SQLite
         _norm_path = _sqlite_path.replace('\\', '/')
-        if not _norm_path.startswith('/'):
-            _norm_path = '/' + _norm_path
-        SQLALCHEMY_DATABASE_URI = f'sqlite:///{_norm_path}'
+        if sys.platform == "win32":
+            # No Windows: sqlite:///C:/caminho/banco.db
+            SQLALCHEMY_DATABASE_URI = f'sqlite:///{_norm_path}'
+        else:
+            # No Linux/Unix: sqlite:////home/caminho/banco.db
+            if not _norm_path.startswith('/'):
+                _norm_path = '/' + _norm_path
+            SQLALCHEMY_DATABASE_URI = f'sqlite:///{_norm_path}'
     else:
         SQLALCHEMY_DATABASE_URI = _raw_db_url
 
