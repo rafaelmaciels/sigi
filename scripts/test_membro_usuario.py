@@ -208,8 +208,22 @@ def test_suite():
         assert "Acesso restrito" in res_det_alheia.get_data(as_text=True)
         print("✅ [Passo 10] Segurança no backend bloqueou tentativa de acessar classe de outro professor.")
 
+        # 11. Teste de Regressão: Paginação Completa de Membros (Páginas 1 a 6)
+        client.get("/logout", follow_redirects=True)
+        client.post("/login", data={"email": "admin_teste@sigi.com", "senha": "Admin@123456"}, follow_redirects=True)
+        for page_num in range(1, 7):
+            res_page = client.get(f"/membros/?page={page_num}")
+            assert res_page.status_code == 200, f"Falha na página {page_num}"
+        print("✅ [Passo 11] Todas as páginas da listagem de membros (1 a 6) renderizam com HTTP 200.")
+
+        # 12. Teste de Regressão: Busca e Filtro de Membros
+        res_busca = client.get("/membros/?q=Carlos")
+        assert res_busca.status_code == 200
+        assert "Carlos" in res_busca.get_data(as_text=True)
+        print("✅ [Passo 12] Busca e filtros da listagem de membros funcionando normalmente com HTTP 200.")
+
     print("\n" + "=" * 70)
-    print("  🎉 TODOS OS 10 TESTES PASSARAM COM 100% DE SUCESSO!")
+    print("  🎉 TODOS OS 12 TESTES DE REGRESSÃO PASSARAM COM 100% DE SUCESSO!")
     print("=" * 70 + "\n")
 
 if __name__ == "__main__":

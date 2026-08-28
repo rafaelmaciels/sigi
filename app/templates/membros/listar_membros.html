@@ -162,7 +162,7 @@
                       </li>
                       {% if current_user.is_admin or has_permission("config", "view") %}
                       <li>
-                        <a class="dropdown-item" href="{{ url_for('permissoes.permissoes_page', usuario_id=membro.user.id) }}">
+                        <a class="dropdown-item" href="{{ url_for('configuracoes.permissoes.permissoes_page', usuario_id=membro.user.id) }}">
                           <i class="bi bi-key text-secondary me-2"></i> Alterar Permissões
                         </a>
                       </li>
