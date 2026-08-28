@@ -44,6 +44,49 @@ def obter_ou_criar_config():
     return config
 
 
+def usuario_pode_gerenciar_classe(classe_id):
+    """
+    Verifica se o usuário logado possui permissão administrativa total (admin / ebd:edit)
+    ou se é professor ativo vinculado a esta classe específica da EBD.
+    """
+    if current_user.is_admin or current_user.has_permission("ebd", "edit"):
+        return True
+    if not current_user.member_id:
+        return False
+    prof = EbdProfessor.query.filter_by(
+        classe_id=classe_id,
+        membro_id=current_user.member_id,
+        status="ativo"
+    ).first()
+    return prof is not None
+
+
+# ==============================================================================
+# 0. 👨‍🏫 PORTAL DO PROFESSOR — MINHAS CLASSES
+# ==============================================================================
+@ebd_bp.route("/minhas-classes")
+@login_required
+@permission_required("ebd", "view")
+def minhas_classes():
+    membro_id = current_user.member_id
+    is_coordenador = current_user.is_admin or current_user.has_permission("ebd", "edit")
+
+    if is_coordenador:
+        classes = EbdClasse.query.filter_by(status="ativa").order_by(EbdClasse.nome).all()
+    elif membro_id:
+        profs = EbdProfessor.query.filter_by(membro_id=membro_id, status="ativo").all()
+        classes_ids = [p.classe_id for p in profs]
+        classes = EbdClasse.query.filter(EbdClasse.id.in_(classes_ids), EbdClasse.status == "ativa").order_by(EbdClasse.nome).all() if classes_ids else []
+    else:
+        classes = []
+
+    return render_template(
+        "ebd/classes/minhas_classes.html",
+        classes=classes,
+        is_coordenador=is_coordenador
+    )
+
+
 # ==============================================================================
 # 1. 📊 DASHBOARD DA ESCOLA DOMINICAL
 # ==============================================================================
@@ -335,6 +378,10 @@ def nova_classe():
 @permission_required("ebd", "view")
 def detalhe_classe(id):
     classe = EbdClasse.query.get_or_404(id)
+    if not usuario_pode_gerenciar_classe(classe.id):
+        flash("Acesso restrito: você só possui permissão para acessar os detalhes e chamadas das suas próprias classes.", "warning")
+        return redirect(url_for("ebd.minhas_classes"))
+
     matriculas = [m for m in classe.matriculas if m.status == "ativo"]
     professores = [p for p in classe.professores if p.status == "ativo"]
     aulas = EbdAula.query.filter_by(classe_id=classe.id).order_by(EbdAula.data_aula.desc()).all()
@@ -723,6 +770,10 @@ def excluir_aula(id):
 @permission_required("ebd", "frequencia")
 def realizar_chamada(id):
     aula = EbdAula.query.get_or_404(id)
+    if not usuario_pode_gerenciar_classe(aula.classe_id):
+        flash("Acesso não autorizado para gerenciar a chamada desta classe.", "danger")
+        return redirect(url_for("ebd.minhas_classes"))
+
     classe = aula.classe
     matriculas_ativas = EbdMatricula.query.filter_by(classe_id=classe.id, status="ativo").join(Member).order_by(Member.nome).all()
 
