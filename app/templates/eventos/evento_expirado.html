@@ -2,60 +2,77 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evento Expirado</title>
+  <title>Evento Expirado — SiGI</title>
+  
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}">
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/base.css') }}" rel="stylesheet">
+  
   <style>
+    html {
+      height: 100%;
+    }
     body {
-      background: #f5f5f5;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--sigi-bg-app, #f8fafc) !important;
+      min-height: 100vh;
+      height: auto !important;
+      overflow-y: auto !important;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      margin: 0;
+      padding: 3rem 1rem !important;
     }
-    .expirado-container {
-      max-width: 650px;
-      background: white;
-      box-shadow: 0 6px 25px rgba(0,0,0,0.15);
-      border-radius: 12px;
-      overflow: hidden;
+    .expirado-card {
+      max-width: 540px;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--sigi-border, #e2e8f0);
+      border-radius: var(--sigi-radius-lg, 20px);
+      box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+      padding: 3.5rem 2rem;
       text-align: center;
+      margin-bottom: 2rem;
     }
-    .expirado-header {
-      background: linear-gradient(135deg, #4e73df, #1cc88a);
-      color: white;
-      padding: 40px 20px;
+    .expirado-badge {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #fef2f2;
+      color: #ef4444;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
     }
-    .expirado-header h1 {
-      margin: 0;
-      font-size: 32px;
-      font-weight: bold;
-    }
-    .expirado-body {
-      padding: 35px 25px;
-    }
-    .expirado-body p {
-      color: #555;
-      font-size: 17px;
-      line-height: 1.6;
-      margin-bottom: 15px;
-    }
-    .expirado-body strong {
-      color: #333;
+    .public-footer {
+      text-align: center;
+      color: var(--sigi-text-muted, #64748b);
+      font-size: 0.88rem;
     }
   </style>
 </head>
 <body>
-  <div class="expirado-container">
-    <div class="expirado-header">
-      <h1>Evento Expirado</h1>
+  <div class="expirado-card">
+    <div class="expirado-badge">
+      <i class="bi bi-calendar-x"></i>
     </div>
-    <div class="expirado-body">
-      <p>O evento <strong>{{ evento.titulo }}</strong> não está mais disponível.</p>
-      <p>Este link público expirou porque o evento já foi concluído ou cancelado.</p>
-    </div>
+    <h3 class="fw-bold text-dark mb-2">Evento Encerrado ou Expirado</h3>
+    <p class="text-muted mb-4">
+      O link público para <strong>{{ evento.titulo }}</strong> não está mais ativo ou a data de divulgação encerrou.
+    </p>
+    <a href="javascript:window.history.back()" class="btn btn-outline-primary px-4 rounded-pill">
+      <i class="bi bi-arrow-left me-1"></i> Voltar
+    </a>
   </div>
+
+  <footer class="public-footer">
+    <div>&copy; {{ current_year or 2026 }} <strong>SiGI</strong> &mdash; Sistema Integrado de Gestão de Igreja</div>
+    <div class="text-muted small mt-1">Desenvolvido por Paulo Soares</div>
+  </footer>
 </body>
 </html>

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Períodos Letivos — EBD SiGI{% endblock %}
+{% block nav_ebd_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-calendar3 text-primary me-2"></i> Períodos Letivos da EBD
+      </h2>
+      <p class="text-muted mb-0">Trimestres e ciclos letivos de ensino bíblico.</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if has_permission("ebd", "create") %}
+        <a href="{{ url_for('ebd.novo_periodo') }}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Novo Período
+        </a>
+      {% endif %}
+      <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Painel da EBD
+      </a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header fw-bold bg-white">
+      <i class="bi bi-list-check text-primary me-1"></i> Períodos Cadastrados ({{ periodos|length }})
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive border-0">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Nome do Período</th>
+              <th>Início</th>
+              <th>Término</th>
+              <th>Classes Vinculadas</th>
+              <th>Status</th>
+              {% if has_permission("ebd", "edit") or has_permission("ebd", "delete") %}
+                <th class="text-end">Ações</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% if periodos %}
+              {% for p in periodos %}
+              <tr>
+                <td class="fw-semibold text-dark">{{ p.nome }}</td>
+                <td class="text-muted small">{{ p.data_inicio.strftime('%d/%m/%Y') }}</td>
+                <td class="text-muted small">{{ p.data_fim.strftime('%d/%m/%Y') }}</td>
+                <td>
+                  <span class="badge bg-primary">{{ p.classes|length }} classe(s)</span>
+                </td>
+                <td>
+                  {% if p.status == 'em_andamento' %}
+                    <span class="badge bg-success">Em Andamento</span>
+                  {% elif p.status == 'planejado' %}
+                    <span class="badge bg-warning text-dark">Planejado</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Encerrado</span>
+                  {% endif %}
+                </td>
+                {% if has_permission("ebd", "edit") or has_permission("ebd", "delete") %}
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1">
+                      {% if has_permission("ebd", "edit") %}
+                        <a href="{{ url_for('ebd.editar_periodo', id=p.id) }}" class="btn btn-sm btn-outline-secondary btn-icon" title="Editar Período">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                      {% endif %}
+                      {% if has_permission("ebd", "delete") %}
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-icon" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ p.id }}" title="Excluir Período">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="p-0">
+                  <div class="sigi-empty-state">
+                    <div class="sigi-empty-icon"><i class="bi bi-calendar-x"></i></div>
+                    <div class="sigi-empty-title">Nenhum período cadastrado</div>
+                    <div class="sigi-empty-text">Cadastre o primeiro trimestre ou ciclo letivo da EBD.</div>
+                    {% if has_permission("ebd", "create") %}
+                      <a href="{{ url_for('ebd.novo_periodo') }}" class="btn btn-primary">Criar Período</a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block modals %}
+  {% for p in periodos %}
+    {% if has_permission("ebd", "delete") %}
+      <div class="modal fade" id="confirmDelete{{ p.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title fw-bold text-danger">Confirmar Exclusão</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              Tem certeza que deseja excluir o período <strong>{{ p.nome }}</strong>?<br>
+              <span class="text-danger small">Atenção: Todas as classes, matrículas e aulas associadas serão removidas.</span>
+            </div>
+            <div class="modal-footer">
+              <form method="POST" action="{{ url_for('ebd.excluir_periodo', id=p.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">Excluir</button>
+              </form>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

@@ -1,136 +1,142 @@
 {% extends "base.html" %}
-{% block title %}Configurações Gerais{% endblock %}
+{% block title %}Configurações Gerais — SiGI{% endblock %}
+{% block nav_configuracoes_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2><i class="bi bi-gear text-secondary"></i> Configurações Gerais</h2>
-  <p class="text-muted small">
-    <i class="bi bi-info-circle"></i> Ajuste as principais opções do sistema de acordo com as necessidades da igreja.
-  </p>
+<div class="container-fluid px-lg-5">
 
-  <div class="row g-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-gear text-primary me-2"></i> Configurações & Administração
+      </h2>
+      <p class="text-muted mb-0">Gestão de acessos, dados institucionais, segurança, servidor de e-mail e auditoria.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
     <!-- Usuários -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-people fs-1 text-primary mb-3"></i>
-          <h5 class="card-title">Usuários</h5>
-          <p class="text-muted">Gerencie os usuários e suas permissões de acesso ao sistema.</p>
-          <a href="{{ url_for('configuracoes.usuarios.usuarios_page') }}" class="btn btn-outline-primary">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Backup -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-hdd-network fs-1 text-success mb-3"></i>
-          <h5 class="card-title">Backup</h5>
-          <p class="text-muted">Crie e restaure backups do sistema.</p>
-          <a href="{{ url_for('configuracoes.backup.backup_page') }}" class="btn btn-outline-success">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Configurações de Email -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-envelope fs-1 text-warning mb-3"></i>
-          <h5 class="card-title">Email</h5>
-          <p class="text-muted">Configure o servidor de email usado pelo sistema.</p>
-          <a href="{{ url_for('configuracoes.mail.configurar_mail_view') }}" class="btn btn-outline-warning">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-primary h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary mb-3">
+              <i class="bi bi-people fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Controle de Usuários</h5>
+            <p class="text-muted small">Gerencie administradores, operadores e contas de acesso ao sistema.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('configuracoes.usuarios.usuarios_page') }}" class="btn btn-sm btn-outline-primary w-100">
+              Gerenciar Usuários <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Permissões -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-shield-lock fs-1 text-secondary mb-3"></i>
-          <h5 class="card-title">Permissões</h5>
-          <p class="text-muted">Gerencie permissões específicas para cada usuário.</p>
-          <a href="{{ url_for('configuracoes.permissoes.permissoes_page') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Logs do Sistema -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-journal-text fs-1 text-dark mb-3"></i>
-          <h5 class="card-title">Logs do Sistema</h5>
-          <p class="text-muted">Visualize registros de atividades e auditoria do sistema.</p>
-          <a href="{{ url_for('configuracoes.logs.visualizar_logs') }}" class="btn btn-outline-dark">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-info h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-info bg-opacity-10 text-info mb-3">
+              <i class="bi bi-shield-lock fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Matriz de Permissões</h5>
+            <p class="text-muted small">Defina acessos finos por módulo para cada perfil ministerial.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('configuracoes.permissoes.permissoes_page') }}" class="btn btn-sm btn-outline-primary w-100">
+              Ajustar Permissões <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Dados da Igreja -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-building fs-1 text-info mb-3"></i>
-          <h5 class="card-title">Dados da Igreja</h5>
-          <p class="text-muted">Configure informações institucionais como nome, endereço e contatos.</p>
-          <a href="{{ url_for('configuracoes.igreja.igreja_page') }}" class="btn btn-outline-info">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-success h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-success bg-opacity-10 text-success mb-3">
+              <i class="bi bi-building fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Dados da Igreja</h5>
+            <p class="text-muted small">Nome oficial, CNPJ, endereço, logotipo e dados para cabeçalhos e relatórios.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('configuracoes.igreja.igreja_page') }}" class="btn btn-sm btn-outline-primary w-100">
+              Dados Institucionais <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Financeiro -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-cash-stack fs-1 text-success mb-3"></i>
-          <h5 class="card-title">Financeiro</h5>
-          <p class="text-muted">Gerencie categorias financeiras como dízimos, ofertas e contribuições.</p>
-          <a href="#" class="btn btn-outline-success">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
+    <!-- Configurações de Email -->
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-warning h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-warning bg-opacity-10 text-warning mb-3">
+              <i class="bi bi-envelope fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Servidor de E-mail</h5>
+            <p class="text-muted small">Configure SMTP para envio automático de comunicados e recuperação de senhas.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('configuracoes.mail.configurar_mail_view') }}" class="btn btn-sm btn-outline-primary w-100">
+              Configurar SMTP <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Eventos e Ministérios -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-calendar-event fs-1 text-primary mb-3"></i>
-          <h5 class="card-title">Eventos e Ministérios</h5>
-          <p class="text-muted">Configure tipos de eventos e ministérios da igreja.</p>
-          <a href="#" class="btn btn-outline-primary">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
+    <!-- Backup -->
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-success h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-success bg-opacity-10 text-success mb-3">
+              <i class="bi bi-hdd-network fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Cópia de Segurança (Backup)</h5>
+            <p class="text-muted small">Geração e restauração de cópias de segurança do banco de dados.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('configuracoes.backup.backup_page') }}" class="btn btn-sm btn-outline-primary w-100">
+              Painel de Backup <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Notificações -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0 h-100 text-center">
-        <div class="card-body">
-          <i class="bi bi-bell fs-1 text-warning mb-3"></i>
-          <h5 class="card-title">Notificações</h5>
-          <p class="text-muted">Configure preferências de comunicação e alertas do sistema.</p>
-          <a href="#" class="btn btn-outline-warning">
-            <i class="bi bi-box-arrow-in-right"></i> Acessar
-          </a>
+    <!-- Logs do Sistema -->
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-danger h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-danger bg-opacity-10 text-danger mb-3">
+              <i class="bi bi-journal-text fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Auditoria & Logs</h5>
+            <p class="text-muted small">Histórico cronológico de ações, logins e alterações no sistema.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('configuracoes.logs.visualizar_logs') }}" class="btn btn-sm btn-outline-primary w-100">
+              Ver Histórico <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>

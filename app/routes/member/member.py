@@ -10,11 +10,15 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
 from sqlalchemy import func
-from weasyprint import HTML  # ➕ para gerar PDF
+try:
+    from weasyprint import HTML  # ➕ para gerar PDF
+except (ImportError, OSError):
+    HTML = None
 from werkzeug.datastructures import FileStorage
 
 from utils.pagination import paginate_query
-from app.models import Member, PublicLink        # 👈 importa os modelos
+from utils.sanitizer import sanitizar_html
+from app.models import Member, PublicLink, User, Permission, UserPermission        # 👈 importa os modelos
 from app.models.log import Log, registrar_log    # 👈 modelo de log
 from app.routes.member.forms import MemberForm   # 👈 formulário
 from app.decorators import permission_required 	 # 👈 importa o decorator
@@ -130,7 +134,7 @@ def cadastro_membro():
             dizimista=form.dizimista.data,
             data_batismo=form.data_batismo.data,
             funcao=form.funcao.data,
-            observacoes=form.observacoes.data,
+            observacoes=sanitizar_html(form.observacoes.data),
             status=form.status.data,
             nacionalidade=form.nacionalidade.data,
             naturalidade=form.naturalidade.data,
@@ -204,7 +208,7 @@ def editar_membro(id):
         membro.dizimista = form.dizimista.data
         membro.data_batismo = form.data_batismo.data
         membro.funcao = form.funcao.data
-        membro.observacoes = form.observacoes.data
+        membro.observacoes = sanitizar_html(form.observacoes.data)
         membro.status = form.status.data
         membro.nacionalidade = form.nacionalidade.data
         membro.naturalidade = form.naturalidade.data
@@ -386,6 +390,10 @@ def imprimir_ficha_pdf(id):
 @login_required   # 👈 protege a rota
 @permission_required("membros", "view")
 def relatorio_membros():
+    if not getattr(current_user, "is_admin", False):
+        flash("Você não tem permissão para acessar o Relatório Estatístico.", "danger")
+        return redirect(url_for("dashboard.dashboard"))
+
     sexo = request.args.get("sexo")
     status = request.args.get("status")
     estado_civil = request.args.get("estado_civil")
@@ -468,6 +476,10 @@ def relatorio_membros():
 @login_required   # 👈 protege a rota
 @permission_required("membros", "view")
 def relatorio_membros_pdf():
+    if not getattr(current_user, "is_admin", False):
+        flash("Você não tem permissão para acessar o Relatório Estatístico.", "danger")
+        return redirect(url_for("dashboard.dashboard"))
+
     sexo = request.args.get("sexo")
     status = request.args.get("status")
     estado_civil = request.args.get("estado_civil")
@@ -495,6 +507,10 @@ def relatorio_membros_pdf():
         data_emissao=date.today().strftime("%d/%m/%Y")
     )
     # Gera o PDF com WeasyPrint
+    if HTML is None:
+        flash("Geração de PDF indisponível neste ambiente (bibliotecas do GTK/WeasyPrint não encontradas).", "warning")
+        return redirect(url_for("member.index"))
+
     pdf = HTML(string=html).write_pdf()
 
     return Response(
@@ -564,7 +580,7 @@ def cadastro_visitante(hash):
             bairro=bairro,
             naturalidade=naturalidade,
             cep=cep,
-            observacoes=observacoes,
+            observacoes=sanitizar_html(observacoes),
             funcao="Visitante",
             status="Ativo",
             data_cadastro=datetime.utcnow()
@@ -629,4 +645,102 @@ def exportar_aniversariantes_pdf():
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = "inline; filename=aniversariantes.pdf"
     return response
+
+
+# ------------------------------------------------------------------------------
+# 👤 Transformar Membro em Usuário do Sistema (Sem duplicação de cadastro)
+# ------------------------------------------------------------------------------
+@member_bp.route("/<int:id>/tornar-usuario", methods=["POST"])
+@login_required
+def tornar_usuario(id):
+    if not (current_user.is_admin or current_user.has_permission("usuarios", "create") or current_user.has_permission("membros", "edit")):
+        flash("Você não tem permissão para criar usuários.", "danger")
+        return redirect(url_for("member.listar_membros"))
+
+    membro = Member.query.get_or_404(id)
+    if membro.user:
+        flash(f"O membro '{membro.nome}' já possui uma conta de usuário vinculada ({membro.user.email}).", "warning")
+        return redirect(url_for("member.listar_membros"))
+
+    email = request.form.get("email", "").strip().lower()
+    senha = request.form.get("senha", "").strip()
+    confirmar_senha = request.form.get("confirmar_senha", "").strip()
+    perfil = request.form.get("perfil", "professor_ebd").strip()
+
+    if not email or "@" not in email:
+        flash("Informe um e-mail válido para o login do usuário.", "danger")
+        return redirect(url_for("member.listar_membros"))
+
+    existente = User.query.filter_by(email=email).first()
+    if existente:
+        flash(f"Este e-mail '{email}' já está em uso por outro usuário do sistema.", "danger")
+        return redirect(url_for("member.listar_membros"))
+
+    if len(senha) < 6:
+        flash("A senha deve conter no mínimo 6 caracteres.", "danger")
+        return redirect(url_for("member.listar_membros"))
+
+    if senha != confirmar_senha:
+        flash("A confirmação de senha não confere.", "danger")
+        return redirect(url_for("member.listar_membros"))
+
+    is_admin = (perfil == "admin")
+    usuario = User(
+        nome=membro.nome,
+        email=email,
+        ativo=True,
+        is_admin=is_admin,
+        foto=membro.foto,
+        member_id=membro.id
+    )
+    usuario.set_password(senha)
+    db.session.add(usuario)
+    db.session.flush()
+
+    # Perfis predefinidos de permissões
+    perfis_permissoes = {
+        "professor_ebd": [("ebd", "view"), ("ebd", "frequencia"), ("perfil", "view"), ("perfil", "password")],
+        "coordenador_ebd": [("ebd", "view"), ("ebd", "create"), ("ebd", "edit"), ("ebd", "delete"), ("ebd", "frequencia"), ("perfil", "view"), ("perfil", "password")],
+        "secretario": [("membros", "view"), ("membros", "create"), ("membros", "edit"), ("atas", "view"), ("atas", "create"), ("cartas", "view"), ("cartas", "create"), ("certificados", "view"), ("certificados", "create"), ("ebd", "view"), ("perfil", "view"), ("perfil", "password")],
+        "financeiro": [("financeiro", "view"), ("financeiro", "create"), ("financeiro", "edit"), ("perfil", "view"), ("perfil", "password")],
+        "comum": [("perfil", "view"), ("perfil", "password")]
+    }
+
+    if not is_admin:
+        perms_a_adicionar = perfis_permissoes.get(perfil, perfis_permissoes["professor_ebd"])
+        for area, acao in perms_a_adicionar:
+            perm = Permission.query.filter_by(area=area, action=acao).first()
+            if not perm:
+                perm = Permission(area=area, action=acao)
+                db.session.add(perm)
+                db.session.flush()
+            db.session.add(UserPermission(user_id=usuario.id, permission_id=perm.id))
+
+    db.session.commit()
+    user_ident = getattr(current_user, "nome", None) or getattr(current_user, "email", "Admin")
+    registrar_log(user_ident, f"Transformou membro '{membro.nome}' em usuário ({email}) com perfil: {perfil}")
+    flash(f"Conta de acesso criada com sucesso para '{membro.nome}' ({email})!", "success")
+    return redirect(url_for("member.listar_membros"))
+
+
+@member_bp.route("/<int:id>/toggle-usuario", methods=["POST"])
+@login_required
+def toggle_usuario_membro(id):
+    if not (current_user.is_admin or current_user.has_permission("usuarios", "edit")):
+        flash("Você não tem permissão para alterar status de usuários.", "danger")
+        return redirect(url_for("member.listar_membros"))
+
+    membro = Member.query.get_or_404(id)
+    if not membro.user:
+        flash("Este membro não possui conta de usuário vinculada.", "warning")
+        return redirect(url_for("member.listar_membros"))
+
+    membro.user.ativo = not membro.user.ativo
+    db.session.commit()
+    user_ident = getattr(current_user, "nome", None) or getattr(current_user, "email", "Admin")
+    status_str = "ativado" if membro.user.ativo else "desativado"
+    registrar_log(user_ident, f"Alterou status do usuário vinculado a '{membro.nome}' para {status_str}")
+    flash(f"Acesso ao sistema do membro '{membro.nome}' foi {status_str} com sucesso!", "success" if membro.user.ativo else "warning")
+    return redirect(url_for("member.listar_membros"))
+
 

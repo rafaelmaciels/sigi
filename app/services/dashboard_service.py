@@ -14,7 +14,7 @@ class DashboardService:
     }
 
     @classmethod
-    def get_dashboard_metrics(cls) -> dict:
+    def get_dashboard_metrics(cls, is_admin: bool = False) -> dict:
         agora = datetime.now()
         mes_atual = agora.month
         ano_atual = agora.year
@@ -22,12 +22,46 @@ class DashboardService:
 
         # 1. Contagens gerais
         total_membros = Member.query.filter(Member.data_saida.is_(None)).count()
-        total_batizados = Member.query.filter_by(batizado=True).count()
-        total_dizimistas = Member.query.filter_by(dizimista=True).count()
+        total_batizados = Member.query.filter_by(batizado=True).count() if is_admin else 0
+        total_dizimistas = Member.query.filter_by(dizimista=True).count() if is_admin else 0
         total_eventos = Evento.query.count()
         total_visitantes = Member.query.filter_by(visitante=True).count()
 
-        # 2. Entradas e Saídas do mês
+        # 2. Próximos aniversariantes (visível operacionalmente)
+        proximos_aniversariantes = (
+            Member.query
+            .filter(func.extract('month', Member.data_nascimento) == mes_atual)
+            .order_by(func.extract('day', Member.data_nascimento))
+            .limit(5)
+            .all()
+        )
+
+        # 3. Métricas protegidas e restritas (Apenas para Administrador)
+        if not is_admin:
+            return {
+                "total_membros": total_membros,
+                "total_batizados": 0,
+                "total_dizimistas": 0,
+                "total_eventos": total_eventos,
+                "total_visitantes": total_visitantes,
+                "entradas_mes": 0.0,
+                "saidas_mes": 0.0,
+                "meses_labels": [],
+                "financeiro_mensal": [],
+                "financeiro_saidas": [],
+                "has_financeiro_data": False,
+                "proximos_aniversariantes": proximos_aniversariantes,
+                "crescimento_labels": [],
+                "crescimento_valores": [],
+                "crescimento_valores_por_ano": {},
+                "saidas_valores_por_ano": {},
+                "indicadores_por_ano": {},
+                "taxa_crescimento": None,
+                "tendencia": None,
+                "mes_nome": mes_nome
+            }
+
+        # 4. Entradas e Saídas do mês (Administrador)
         entradas_mes = (
             db.session.query(func.sum(Financeiro.valor))
             .filter(Financeiro.tipo == "Entrada")

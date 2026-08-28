@@ -26,7 +26,7 @@
   <!-- Cards Principais de Indicadores -->
   <div class="row g-4 mb-4">
     <!-- Membros Ativos -->
-    <div class="col-sm-6 col-xl-3">
+    <div class="{% if current_user.is_admin %}col-sm-6 col-xl-3{% else %}col-sm-6 col-xl-6{% endif %}">
       <a href="{{ url_for('member.listar_membros') }}" class="text-decoration-none">
         <div class="card dashboard-card card-primary h-100">
           <div class="card-body">
@@ -47,7 +47,8 @@
       </a>
     </div>
 
-    <!-- Batizados -->
+    {% if current_user.is_admin %}
+    <!-- Batizados (Apenas Administrador) -->
     <div class="col-sm-6 col-xl-3">
       <div class="card dashboard-card card-success h-100">
         <div class="card-body">
@@ -67,7 +68,7 @@
       </div>
     </div>
 
-    <!-- Dizimistas -->
+    <!-- Dizimistas (Apenas Administrador) -->
     <div class="col-sm-6 col-xl-3">
       <div class="card dashboard-card card-warning h-100">
         <div class="card-body">
@@ -86,9 +87,10 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
     <!-- Eventos -->
-    <div class="col-sm-6 col-xl-3">
+    <div class="{% if current_user.is_admin %}col-sm-6 col-xl-3{% else %}col-sm-6 col-xl-6{% endif %}">
       <a href="{{ url_for('event.listar_eventos') }}" class="text-decoration-none">
         <div class="card dashboard-card card-info h-100">
           <div class="card-body">
@@ -112,7 +114,8 @@
 
   <!-- Segunda Linha: Movimentação Financeira e Aniversariantes -->
   <div class="row g-4 mb-4">
-    <!-- Finanças do Mês Corrente -->
+    {% if current_user.is_admin %}
+    <!-- Finanças do Mês Corrente (Apenas Administrador) -->
     <div class="col-lg-6">
       <div class="card shadow-sm h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -162,9 +165,10 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
     <!-- Aniversariantes do Mês -->
-    <div class="col-lg-6">
+    <div class="{% if current_user.is_admin %}col-lg-6{% else %}col-12{% endif %}">
       <div class="card shadow-sm h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
           <span class="fw-bold"><i class="bi bi-gift text-warning me-2"></i> Aniversariantes de {{ mes_nome }}</span>
@@ -208,7 +212,8 @@
     </div>
   </div>
 
-  <!-- Crescimento da Igreja com Navegação por Ano -->
+  {% if current_user.is_admin %}
+  <!-- Crescimento da Igreja com Navegação por Ano (Apenas Administrador) -->
   <div class="row g-4 mb-4">
     <div class="col-12">
       <div class="card shadow-sm">
@@ -237,7 +242,7 @@
               </div>
             </div>
 
-            <!-- Indicadores Laterais -->
+            <!-- Indicadores Laterais (Resumo da Movimentação Anual) -->
             <div class="col-lg-4">
               <div class="p-3 bg-light rounded-3 border">
                 <div class="small text-muted text-uppercase fw-bold mb-3">Resumo da Movimentação Anual</div>
@@ -270,9 +275,9 @@
     </div>
   </div>
 
-  <!-- Gráficos de Distribuição e Histórico Semestral -->
+  <!-- Gráficos de Distribuição e Histórico Semestral (Apenas Administrador) -->
   <div class="row g-4">
-    <!-- Distribuição de Membros -->
+    <!-- Distribuição por Batismo -->
     <div class="col-lg-6">
       <div class="card shadow-sm h-100">
         <div class="card-header">
@@ -310,66 +315,74 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
 </div> <!-- fecha container -->
 
+{% if current_user.is_admin %}
 <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
 <script>
   // 1. Gráfico de Rosca - Membros Batizados x Não Batizados
-  new Chart(document.getElementById('membrosChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Batizados', 'Não Batizados'],
-      datasets: [{
-        data: [{{ total_batizados }}, {{ [total_membros - total_batizados, 0] | max }}],
-        backgroundColor: ['#2563eb', '#94a3b8'],
-        borderWidth: 0,
-        hoverOffset: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom' }
+  const ctxMembros = document.getElementById('membrosChart');
+  if (ctxMembros) {
+    new Chart(ctxMembros, {
+      type: 'doughnut',
+      data: {
+        labels: ['Batizados', 'Não Batizados'],
+        datasets: [{
+          data: [{{ total_batizados }}, {{ [total_membros - total_batizados, 0] | max }}],
+          backgroundColor: ['#2563eb', '#94a3b8'],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
       },
-      cutout: '72%'
-    }
-  });
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        },
+        cutout: '72%'
+      }
+    });
+  }
 
   // 2. Gráfico de Barras - Histórico Financeiro
   {% if has_financeiro_data %}
-  new Chart(document.getElementById('financeiroChart'), {
-    type: 'bar',
-    data: {
-      labels: {{ meses_labels|tojson }},
-      datasets: [
-        {
-          label: 'Entradas (R$)',
-          data: {{ financeiro_mensal|tojson }},
-          backgroundColor: '#10b981',
-          borderRadius: 6
-        },
-        {
-          label: 'Saídas (R$)',
-          data: {{ financeiro_saidas|tojson }},
-          backgroundColor: '#ef4444',
-          borderRadius: 6
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' }
+  const ctxFinanceiro = document.getElementById('financeiroChart');
+  if (ctxFinanceiro) {
+    new Chart(ctxFinanceiro, {
+      type: 'bar',
+      data: {
+        labels: {{ meses_labels|tojson }},
+        datasets: [
+          {
+            label: 'Entradas (R$)',
+            data: {{ financeiro_mensal|tojson }},
+            backgroundColor: '#10b981',
+            borderRadius: 6
+          },
+          {
+            label: 'Saídas (R$)',
+            data: {{ financeiro_saidas|tojson }},
+            backgroundColor: '#ef4444',
+            borderRadius: 6
+          }
+        ]
       },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+        }
       }
-    }
-  });
+    });
+  }
   {% endif %}
 
   // 3. Gráfico de Linha - Crescimento Natural com Navegador de Ano
@@ -380,13 +393,15 @@
 
     const anoAtual = new Date().getFullYear();
     let anoSelecionado = anoAtual;
-    currentYearSpan.textContent = anoSelecionado;
+    if (currentYearSpan) currentYearSpan.textContent = anoSelecionado;
 
     const dadosEntradasPorAno = {{ crescimento_valores_por_ano|tojson }};
     const dadosSaidasPorAno = {{ saidas_valores_por_ano|tojson }};
     const indicadoresPorAno = {{ indicadores_por_ano|tojson }};
 
     const ctx = document.getElementById('crescimentoChart');
+    if (!ctx) return;
+
     const chart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -431,11 +446,17 @@
 
     function atualizarIndicadores(ano) {
       const ind = indicadoresPorAno[ano] || {};
-      document.getElementById("entradasAno").textContent = ind.entradas || 0;
-      document.getElementById("saidasAno").textContent = ind.saidas || 0;
-      document.getElementById("movimentacaoAno").textContent = ind.movimentacao || 0;
-      document.getElementById("taxaAno").textContent = (ind.taxa !== null && ind.taxa !== undefined) ? ind.taxa + "%" : "0%";
-      document.getElementById("totalAno").textContent = ind.total_membros || 0;
+      const elEntradas = document.getElementById("entradasAno");
+      const elSaidas = document.getElementById("saidasAno");
+      const elMov = document.getElementById("movimentacaoAno");
+      const elTaxa = document.getElementById("taxaAno");
+      const elTotal = document.getElementById("totalAno");
+
+      if (elEntradas) elEntradas.textContent = ind.entradas || 0;
+      if (elSaidas) elSaidas.textContent = ind.saidas || 0;
+      if (elMov) elMov.textContent = ind.movimentacao || 0;
+      if (elTaxa) elTaxa.textContent = (ind.taxa !== null && ind.taxa !== undefined) ? ind.taxa + "%" : "0%";
+      if (elTotal) elTotal.textContent = ind.total_membros || 0;
     }
 
     function atualizarGrafico(ano) {
@@ -447,21 +468,26 @@
 
     atualizarIndicadores(anoSelecionado);
 
-    btnMenos.addEventListener("click", function(e) {
-      e.preventDefault();
-      anoSelecionado--;
-      currentYearSpan.textContent = anoSelecionado;
-      atualizarGrafico(anoSelecionado);
-    });
-
-    btnMais.addEventListener("click", function(e) {
-      e.preventDefault();
-      if (anoSelecionado < anoAtual) {
-        anoSelecionado++;
-        currentYearSpan.textContent = anoSelecionado;
+    if (btnMenos) {
+      btnMenos.addEventListener("click", function(e) {
+        e.preventDefault();
+        anoSelecionado--;
+        if (currentYearSpan) currentYearSpan.textContent = anoSelecionado;
         atualizarGrafico(anoSelecionado);
-      }
-    });
+      });
+    }
+
+    if (btnMais) {
+      btnMais.addEventListener("click", function(e) {
+        e.preventDefault();
+        if (anoSelecionado < anoAtual) {
+          anoSelecionado++;
+          if (currentYearSpan) currentYearSpan.textContent = anoSelecionado;
+          atualizarGrafico(anoSelecionado);
+        }
+      });
+    }
   });
 </script>
+{% endif %}
 {% endblock %}

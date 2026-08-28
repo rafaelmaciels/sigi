@@ -5,6 +5,9 @@ __pycache__/
 
 # Instância local do Flask / Banco de dados SQLite
 instance/
+*.db
+*.sqlite
+*.sqlite3
 
 # Migrações de banco (descomente se NÃO quiser salvar no repositório)
 migrations/
@@ -17,8 +20,8 @@ migrations/
 app/routes/financeiro/financeiro.py.txt
 
 # Arquivos de upload de mídia/usuários (preserva a estrutura do diretório)
-app/static/uploads/*
-!app/static/uploads/.gitkeep
+/app/static/uploads/*
+!/app/static/uploads/.gitkeep
 
 # Ambientes virtuais Python
 .venv/
@@ -28,8 +31,20 @@ ENV/
 
 # Variáveis de ambiente e segredos
 .env
+.env.local
+.env.production
 *.pem
 *.key
+
+# Backups gerados pelo sistema
+backups/
+*.zip
+*.tar.gz
+*.sql
+
+# Logs de runtime
+logs/
+*.log
 
 # IDEs e Editores
 .vscode/

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Novo Período Letivo — EBD SiGI{% endblock %}
+{% block nav_ebd_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-calendar-plus text-primary me-2"></i> Novo Período Letivo
+      </h2>
+      <p class="text-muted mb-0">Cadastre um novo trimestre ou ano letivo para a Escola Dominical.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('ebd.listar_periodos') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Voltar aos Períodos
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header fw-bold bg-white">
+          <i class="bi bi-calendar3 text-primary me-1"></i> Informações do Período
+        </div>
+        <div class="card-body p-4">
+          <form method="post">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              {{ form.nome.label(class="form-label") }}
+              {{ form.nome(class="form-control", placeholder="Ex: 3º Trimestre 2026 - As Parábolas de Jesus") }}
+              {% if form.nome.errors %}
+                <div class="text-danger small">{{ form.nome.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                {{ form.data_inicio.label(class="form-label") }}
+                {{ form.data_inicio(class="form-control", type="date") }}
+                {% if form.data_inicio.errors %}
+                  <div class="text-danger small">{{ form.data_inicio.errors[0] }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.data_fim.label(class="form-label") }}
+                {{ form.data_fim(class="form-control", type="date") }}
+                {% if form.data_fim.errors %}
+                  <div class="text-danger small">{{ form.data_fim.errors[0] }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              {{ form.status.label(class="form-label") }}
+              {{ form.status(class="form-select") }}
+            </div>
+
+            <div class="mb-4">
+              {{ form.observacoes.label(class="form-label") }}
+              {{ form.observacoes(class="form-control", rows=3, placeholder="Diretrizes do período, revistas utilizadas, etc.") }}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ url_for('ebd.listar_periodos') }}" class="btn btn-outline-secondary">Cancelar</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i> Salvar Período
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -64,6 +64,13 @@ class PermissoesForm(FlaskForm):
     patrimonios_edit = BooleanField("Editar Patrimônios")
     patrimonios_delete = BooleanField("Excluir Patrimônios")
 
+    # Escola Dominical (EBD)
+    ebd_view = BooleanField("Visualizar EBD")
+    ebd_create = BooleanField("Criar EBD / Classes / Aulas")
+    ebd_edit = BooleanField("Editar EBD / Classes / Aulas")
+    ebd_delete = BooleanField("Excluir EBD / Classes")
+    ebd_frequencia = BooleanField("Lançar / Alterar Frequência")
+
     # Perfil
     perfil_view = BooleanField("Visualizar Perfil")
     perfil_password = BooleanField("Alterar Senha")

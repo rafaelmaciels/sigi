@@ -24,6 +24,21 @@ def create_app(config_class=None):
     csrf.init_app(app)
 
     # -----------------------------
+    # 🔄 Auto-migração segura de colunas (compatibilidade de schema)
+    # -----------------------------
+    with app.app_context():
+        try:
+            from sqlalchemy import text, inspect
+            inspector = inspect(db.engine)
+            if 'users' in inspector.get_table_names():
+                colunas = [c['name'] for c in inspector.get_columns('users')]
+                if 'member_id' not in colunas:
+                    db.session.execute(text("ALTER TABLE users ADD COLUMN member_id INTEGER REFERENCES members(id)"))
+                    db.session.commit()
+        except Exception:
+            pass
+
+    # -----------------------------
     # 👤 Configuração do LoginManager
     # -----------------------------
     login_manager = LoginManager()
@@ -53,6 +68,7 @@ def create_app(config_class=None):
     from app.routes.configuracoes import config_bp
     from app.routes.perfil.perfil import perfil_bp
     from app.routes.documentos import documentos_bp
+    from app.routes.ebd import ebd_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -63,6 +79,7 @@ def create_app(config_class=None):
     app.register_blueprint(config_bp)
     app.register_blueprint(perfil_bp)
     app.register_blueprint(documentos_bp)
+    app.register_blueprint(ebd_bp)
     
     # -----------------------------
     # 📅 Context processor para ano atual e timezone

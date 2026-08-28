@@ -12,7 +12,7 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon/favicon.ico') }}">
     
     <!-- Open Graph meta tags para compartilhamento -->
-    <meta property="og:title" content="Cadastro de Visitante - SiGI" />
+    <meta property="og:title" content="Cadastro de Visitante — SiGI" />
     <meta property="og:description" content="Preencha seus dados para nos conhecermos melhor." />
     <meta property="og:image" content="{{ url_for('static', filename='img/cadastro.png', _external=True) }}" />
     <meta property="og:image:width" content="1200" />
@@ -20,85 +20,68 @@
     <meta property="og:url" content="{{ request.url }}" />
     <meta property="og:type" content="website" />
 
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Cadastro de Visitante - SiGI" />
-    <meta name="twitter:description" content="Preencha seus dados para nos conhecermos melhor." />
-    <meta name="twitter:image" content="{{ url_for('static', filename='img/cadastro.png', _external=True) }}" />
-
-    <title>Cadastro de Visitante - SiGI</title>
+    <title>Cadastro de Visitante — SiGI</title>
 
     <!-- Bootstrap 5 CSS local -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <!-- Bootstrap Icons local -->
     <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/base.css') }}" rel="stylesheet">
 
     <style>
         body {
-            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            background-color: var(--sigi-bg-app, #f8fafc);
             min-height: 100vh;
-            padding: 30px 0;
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 40px 15px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--sigi-text-main, #0f172a);
         }
-        .card {
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 30px;
-            margin-bottom: 30px;
+        .visitor-card {
+            background: #ffffff;
+            border: 1px solid var(--sigi-border, #e2e8f0);
+            border-radius: 20px;
+            box-shadow: var(--sigi-shadow-lg, 0 10px 15px -3px rgba(15, 23, 42, 0.08));
+            padding: 35px 30px;
+            margin-bottom: 25px;
         }
-        .card-header {
+        .visitor-header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--sigi-border, #e2e8f0);
         }
-        .card-header h2 {
-            color: #333;
-            margin-bottom: 10px;
+        .visitor-icon-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: #ffffff;
+            font-size: 1.6rem;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            margin-bottom: 1rem;
         }
-        .card-header p {
-            color: #666;
+        .visitor-header h2 {
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: var(--sigi-text-main, #0f172a);
+            letter-spacing: -0.03em;
+            margin-bottom: 0.25rem;
         }
-        .card-header {
-    	background: transparent; 
-    	border-bottom: none;    
-	}
-        .igreja-nome {
-            color: #1cc88a;
-            font-weight: bold;
-        }
-        .form-group label {
-            color: #555;
-            font-weight: 600;
+        .visitor-header p {
+            color: var(--sigi-text-muted, #64748b);
+            font-size: 0.95rem;
+            margin: 0;
         }
         .required:after {
             content: " *";
-            color: #e74c3c;
-        }
-        .btn-cadastrar {
-            background: linear-gradient(135deg, #4e73df, #1cc88a);
-            border: none;
-            padding: 12px 40px;
-            font-size: 16px;
-            border-radius: 25px;
-            color: #fff;
-            width: 100%;
-            margin-top: 20px;
-        }
-        .btn-cadastrar:hover {
-            background: linear-gradient(135deg, #3b5cc4, #17a673);
-            color: #fff;
-        }
-        .section-title {
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin: 25px 0 20px 0;
-            color: #333;
+            color: var(--sigi-danger, #ef4444);
         }
         .footer-text {
             text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 20px;
-            font-size: 13px;
+            color: var(--sigi-text-muted, #64748b);
+            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -107,126 +90,119 @@
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
 
-                <div class="card">
-                    <div class="card-header">
-                        <h2><i class="bi bi-person-plus"></i> Cadastro de Visitante</h2>
-                        <p>Seja bem-vindo(a) à <span class="igreja-nome">SiGI</span>!</p>
-                        <p>Preencha seus dados para nos conhecermos melhor.</p>
+                <div class="visitor-card">
+                    <div class="visitor-header">
+                        <div class="visitor-icon-badge">
+                            <i class="bi bi-person-heart"></i>
+                        </div>
+                        <h2>Cadastro de Visitante</h2>
+                        <p>Seja bem-vindo(a)! Preencha seus dados para nos conhecermos melhor.</p>
                     </div>
 
                     <form method="post">
                         {{ form.hidden_tag() }}
+
                         <!-- Dados Básicos -->
-                        <h4 class="section-title"><i class="bi bi-person"></i> Dados Básicos</h4>
+                        <div class="sigi-form-section-title">
+                            <i class="bi bi-person text-primary"></i> Informações Pessoais
+                        </div>
+
                         <div class="mb-3">
-                            <label class="required">Nome Completo</label>
+                            <label class="form-label required">Nome Completo</label>
                             <input type="text" class="form-control" name="nome" required placeholder="Digite seu nome completo">
                         </div>
 
-                        <div class="row">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="required">Telefone/WhatsApp</label>
-                                    <input type="tel" class="form-control" name="telefone" required placeholder="(00) 00000-0000">
-                                </div>
+                                <label class="form-label required">Telefone / WhatsApp</label>
+                                <input type="tel" class="form-control" name="telefone" required placeholder="(00) 00000-0000">
                             </div>
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label>E-mail</label>
-                                    <input type="email" class="form-control" name="email" placeholder="seu@email.com">
-                                </div>
+                                <label class="form-label">E-mail</label>
+                                <input type="email" class="form-control" name="email" placeholder="seu@email.com">
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label>Data de Nascimento</label>
-                                    <input type="date" class="form-control" name="data_nascimento">
-                                </div>
+                                <label class="form-label">Nascimento</label>
+                                <input type="date" class="form-control" name="data_nascimento">
                             </div>
                             <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label>Sexo</label>
-                                    <select class="form-select" name="sexo">
-                                        <option value="">Selecione...</option>
-                                        <option value="Masculino">Masculino</option>
-                                        <option value="Feminino">Feminino</option>
-                                    </select>
-                                </div>
+                                <label class="form-label">Sexo</label>
+                                <select class="form-select" name="sexo">
+                                    <option value="">Selecione...</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Feminino">Feminino</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label>Estado Civil</label>
-                                    <select class="form-select" name="estado_civil" id="estado_civil">
-                                        <option value="">Selecione...</option>
-                                        <option value="Solteiro">Solteiro(a)</option>
-                                        <option value="Casado">Casado(a)</option>
-                                        <option value="Divorciado">Divorciado(a)</option>
-                                        <option value="Viúvo">Viúvo(a)</option>
-                                    </select>
-                                </div>
+                                <label class="form-label">Estado Civil</label>
+                                <select class="form-select" name="estado_civil" id="estado_civil">
+                                    <option value="">Selecione...</option>
+                                    <option value="Solteiro">Solteiro(a)</option>
+                                    <option value="Casado">Casado(a)</option>
+                                    <option value="Divorciado">Divorciado(a)</option>
+                                    <option value="Viúvo">Viúvo(a)</option>
+                                </select>
                             </div>
                         </div>
 
                         <div class="mb-3" id="conjuge-box" style="display:none;">
-                            <label>Nome do Cônjuge</label>
-                            <input type="text" class="form-control" name="conjuge">
+                            <label class="form-label">Nome do Cônjuge</label>
+                            <input type="text" class="form-control" name="conjuge" placeholder="Digite o nome do cônjuge">
                         </div>
 
-                        <h4 class="section-title"><i class="bi bi-geo-alt"></i> Endereço <small>(opcional)</small></h4>
+                        <!-- Endereço -->
+                        <div class="sigi-form-section-title">
+                            <i class="bi bi-geo-alt text-primary"></i> Localização <span class="text-muted fw-normal small">(opcional)</span>
+                        </div>
 
                         <div class="mb-3">
-                            <label>Endereço</label>
+                            <label class="form-label">Endereço Residencial</label>
                             <input type="text" class="form-control" name="endereco" placeholder="Rua, número, complemento">
                         </div>
 
-                        <div class="row">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label>Bairro</label>
-                                    <input type="text" class="form-control" name="bairro" placeholder="Digite seu Bairro">
-                                </div>
+                                <label class="form-label">Bairro</label>
+                                <input type="text" class="form-control" name="bairro" placeholder="Digite seu bairro">
                             </div>
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label>Naturalidade</label>
-                                    <input type="text" class="form-control" name="naturalidade" placeholder="Local onde Mora">
-                                </div>
+                                <label class="form-label">Cidade / Naturalidade</label>
+                                <input type="text" class="form-control" name="naturalidade" placeholder="Cidade onde mora">
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label>CEP</label>
-                                    <input type="text" class="form-control" name="cep" placeholder="00000-000">
-                                </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CEP</label>
+                                <input type="text" class="form-control" name="cep" placeholder="00000-000">
                             </div>
                         </div>
 
-                        <h4 class="section-title"><i class="bi bi-chat-dots"></i> Observações <small>(opcional)</small></h4>
+                        <!-- Observações -->
+                        <div class="sigi-form-section-title">
+                            <i class="bi bi-chat-dots text-primary"></i> Observações & Pedidos de Oração <span class="text-muted fw-normal small">(opcional)</span>
+                        </div>
 
-                        <div class="mb-3">
-                            <label>Pedidos de oração ou observações</label>
+                        <div class="mb-4">
+                            <label class="form-label">Mensagem ou Pedido</label>
                             <textarea class="form-control" name="observacoes" rows="3" placeholder="Deixe aqui seus pedidos de oração ou alguma observação..."></textarea>
                         </div>
 
                         <!-- Botão Finalizar -->
-                        <button type="submit" class="btn btn-cadastrar">
-                            <i class="bi bi-check-lg"></i> Finalizar Cadastro
+                        <button type="submit" class="btn btn-primary w-100 py-2 fs-6">
+                            <i class="bi bi-check-circle me-1"></i> Finalizar Cadastro
                         </button>
                     </form>
                 </div>
                 <p class="footer-text">
-                    <i class="bi bi-lock"></i> Seus dados estão seguros e serão usados apenas pela igreja.
+                    <i class="bi bi-shield-check text-success me-1"></i> Seus dados estão seguros e protegidos.
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- jQuery local -->
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/jquery-1.12.4.min.js') }}"></script>
-    <!-- Bootstrap 5 JS local -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 
     <script>
