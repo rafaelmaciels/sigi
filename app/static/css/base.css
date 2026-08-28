@@ -307,17 +307,31 @@ body {
 }
 
 /* ==========================================================================
-   Tables & Data Grid
+   Tables & Data Grid (Mobile-Responsive Horizontal Scrolling)
    ========================================================================== */
 .table-responsive {
+  width: 100%;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--sigi-border);
   border-radius: var(--sigi-radius-lg);
   background: var(--sigi-surface);
   box-shadow: var(--sigi-shadow-sm);
-  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.card .table-responsive,
+.card-body .table-responsive {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
 }
 
 .table {
+  width: 100%;
+  min-width: 680px;
   margin-bottom: 0;
   color: var(--sigi-text-main);
   border-color: var(--sigi-border);
@@ -348,6 +362,32 @@ body {
   vertical-align: middle;
   border-bottom: 1px solid var(--sigi-border);
   font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.table td.text-end,
+.table th.text-end {
+  min-width: 130px;
+  white-space: nowrap;
+}
+
+/* Custom subtle scrollbar for tables on desktop & mobile */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* ==========================================================================
