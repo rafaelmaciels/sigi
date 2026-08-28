@@ -307,17 +307,11 @@ body {
 }
 
 /* ==========================================================================
-   Tables & Data Grid (Mobile-Responsive Horizontal Scrolling)
+   Tables & Data Grid (Desktop 100% Fit & Mobile Touch Scroll)
    ========================================================================== */
 .table-responsive {
   width: 100%;
-  overflow-x: auto !important;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--sigi-border);
-  border-radius: var(--sigi-radius-lg);
   background: var(--sigi-surface);
-  box-shadow: var(--sigi-shadow-sm);
   margin-bottom: 1.5rem;
 }
 
@@ -331,7 +325,6 @@ body {
 
 .table {
   width: 100%;
-  min-width: 680px;
   margin-bottom: 0;
   color: var(--sigi-text-main);
   border-color: var(--sigi-border);
@@ -344,9 +337,8 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
-  padding: 0.85rem 1.2rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--sigi-border);
-  white-space: nowrap;
 }
 
 .table tbody tr {
@@ -358,36 +350,87 @@ body {
 }
 
 .table tbody td {
-  padding: 0.95rem 1.2rem;
+  padding: 0.85rem 1rem;
   vertical-align: middle;
   border-bottom: 1px solid var(--sigi-border);
-  font-size: 0.9rem;
-  white-space: nowrap;
+  font-size: 0.88rem;
 }
 
 .table td.text-end,
 .table th.text-end {
-  min-width: 130px;
-  white-space: nowrap;
+  white-space: nowrap !important;
+  width: 1%;
 }
 
-/* Custom subtle scrollbar for tables on desktop & mobile */
+/* 🖥️ Desktop (>= 992px): Encaixe 100% perfeito na tela, SEM rolagem lateral */
+@media (min-width: 992px) {
+  .table-responsive {
+    overflow-x: visible !important;
+    border: 1px solid var(--sigi-border);
+    border-radius: var(--sigi-radius-lg);
+    box-shadow: var(--sigi-shadow-sm);
+  }
+  .card .table-responsive,
+  .card-body .table-responsive {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .table {
+    min-width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto;
+  }
+  .table tbody td {
+    white-space: normal;
+    word-break: normal;
+  }
+  .table th.nowrap,
+  .table td.nowrap,
+  .table .badge,
+  .table td.text-end,
+  .table th.text-end {
+    white-space: nowrap !important;
+  }
+}
+
+/* 📱 Mobile & Tablet (< 992px): Rolagem lateral touch suave para caber todas as colunas */
+@media (max-width: 991.98px) {
+  .table-responsive {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--sigi-border);
+    border-radius: var(--sigi-radius-lg);
+    box-shadow: var(--sigi-shadow-sm);
+  }
+  .card .table-responsive,
+  .card-body .table-responsive {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .table {
+    min-width: 680px;
+  }
+  .table thead th,
+  .table tbody td {
+    white-space: nowrap;
+  }
+}
+
+/* Barra de rolagem sutil para mobile */
 .table-responsive::-webkit-scrollbar {
-  height: 6px;
+  height: 5px;
 }
 
 .table-responsive::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 4px;
 }
 
 .table-responsive::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
 }
 
 /* ==========================================================================

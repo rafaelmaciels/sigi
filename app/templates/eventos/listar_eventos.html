@@ -58,14 +58,14 @@
           <thead>
             <tr>
               <th scope="col">Título do Evento</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Início</th>
-              <th scope="col">Término</th>
+              <th scope="col" class="nowrap">Tipo</th>
+              <th scope="col" class="nowrap">Data / Início</th>
+              <th scope="col" class="nowrap">Término</th>
               <th scope="col">Local</th>
               <th scope="col">Organizador</th>
-              <th scope="col">Status</th>
+              <th scope="col" class="nowrap">Status</th>
               {% if has_permission("eventos", "view") or has_permission("eventos", "edit") or has_permission("eventos", "delete") %}
-                <th scope="col" class="text-end">Ações</th>
+                <th scope="col" class="text-end nowrap">Ações</th>
               {% endif %}
             </tr>
           </thead>
@@ -74,39 +74,39 @@
               {% for evento in eventos.items %}
               <tr>
                 <td class="fw-semibold text-dark">{{ evento.titulo }}</td>
-                <td>
+                <td class="nowrap">
                   <span class="badge bg-primary">
-                    {% if evento.tipo == "culto_especial" %}Culto Especial
+                    {% if evento.tipo == "culto especial" or evento.tipo == "culto_especial" %}Culto Especial
                     {% elif evento.tipo == "retiro" %}Retiro
                     {% elif evento.tipo == "batismo" %}Batismo
-                    {% elif evento.tipo == "reuniao" %}Reunião
+                    {% elif evento.tipo == "reunião" or evento.tipo == "reuniao" %}Reunião
                     {% elif evento.tipo == "evangelismo" %}Evangelismo
-                    {% elif evento.tipo == "conferencia" %}Conferência
+                    {% elif evento.tipo == "conferência" or evento.tipo == "conferencia" %}Conferência
                     {% elif evento.tipo == "outros" %}Outros
-                    {% else %}{{ evento.tipo }}{% endif %}
+                    {% else %}{{ evento.tipo | title }}{% endif %}
                   </span>
                 </td>
-                <td class="text-muted small">{{ evento.data_inicio.strftime('%d/%m/%Y %H:%M') }}</td>
-                <td class="text-muted small">{{ evento.data_fim.strftime('%d/%m/%Y %H:%M') if evento.data_fim else '-' }}</td>
-                <td>{{ evento.local or '-' }}</td>
+                <td class="text-muted small nowrap">{{ evento.data_inicio.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td class="text-muted small nowrap">{{ evento.data_fim.strftime('%d/%m/%Y %H:%M') if evento.data_fim else '-' }}</td>
+                <td class="text-secondary small">{{ evento.local or '-' }}</td>
                 <td class="text-secondary small">{{ evento.organizador or '-' }}</td>
-                <td>
+                <td class="nowrap">
                   {% if evento.status == "confirmado" %}
                     <span class="badge bg-success">Confirmado</span>
                   {% elif evento.status == "planejado" %}
                     <span class="badge bg-warning">Planejado</span>
-                  {% elif evento.status == "em_andamento" %}
+                  {% elif evento.status == "em_andamento" or evento.status == "em andamento" %}
                     <span class="badge bg-info">Em Andamento</span>
-                  {% elif evento.status == "concluido" %}
+                  {% elif evento.status == "concluido" or evento.status == "concluído" %}
                     <span class="badge bg-secondary">Concluído</span>
                   {% elif evento.status == "cancelado" %}
                     <span class="badge bg-danger">Cancelado</span>
                   {% else %}
-                    <span class="badge bg-secondary">{{ evento.status }}</span>
+                    <span class="badge bg-secondary">{{ evento.status | capitalize }}</span>
                   {% endif %}
                 </td>
                 {% if has_permission("eventos", "view") or has_permission("eventos", "edit") or has_permission("eventos", "delete") %}
-                  <td class="text-end">
+                  <td class="text-end nowrap">
                     <div class="d-inline-flex gap-1">
                       {% if has_permission("eventos", "view") %}
                         <a href="{{ url_for('event.evento_publico_token', public_token=evento.public_token, _external=True) }}" 
