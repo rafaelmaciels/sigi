@@ -16,7 +16,20 @@ class Config:
     # -----------------------------
     # 🗄️ Banco de Dados
     # -----------------------------
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///sigi.db')
+    _raw_db_url = os.environ.get('DATABASE_URL', 'sqlite:///instance/sigi.db')
+    if _raw_db_url.startswith('sqlite:///'):
+        _sqlite_path = _raw_db_url.replace('sqlite:///', '', 1)
+        if not os.path.isabs(_sqlite_path):
+            _sqlite_path = os.path.normpath(os.path.join(BASE_DIR, _sqlite_path))
+        os.makedirs(os.path.dirname(_sqlite_path), exist_ok=True)
+        # Normaliza caminho para URI SQLite (barras normais)
+        _norm_path = _sqlite_path.replace('\\', '/')
+        if not _norm_path.startswith('/'):
+            _norm_path = '/' + _norm_path
+        SQLALCHEMY_DATABASE_URI = f'sqlite:///{_norm_path}'
+    else:
+        SQLALCHEMY_DATABASE_URI = _raw_db_url
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
