@@ -7,7 +7,7 @@ __pycache__/
 instance/
 
 # Migrações de banco (descomente se NÃO quiser salvar no repositório)
-# migrations/
+migrations/
 
 # Arquivos temporários e backups de código no projeto (.old, .txt temporários)
 *.old
