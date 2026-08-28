@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Instância local do Flask / Banco de dados SQLite
+instance/
+
+# Migrações de banco (descomente se NÃO quiser salvar no repositório)
+# migrations/
+
 # Arquivos temporários e backups de código no projeto (.old, .txt temporários)
 *.old
 *.bak
