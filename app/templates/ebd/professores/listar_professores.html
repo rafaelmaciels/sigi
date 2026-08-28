@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Professores da EBD — SiGI{% endblock %}
+{% block nav_ebd_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-person-badge text-primary me-2"></i> Corpo Docente da EBD
+      </h2>
+      <p class="text-muted mb-0">Professores titulares, auxiliares e substitutos vinculados às turmas.</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if has_permission("ebd", "create") %}
+        <a href="{{ url_for('ebd.vincular_professor') }}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Vincular Professor
+        </a>
+      {% endif %}
+      <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Painel da EBD
+      </a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header fw-bold bg-white">
+      <i class="bi bi-people text-primary me-1"></i> Professores Cadastrados ({{ professores|length }})
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive border-0">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Professor</th>
+              <th>Classe</th>
+              <th>Período</th>
+              <th>Função / Cargo</th>
+              <th>Status</th>
+              <th>Data Início</th>
+              {% if has_permission("ebd", "delete") %}
+                <th class="text-end">Ações</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% if professores %}
+              {% for p in professores %}
+              <tr>
+                <td>
+                  <div class="fw-semibold text-dark">{{ p.membro.nome }}</div>
+                  {% if p.membro.telefone %}
+                    <span class="text-muted small">{{ p.membro.telefone }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('ebd.detalhe_classe', id=p.classe_id) }}" class="text-primary text-decoration-none fw-semibold">
+                    {{ p.classe.nome }}
+                  </a>
+                </td>
+                <td class="text-muted small">{{ p.classe.periodo.nome }}</td>
+                <td>
+                  <span class="badge {% if p.cargo == 'principal' %}bg-primary{% elif p.cargo == 'auxiliar' %}bg-info{% else %}bg-secondary{% endif %}">
+                    {{ p.cargo | capitalize }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge {% if p.status == 'ativo' %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ p.status | capitalize }}
+                  </span>
+                </td>
+                <td class="text-muted small">{{ p.data_inicio.strftime('%d/%m/%Y') if p.data_inicio else '-' }}</td>
+                {% if has_permission("ebd", "delete") %}
+                  <td class="text-end">
+                    {% if p.status == 'ativo' %}
+                      <form method="POST" action="{{ url_for('ebd.desvincular_professor', id=p.id) }}" style="display:inline;" onsubmit="return confirm('Deseja encerrar o vínculo deste professor nesta classe?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Encerrar Vínculo">
+                          <i class="bi bi-x-circle"></i>
+                        </button>
+                      </form>
+                    {% else %}
+                      <span class="text-muted small">Inativo</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="p-0">
+                  <div class="sigi-empty-state">
+                    <div class="sigi-empty-icon"><i class="bi bi-person-x"></i></div>
+                    <div class="sigi-empty-title">Nenhum professor vinculado</div>
+                    <div class="sigi-empty-text">Vincule membros da igreja como professores das classes.</div>
+                    {% if has_permission("ebd", "create") %}
+                      <a href="{{ url_for('ebd.vincular_professor') }}" class="btn btn-primary">Vincular Professor</a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Transferir Aluno de Classe — EBD SiGI{% endblock %}
+{% block nav_ebd_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-arrow-left-right text-primary me-2"></i> Transferência de Classe
+      </h2>
+      <p class="text-muted mb-0">Aluno: <strong>{{ matricula.membro.nome }}</strong> &bull; Classe Atual: <strong>{{ matricula.classe.nome }}</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('ebd.detalhe_classe', id=matricula.classe_id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Voltar à Turma
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header fw-bold bg-white">
+          <i class="bi bi-arrow-repeat text-primary me-1"></i> Destino da Transferência
+        </div>
+        <div class="card-body p-4">
+          <form method="post">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              {{ form.nova_classe_id.label(class="form-label") }}
+              {{ form.nova_classe_id(class="form-select") }}
+              {% if form.nova_classe_id.errors %}
+                <div class="text-danger small">{{ form.nova_classe_id.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.motivo_saida.label(class="form-label") }}
+              {{ form.motivo_saida(class="form-control", placeholder="Ex: Mudança de faixa etária, promoção de classe, etc.") }}
+            </div>
+
+            <div class="mb-4">
+              {{ form.observacoes.label(class="form-label") }}
+              {{ form.observacoes(class="form-control", rows=3, placeholder="Observações adicionais sobre o histórico do aluno...") }}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ url_for('ebd.detalhe_classe', id=matricula.classe_id) }}" class="btn btn-outline-secondary">Cancelar</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i> Confirmar Transferência
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

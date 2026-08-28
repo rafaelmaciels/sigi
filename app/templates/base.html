@@ -92,6 +92,60 @@
             </li>
             {% endif %}
 
+            <!-- Escola Dominical (EBD) -->
+            {% if has_permission('ebd', 'view') %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle {% block nav_ebd_active %}{% endblock %}" href="#" id="navEbd" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-book"></i> Escola Dominical
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navEbd">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.dashboard') }}">
+                    <i class="bi bi-speedometer2 text-primary"></i> Painel da EBD
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.listar_classes') }}">
+                    <i class="bi bi-grid-3x3-gap text-success"></i> Classes & Turmas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.listar_matriculas') }}">
+                    <i class="bi bi-people text-info"></i> Alunos & Matrículas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.listar_aulas') }}">
+                    <i class="bi bi-journal-check text-warning"></i> Aulas & Chamadas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.mapa_frequencia') }}">
+                    <i class="bi bi-table text-secondary"></i> Mapa de Frequência
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.listar_professores') }}">
+                    <i class="bi bi-person-badge text-dark"></i> Corpo Docente
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.listar_periodos') }}">
+                    <i class="bi bi-calendar3 text-muted"></i> Períodos Letivos
+                  </a>
+                </li>
+                {% if has_permission('ebd', 'edit') %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('ebd.config_ebd') }}">
+                    <i class="bi bi-sliders text-secondary"></i> Configurações da EBD
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </li>
+            {% endif %}
+
             <!-- Documentos -->
             {% if has_permission('atas', 'view') or has_permission('certificados', 'view') or has_permission('cartas', 'view') %}
             <li class="nav-item dropdown">

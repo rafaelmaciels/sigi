@@ -153,6 +153,22 @@
         </div>
       </div>
 
+      <!-- Escola Bíblica Dominical (EBD) -->
+      <div class="col-md-6 col-xl-4">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-header fw-bold text-primary">
+            <i class="bi bi-book me-1"></i> Escola Dominical (EBD)
+          </div>
+          <div class="card-body">
+            <div class="form-check form-switch mb-2">{{ form.ebd_view(class_="form-check-input") }} {{ form.ebd_view.label(class="form-check-label") }}</div>
+            <div class="form-check form-switch mb-2">{{ form.ebd_create(class_="form-check-input") }} {{ form.ebd_create.label(class="form-check-label") }}</div>
+            <div class="form-check form-switch mb-2">{{ form.ebd_edit(class_="form-check-input") }} {{ form.ebd_edit.label(class="form-check-label") }}</div>
+            <div class="form-check form-switch mb-2">{{ form.ebd_delete(class_="form-check-input") }} {{ form.ebd_delete.label(class="form-check-label") }}</div>
+            <div class="form-check form-switch">{{ form.ebd_frequencia(class_="form-check-input") }} {{ form.ebd_frequencia.label(class="form-check-label") }}</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Usuários -->
       <div class="col-md-6 col-xl-4">
         <div class="card shadow-sm border-0 h-100">

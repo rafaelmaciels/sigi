@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Classes e Turmas — EBD SiGI{% endblock %}
+{% block nav_ebd_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-grid-3x3-gap text-primary me-2"></i> Classes & Turmas da EBD
+      </h2>
+      <p class="text-muted mb-0">Salas, faixas etárias, professores responsáveis e alunos matriculados.</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if has_permission("ebd", "create") %}
+        <a href="{{ url_for('ebd.nova_classe') }}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Nova Classe
+        </a>
+      {% endif %}
+      <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Painel da EBD
+      </a>
+    </div>
+  </div>
+
+  <!-- Filtro por Período Letivo -->
+  <div class="card shadow-sm border-0 mb-4 bg-light">
+    <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <form method="get" class="d-flex align-items-center gap-2">
+        <label class="text-muted small fw-semibold text-nowrap"><i class="bi bi-funnel me-1"></i> Período Letivo:</label>
+        <select name="periodo_id" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="">Todos os Períodos</option>
+          {% for p in periodos %}
+            <option value="{{ p.id }}" {% if periodo_selecionado_id == p.id %}selected{% endif %}>
+              {{ p.nome }} ({% if p.status == 'em_andamento' %}Em Andamento{% elif p.status == 'planejado' %}Planejado{% else %}Encerrado{% endif %})
+            </option>
+          {% endfor %}
+        </select>
+        {% if periodo_selecionado_id %}
+          <a href="{{ url_for('ebd.listar_classes') }}" class="btn btn-sm btn-outline-secondary">Limpar</a>
+        {% endif %}
+      </form>
+      <div>
+        <span class="badge bg-primary px-3 py-2">{{ classes|length }} classe(s) encontrada(s)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de Cards das Classes -->
+  <div class="row g-4 mb-4">
+    {% if classes %}
+      {% for c in classes %}
+      <div class="col-md-6 col-xl-4">
+        <div class="card shadow-sm border-0 h-100 position-relative">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">{{ c.nome }}</h5>
+            <span class="badge {% if c.status == 'ativa' %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ c.status | capitalize }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="mb-2">
+              <span class="badge bg-light text-dark border me-1"><i class="bi bi-calendar3 me-1"></i> {{ c.periodo.nome }}</span>
+              {% if c.faixa_etaria %}
+                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">{{ c.faixa_etaria }}</span>
+              {% endif %}
+            </div>
+
+            {% if c.descricao %}
+              <p class="text-muted small mb-3">{{ c.descricao }}</p>
+            {% endif %}
+
+            <div class="row g-2 mb-3 small">
+              <div class="col-6">
+                <span class="text-muted d-block">Sala / Local:</span>
+                <strong class="text-dark">{{ c.sala or 'A definir' }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block">Professor Titular:</span>
+                <strong class="text-primary">{{ c.professor_principal.nome if c.professor_principal else 'Não atribuído' }}</strong>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <span class="text-muted small">
+                <i class="bi bi-people text-success me-1"></i> <strong>{{ c.total_matriculados_ativos }}</strong> aluno(s)
+              </span>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('ebd.detalhe_classe', id=c.id) }}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-eye me-1"></i> Ver Turma
+                </a>
+                {% if has_permission("ebd", "edit") %}
+                  <a href="{{ url_for('ebd.editar_classe', id=c.id) }}" class="btn btn-sm btn-outline-secondary btn-icon" title="Editar Classe">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="sigi-empty-state bg-white rounded-3 p-5 text-center border">
+          <div class="sigi-empty-icon mb-3"><i class="bi bi-grid-3x3-gap fs-1 text-muted"></i></div>
+          <h4 class="fw-bold text-dark">Nenhuma classe cadastrada</h4>
+          <p class="text-muted">Cadastre as turmas da EBD para o período letivo ativo.</p>
+          {% if has_permission("ebd", "create") %}
+            <a href="{{ url_for('ebd.nova_classe') }}" class="btn btn-primary">Cadastrar Nova Classe</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
