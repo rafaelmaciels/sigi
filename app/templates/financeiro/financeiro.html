@@ -1,108 +1,246 @@
 {% extends "base.html" %}
-{% block title %}Financeiro{% endblock %}
+{% block title %}Painel Financeiro — SiGI{% endblock %}
+{% block nav_financeiro_active %}active{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4"><i class="bi bi-cash-stack text-success"></i> Financeiro</h2>
+<div class="container-fluid px-lg-5">
 
-  <div class="row g-4">
-    {% if has_permission("financeiro", "view") %}
-      <div class="col-md-3">
-        <a href="{{ url_for('financeiro.entradas') }}" class="text-decoration-none">
-          <div class="card shadow-sm h-100 card-hover">
-            <div class="card-body">
-              <h5 class="card-title text-success"><i class="bi bi-arrow-down-circle"></i> Entradas</h5>
-              <p class="card-text">Registrar receitas: dízimos, ofertas, doações, eventos, aluguéis.</p>
-            </div>
-          </div>
+  <!-- Header Financeiro -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1"><i class="bi bi-wallet2 text-primary me-2"></i> Gestão Financeira Eclesiástica</h2>
+      <p class="text-muted mb-0">Controle de dízimos, ofertas ministeriais, departamentos e prestação de contas.</p>
+    </div>
+    <!-- Ações Rápidas -->
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('financeiro.dizimos') }}" class="btn btn-outline-primary">
+        <i class="bi bi-heart-pulse text-warning"></i> Painel de Dízimos
+      </a>
+      <a href="{{ url_for('financeiro.balancete_mensal') }}" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-spreadsheet text-info"></i> Balancete Oficial
+      </a>
+      {% if has_permission("financeiro", "create") %}
+        <a href="{{ url_for('financeiro.saidas') }}" class="btn btn-danger">
+          <i class="bi bi-dash-circle"></i> Nova Despesa
         </a>
-      </div>
-
-      <div class="col-md-3">
-        <a href="{{ url_for('financeiro.saidas') }}" class="text-decoration-none">
-          <div class="card shadow-sm h-100 card-hover">
-            <div class="card-body">
-              <h5 class="card-title text-danger"><i class="bi bi-arrow-up-circle"></i> Saídas</h5>
-              <p class="card-text">Registrar despesas: manutenção, consumo, salários, materiais.</p>
-            </div>
-          </div>
+        <a href="{{ url_for('financeiro.entradas') }}" class="btn btn-success">
+          <i class="bi bi-plus-circle"></i> Nova Receita / Dízimo
         </a>
-      </div>
-
-      <div class="col-md-3">
-        <a href="{{ url_for('financeiro.relatorios') }}" class="text-decoration-none">
-          <div class="card shadow-sm h-100 card-hover">
-            <div class="card-body">
-              <h5 class="card-title text-primary"><i class="bi bi-graph-up"></i> Relatórios</h5>
-              <p class="card-text">Filtrar, analisar e exportar CSV.</p>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-3">
-        <a href="{{ url_for('financeiro.comprovantes') }}" class="text-decoration-none">
-          <div class="card shadow-sm h-100 card-hover">
-            <div class="card-body">
-              <h5 class="card-title text-warning"><i class="bi bi-file-earmark-text"></i> Comprovantes</h5>
-              <p class="card-text">Consulta de comprovantes, organizados por mês.</p>
-            </div>
-          </div>
-        </a>
-      </div>
-    {% endif %}
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Totais e gráfico -->
-  {% if has_permission("financeiro", "view") %}
-    <div class="row g-4 mt-4">
-      <div class="col-md-4">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6>Total de Entradas</h6>
-            <h3 class="text-success">{{ total_entradas|currency }}</h3>
+  <!-- Cards Principais de Indicadores -->
+  <div class="row g-4 mb-4">
+    <!-- Receitas do Mês -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card dashboard-card card-success h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Entradas do Mês</h6>
+              <h3 class="text-success">{{ total_entradas_mes | currency }}</h3>
+            </div>
+            <div class="dashboard-icon bg-success bg-opacity-10 text-success">
+              <i class="bi bi-arrow-down-left fs-4"></i>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6>Total de Saídas</h6>
-            <h3 class="text-danger">{{ total_saidas|currency }}</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6>Saldo</h6>
-            <h3 class="{{ 'text-success' if saldo >= 0 else 'text-danger' }}">{{ saldo|currency }}</h3>
+          <div class="mt-3 small text-muted">
+            <a href="{{ url_for('financeiro.entradas') }}" class="text-decoration-none text-success fw-medium">
+              Ver lançamentos <i class="bi bi-chevron-right"></i>
+            </a>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card shadow-sm mt-4">
-      <div class="card-body">
-        <h5 class="card-title"><i class="bi bi-activity"></i> Evolução Entradas x Saídas</h5>
-        <canvas id="financeChart" height="100"></canvas>
+    <!-- Despesas do Mês -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card dashboard-card card-danger h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Saídas do Mês</h6>
+              <h3 class="text-danger">{{ total_saidas_mes | currency }}</h3>
+            </div>
+            <div class="dashboard-icon bg-danger bg-opacity-10 text-danger">
+              <i class="bi bi-arrow-up-right fs-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 small text-muted">
+            <a href="{{ url_for('financeiro.saidas') }}" class="text-decoration-none text-danger fw-medium">
+              Ver despesas <i class="bi bi-chevron-right"></i>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
-  {% endif %}
+
+    <!-- Saldo Operacional do Mês -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card dashboard-card {% if saldo_mes >= 0 %}card-primary{% else %}card-danger{% endif %} h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Resultado do Mês</h6>
+              <h3 class="{% if saldo_mes >= 0 %}text-primary{% else %}text-danger{% endif %}">{{ saldo_mes | currency }}</h3>
+            </div>
+            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary">
+              <i class="bi bi-bar-chart-line fs-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 small text-muted">
+            Superávit / Déficit do período
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saldo Acumulado Geral -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card dashboard-card card-info h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Patrimônio Líquido Caixa</h6>
+              <h3 class="text-info">{{ saldo_geral | currency }}</h3>
+            </div>
+            <div class="dashboard-icon bg-info bg-opacity-10 text-info">
+              <i class="bi bi-bank fs-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 small text-muted">
+            Disponibilidade total em fundos
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segunda Linha: Saldos por Fundo e Gráfico Histórico -->
+  <div class="row g-4 mb-4">
+    <!-- Saldos por Conta / Fundo Eclesiástico -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-bold"><i class="bi bi-safe text-primary me-2"></i> Saldos por Fundo Eclesiástico</span>
+          <span class="badge bg-primary">{{ saldos_contas | length }} contas ativas</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive border-0">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Fundo / Conta</th>
+                  <th class="text-end">Saldo Disponível</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sc in saldos_contas %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ sc.conta }}</div>
+                    <div class="small text-muted">Receitas: {{ sc.entradas | currency }} | Despesas: {{ sc.saidas | currency }}</div>
+                  </td>
+                  <td class="text-end">
+                    <span class="fw-bold {% if sc.saldo >= 0 %}text-success{% else %}text-danger{% endif %}">
+                      {{ sc.saldo | currency }}
+                    </span>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="2" class="text-center text-muted py-4">Nenhum lançamento registrado.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico Comparativo Semestral -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-bold"><i class="bi bi-activity text-success me-2"></i> Evolução das Finanças (Últimos 6 Meses)</span>
+          <a href="{{ url_for('financeiro.relatorios') }}" class="btn btn-sm btn-outline-primary">Relatórios <i class="bi bi-chevron-right"></i></a>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="min-height: 280px;">
+            <canvas id="financeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terceira Linha: Últimos Lançamentos Realizados -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-bold"><i class="bi bi-clock-history text-secondary me-2"></i> Lançamentos Recentes</span>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('financeiro.entradas') }}" class="btn btn-sm btn-outline-success">Ver Todas Entradas</a>
+        <a href="{{ url_for('financeiro.saidas') }}" class="btn btn-sm btn-outline-danger">Ver Todas Saídas</a>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive border-0">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Categoria</th>
+              <th>Departamento / Fundo</th>
+              <th>Descrição / Favorecido</th>
+              <th class="text-end">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for lanc in ultimos_lancamentos %}
+            <tr>
+              <td class="text-muted small">{{ lanc.data.strftime('%d/%m/%Y') }}</td>
+              <td>
+                {% if lanc.tipo == 'Entrada' %}
+                  <span class="badge bg-success"><i class="bi bi-arrow-down"></i> Entrada</span>
+                {% else %}
+                  <span class="badge bg-danger"><i class="bi bi-arrow-up"></i> Saída</span>
+                {% endif %}
+              </td>
+              <td class="fw-semibold text-dark">{{ lanc.categoria }}</td>
+              <td>
+                <div class="text-secondary small">{{ lanc.departamento }}</div>
+                <div class="text-muted small">{{ lanc.conta }}</div>
+              </td>
+              <td>
+                <div class="text-dark">{{ lanc.nome_identificador }}</div>
+                <div class="text-muted small">{{ lanc.forma_pagamento }}</div>
+              </td>
+              <td class="text-end fw-bold {% if lanc.tipo == 'Entrada' %}text-success{% else %}text-danger{% endif %}">
+                {% if lanc.tipo == 'Entrada' %}+{% else %}-{% endif %} {{ lanc.valor | currency }}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">Nenhum lançamento recente.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div>
-
-<style>
-  .card-hover:hover {
-    transform: translateY(-5px);
-    transition: 0.3s;
-    box-shadow: 0 0.6rem 1rem rgba(0,0,0,.15);
-  }
-</style>
 
 <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
 <script>
   const labels = {{ labels|tojson }};
   const entradasData = {{ entradas_data|tojson }};
   const saidasData = {{ saidas_data|tojson }};
+
   const ctx = document.getElementById('financeChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
@@ -110,37 +248,34 @@
       labels,
       datasets: [
         {
-          label: 'Entradas',
+          label: 'Entradas (Receitas)',
           data: entradasData,
-          borderColor: 'rgba(25,135,84,1)',
-          backgroundColor: 'rgba(25,135,84,0.2)',
-          tension: 0.4,
-          fill: false
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4
         },
         {
-          label: 'Saídas',
+          label: 'Saídas (Despesas)',
           data: saidasData,
-          borderColor: 'rgba(220,53,69,1)',
-          backgroundColor: 'rgba(220,53,69,0.2)',
-          tension: 0.4,
-          fill: false
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.08)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4
         }
       ]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { position: 'top' }
       },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return 'R$ ' + value.toLocaleString('pt-BR');
-            }
-          }
-        }
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
       }
     }
   });

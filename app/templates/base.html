@@ -3,245 +3,291 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}SiGI{% endblock %}</title>
+    <title>{% block title %}SiGI — Gestão de Igreja{% endblock %}</title>
 
     <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon/favicon-16x16.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon/favicon.ico') }}">
-
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/favicon/apple-touch-icon.png') }}">
-
-    <!-- Android/Chrome -->
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/favicon/android-chrome-192x192.png') }}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='img/favicon/android-chrome-512x512.png') }}">
-
-    <!-- Manifest (PWA) -->
     <link rel="manifest" href="{{ url_for('static', filename='img/favicon/site.webmanifest') }}">
 
-    <!-- Bootstrap e ícones -->
+    <!-- Bootstrap & Icons -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
 
-    <!-- CSS global -->
+    <!-- CSS Global (Design System Premium) -->
     <link href="{{ url_for('static', filename='css/base.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
   </head>
   <body>
-    <!-- Navbar -->
+    <!-- Navbar SaaS Unificada -->
     {% if not hide_navbar %}
-    <div class="fixed-top">
-      <!-- Linha superior: nome -->
-      <div class="navbar-top d-flex align-items-center justify-content-between">
-        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard.dashboard') }}">
-          SiGI
+    <nav class="navbar navbar-expand-lg fixed-top sigi-navbar">
+      <div class="container-fluid px-lg-4">
+        <!-- Brand / Logo -->
+        <a class="sigi-brand" href="{{ url_for('dashboard.dashboard') }}">
+          <span class="sigi-brand-badge">
+            <i class="bi bi-cross"></i>
+          </span>
+          <span>SiGI</span>
         </a>
-      </div>
 
-      <!-- Linha inferior: links -->
-      <nav class="navbar navbar-expand-lg navbar-bottom">
-        <div class="container-fluid">
-          <!-- Botão hamburger -->
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarBottomMenu" aria-controls="navbarBottomMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler border-0 text-white shadow-none px-2" type="button" data-bs-toggle="collapse" data-bs-target="#sigiNavMenu" aria-controls="sigiNavMenu" aria-expanded="false" aria-label="Menu de Navegação">
+          <i class="bi bi-list fs-2 text-white"></i>
+        </button>
 
-          <!-- Links colapsáveis -->
-          <div class="collapse navbar-collapse" id="navbarBottomMenu">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link {% block nav_dashboard_active %}{% endblock %}" href="{{ url_for('dashboard.dashboard') }}">
-                  <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                </a>
-              </li>
+        <!-- Menu Links -->
+        <div class="collapse navbar-collapse" id="sigiNavMenu">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-lg-1">
+            <!-- Dashboard -->
+            <li class="nav-item">
+              <a class="nav-link {% block nav_dashboard_active %}{% endblock %}" href="{{ url_for('dashboard.dashboard') }}">
+                <i class="bi bi-grid-1x2"></i> Dashboard
+              </a>
+            </li>
 
-              <!-- Secretaria -->
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSecretaria" role="button"
-                   data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-people-fill me-1"></i> Secretaria
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdownSecretaria">
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('member.listar_membros') }}">
-                      <i class="bi bi-person-badge me-1"></i> Membros
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('member.relatorio_membros') }}">
-                      <i class="bi bi-bar-chart-line me-1"></i> Relatório de Membros
-                    </a>
-                  </li>
-                </ul>
-              </li>
+            <!-- Secretaria / Membros -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navSecretaria" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-people"></i> Secretaria
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navSecretaria">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('member.listar_membros') }}">
+                    <i class="bi bi-person-badge text-primary"></i> Membros & Visitantes
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('member.relatorio_membros') }}">
+                    <i class="bi bi-bar-chart-line text-info"></i> Relatório Estatístico
+                  </a>
+                </li>
+              </ul>
+            </li>
 
-              <!-- Eventos -->
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEventos" role="button"
-                   data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-calendar-event me-1"></i> Eventos
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdownEventos">
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('event.listar_eventos') }}">
-                      <i class="bi bi-calendar-event me-1"></i> Todos os Eventos
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('member.aniversariantes_mes') }}">
-                      <i class="bi bi-gift me-1"></i> Aniversariantes
-                    </a>
-                  </li>
-                </ul>
-              </li>
+            <!-- Eventos & Aniversariantes -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navEventos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-calendar3"></i> Eventos
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navEventos">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('event.listar_eventos') }}">
+                    <i class="bi bi-calendar-event text-primary"></i> Calendário Geral
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('member.aniversariantes_mes') }}">
+                    <i class="bi bi-gift text-warning"></i> Aniversariantes do Mês
+                  </a>
+                </li>
+              </ul>
+            </li>
 
-              <!-- Documentos -->
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDocumentos" role="button"
-                   data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-file-earmark-text me-1"></i> Documentos
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdownDocumentos">
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('documentos.atas.listar_atas') }}">
-                      <i class="bi bi-journal-text me-1"></i> Atas
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('documentos.certificados.listar_certificados') }}">
-                      <i class="bi bi-award me-1"></i> Certificados
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('documentos.cartas.listar_cartas') }}">
-                      <i class="bi bi-envelope me-1"></i> Cartas
-                    </a>
-                  </li>
-                </ul>
-              </li>
+            <!-- Documentos -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navDocumentos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-file-earmark-text"></i> Documentos
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navDocumentos">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('documentos.atas.listar_atas') }}">
+                    <i class="bi bi-journal-text text-primary"></i> Livro de Atas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('documentos.certificados.listar_certificados') }}">
+                    <i class="bi bi-award text-success"></i> Certificados
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('documentos.cartas.listar_cartas') }}">
+                    <i class="bi bi-envelope-paper text-secondary"></i> Cartas Pastorais
+                  </a>
+                </li>
+              </ul>
+            </li>
 
-              <!-- Patrimônio -->
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownPatrimonio" role="button"
-                   data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-box-seam me-1"></i> Patrimônio
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdownPatrimonio">
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('patrimonio.listar_patrimonios') }}">
-                      <i class="bi bi-box-seam me-1"></i> Todos os Patrimônios
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('patrimonio.inventario') }}">
-                      <i class="bi bi-clipboard-data me-1"></i> Inventário
-                    </a>
-                  </li>
-                </ul>
-              </li>
+            <!-- Patrimônio -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navPatrimonio" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-box-seam"></i> Patrimônio
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navPatrimonio">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('patrimonio.listar_patrimonios') }}">
+                    <i class="bi bi-boxes text-primary"></i> Todos os Bens
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('patrimonio.inventario') }}">
+                    <i class="bi bi-clipboard-data text-info"></i> Inventário por Categoria
+                  </a>
+                </li>
+              </ul>
+            </li>
 
-              <!-- Financeiro -->
-              <li class="nav-item">
-                <a class="nav-link {% block nav_financeiro_active %}{% endblock %}" href="{{ url_for('financeiro.financeiro') }}">
-                  <i class="bi bi-cash-coin me-1"></i> Financeiro
-                </a>
-              </li>
-            </ul>
-            <!-- Perfil / Configuração -->
-            <ul class="navbar-nav ms-auto">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdownPerfil" role="button"
-                   data-bs-toggle="dropdown" aria-expanded="false">
+            <!-- Financeiro -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle {% block nav_financeiro_active %}{% endblock %}" href="#" id="navFinanceiro" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-wallet2"></i> Financeiro
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navFinanceiro">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('financeiro.financeiro') }}">
+                    <i class="bi bi-speedometer2 text-primary"></i> Painel Geral & Fundos
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('financeiro.entradas') }}">
+                    <i class="bi bi-arrow-down-circle text-success"></i> Receitas & Entradas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('financeiro.saidas') }}">
+                    <i class="bi bi-arrow-up-circle text-danger"></i> Despesas & Saídas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('financeiro.dizimos') }}">
+                    <i class="bi bi-heart-pulse text-warning"></i> Painel de Dízimos & Ofertas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('financeiro.balancete_mensal') }}">
+                    <i class="bi bi-file-earmark-spreadsheet text-info"></i> Balancete Mensal Oficial
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('financeiro.relatorios') }}">
+                    <i class="bi bi-bar-chart-line text-secondary"></i> Relatórios & Livro Caixa
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('financeiro.comprovantes') }}">
+                    <i class="bi bi-file-earmark-text text-secondary"></i> Galeria de Comprovantes
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
 
-                  {% if current_user.foto %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ current_user.foto) }}"
-                         alt="Foto de {{ current_user.nome }}"
-                         style="width:32px; height:32px; object-fit:cover; border-radius:50%; border:2px solid #0d6efd; margin-right:8px;">
-                  {% else %}
-                    <i class="bi bi-person-circle me-2" style="font-size:1.5rem;"></i>
+          <!-- Perfil do Usuário -->
+          <ul class="navbar-nav ms-auto align-items-lg-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white px-2 py-1" href="#" id="navPerfil" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if current_user.foto %}
+                  <img src="{{ url_for('static', filename='uploads/' ~ current_user.foto) }}" alt="Foto de {{ current_user.nome }}" class="sigi-avatar">
+                {% else %}
+                  <div class="sigi-avatar bg-primary d-flex align-items-center justify-content-center text-white fw-bold">
+                    {{ (current_user.nome[0] if current_user.nome else current_user.email[0]) | upper }}
+                  </div>
+                {% endif %}
+                <span class="d-none d-sm-inline fw-semibold">{{ current_user.nome or current_user.email.split('@')[0] }}</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="navPerfil">
+                <li class="px-3 py-2 border-bottom mb-1">
+                  <div class="fw-bold text-truncate">{{ current_user.nome or "Usuário" }}</div>
+                  <div class="small text-muted text-truncate">{{ current_user.email }}</div>
+                  {% if current_user.is_admin %}
+                    <span class="badge bg-primary mt-1">Administrador</span>
                   {% endif %}
-
-                  <span>{{ current_user.nome }}</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownPerfil">
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('configuracoes.configuracoes') }}">
-                      <i class="bi bi-gear me-1"></i> Configurações Gerais
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{{ url_for('perfil.meu_perfil') }}">
-                      <i class="bi bi-person-lines-fill me-1"></i> Meu Perfil
-                    </a>
-                  </li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
-                      <i class="bi bi-box-arrow-right me-1"></i> Sair
-                    </a>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </div>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('perfil.meu_perfil') }}">
+                    <i class="bi bi-person text-secondary"></i> Meu Perfil
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('configuracoes.configuracoes') }}">
+                    <i class="bi bi-sliders text-secondary"></i> Configurações Gerais
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                    <i class="bi bi-box-arrow-right text-danger"></i> Sair do Sistema
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
         </div>
-      </nav>
-    </div>
+      </div>
+    </nav>
     {% endif %}
-    <!-- Mensagem persistente de evento -->
+
+    <!-- Alertas Persistentes de Eventos -->
     {% if session.get("evento_alert") %}
-      <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1090; width: min(600px, 95vw);">
-        <div class="alert alert-{{ session.get('evento_alert_type', 'warning') }} alert-dismissible fade show shadow alert-sticky" role="alert">
-          <strong>🚨 Atenção:</strong>
-          <a href="{{ url_for('event.listar_eventos') }}" class="alert-link">
-            {{ session["evento_alert"] }}
-          </a>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="dismissEventoAlert()"></button>
+      <div class="position-fixed top-0 start-50 translate-middle-x mt-4" style="z-index: 1090; width: min(580px, 92vw);">
+        <div class="alert alert-{{ session.get('evento_alert_type', 'warning') }} alert-dismissible fade show shadow-lg" role="alert">
+          <i class="bi bi-bell-fill fs-5 me-1 text-warning"></i>
+          <div class="flex-grow-1">
+            <strong>Aviso de Evento:</strong>
+            <a href="{{ url_for('event.listar_eventos') }}" class="alert-link ms-1 text-decoration-none">
+              {{ session["evento_alert"] }}
+            </a>
+          </div>
+          <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" onclick="dismissEventoAlert()"></button>
         </div>
       </div>
     {% endif %}
 
-    <!-- Mensagens flash normais -->
-    <div class="position-fixed top-0 start-50 translate-middle-x mt-5" style="z-index: 1080; width: min(600px, 95vw);">
+    <!-- Flash Messages -->
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-4" style="z-index: 1080; width: min(560px, 92vw);">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show {% if category == 'sticky' %}alert-sticky{% endif %}" role="alert">
-              {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-{{ category if category != 'danger' else 'danger' }} alert-dismissible fade show shadow-lg" role="alert">
+              {% if category == 'success' %}
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+              {% elif category == 'danger' %}
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>
+              {% elif category == 'warning' %}
+                <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+              {% else %}
+                <i class="bi bi-info-circle-fill text-info fs-5"></i>
+              {% endif %}
+              <div class="flex-grow-1">{{ message }}</div>
+              <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert"></button>
             </div>
           {% endfor %}
         {% endif %}
       {% endwith %}
     </div>
 
-    <!-- Conteúdo -->
+    <!-- Conteúdo Principal -->
     <main class="content-wrap">
       {% block content %}{% endblock %}
     </main>
 
+    <!-- Rodapé -->
     {% if not hide_footer %}
     <footer>
-      <div>
-        © {{ current_year }} SiGI - Sistema Integrado de Gestão de Igreja<br>
-        Desenvolvido com ❤️ por 
-        <a href="https://github.com/soarespaullo" target="_blank">Paulo Soares</a>
+      <div class="container text-center">
+        <div>
+          &copy; {{ current_year }} <strong>SiGI</strong> &mdash; Sistema Integrado de Gestão de Igreja
+        </div>
+        <div class="small text-muted mt-1">
+          Plataforma Enterprise de Gestão Ministerial
+        </div>
       </div>
     </footer>
     {% endif %}
 
-    <!-- Bloco para modais -->
+    <!-- Bloco para Modais -->
     {% block modals %}{% endblock %}
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap Bundle JS -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
-    <!-- Auto-dismiss das flash messages em 5s -->
+    <!-- Auto-dismiss de alertas -->
     <script>
       setTimeout(function() {
-        // fecha apenas as mensagens que NÃO são sticky
         document.querySelectorAll('.alert:not(.alert-sticky)').forEach(function(el) {
           const alert = new bootstrap.Alert(el);
           alert.close();

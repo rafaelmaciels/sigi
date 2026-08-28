@@ -1,5 +1,5 @@
-from app import db
-from datetime import datetime
+from app.extensions import db
+from datetime import datetime, timezone
 
 # -----------------------------
 # 📋 Modelo para Atas
@@ -23,8 +23,8 @@ class Ata(db.Model):
     deliberacoes = db.Column(db.Text, nullable=True)
     observacoes = db.Column(db.Text, nullable=True)
 
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
-    atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    criado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    atualizado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<Ata titulo={self.titulo} tipo={self.tipo} situacao={self.situacao}>"
@@ -46,8 +46,8 @@ class Certificado(db.Model):
 
     situacao = db.Column(db.String(20), nullable=False, default="enviado")  # enviado, entregue
 
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
-    atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    criado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    atualizado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<Certificado titulo={self.titulo} criado_por={self.criado_por}>"
@@ -78,8 +78,8 @@ class Carta(db.Model):
     )
     membro = db.relationship("Member", backref="cartas")
 
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
-    atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    criado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    atualizado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<Carta titulo={self.titulo} remetente={self.remetente}>"

@@ -1,6 +1,6 @@
-from app.extensions import db   # ✅ importa o db único centralizado em app/extensions.py
+from app.extensions import db
 import secrets
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 # -----------------------------
 # 👥 Membros da Igreja
@@ -82,7 +82,7 @@ class PublicLink(db.Model):
     tipo = db.Column(db.String(50))  # ex: "visitante"
     hash = db.Column(db.String(64), unique=True, nullable=False)
     ativo = db.Column(db.Boolean, default=True)
-    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+    data_criacao = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     @staticmethod
     def gerar_hash():

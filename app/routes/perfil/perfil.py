@@ -28,17 +28,26 @@ def meu_perfil():
 
 @perfil_bp.route("/editar", methods=["GET", "POST"])
 @login_required
-@permission_required("perfil", "edit")   # 👈 protege edição de perfil
+@permission_required("perfil", "edit")
 def editar_perfil():
     form = EditarPerfilForm(obj=current_user)
+    if request.method == "GET":
+        form.ativo.data = "1" if current_user.ativo else "0"
+        form.role.data = "admin" if current_user.is_admin else "user"
+
     if form.validate_on_submit():
-        current_user.nome = form.nome.data
-        if "email" in request.form:
-            current_user.email = request.form["email"]
-        if "ativo" in request.form:
-            current_user.ativo = True if request.form["ativo"] == "1" else False
-        if "role" in request.form:
-            current_user.role = request.form["role"]
+        # Validação de e-mail duplicado
+        email_novo = form.email.data.strip().lower()
+        existente = User.query.filter(User.email == email_novo, User.id != current_user.id).first()
+        if existente:
+            flash("Este e-mail já está em uso por outro usuário.", "danger")
+            return render_template("perfil/editar_perfil.html", form=form, usuario=current_user)
+
+        current_user.nome = form.nome.data.strip()
+        current_user.email = email_novo
+        if current_user.is_admin:
+            current_user.ativo = (form.ativo.data == "1")
+            current_user.is_admin = (form.role.data == "admin")
 
         db.session.commit()
         registrar_log(current_user.nome, "Editou o próprio perfil", "sucesso")

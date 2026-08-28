@@ -1,48 +1,158 @@
-/* ===========================
-   DASHBOARD PAGE
-   =========================== */
+/* ==========================================================================
+   SiGI — Premium SaaS Dashboard Styling
+   ========================================================================== */
 
-/* Header do dashboard (título + bem-vindo) */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--sigi-border);
 }
 
-/* Cards de estatísticas */
+.dashboard-header h2 {
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: var(--sigi-text-main);
+}
+
+.dashboard-header p {
+  color: var(--sigi-text-muted);
+  font-size: 0.95rem;
+}
+
+/* KPI Cards */
 .dashboard-card {
-  border: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border-radius: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--sigi-border);
+  box-shadow: var(--sigi-shadow-sm);
+  border-radius: var(--sigi-radius-xl);
+  background: var(--sigi-surface);
+  transition: var(--sigi-transition-normal);
+  position: relative;
+  overflow: hidden;
 }
 
 .dashboard-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  box-shadow: var(--sigi-shadow-lg);
+  border-color: #cbd5e1;
 }
 
-/* Ícones circulares dentro dos cards */
+.dashboard-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: var(--sigi-transition-fast);
+}
+
+.dashboard-card.card-primary::before {
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+}
+
+.dashboard-card.card-success::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.dashboard-card.card-warning::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.dashboard-card.card-danger::before {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.dashboard-card.card-info::before {
+  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+}
+
+/* Icon badges */
 .dashboard-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
+  transition: var(--sigi-transition-fast);
 }
 
-/* Título pequeno dos cards */
+.dashboard-card:hover .dashboard-icon {
+  transform: scale(1.08);
+}
+
 .dashboard-card h6 {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin-bottom: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sigi-text-muted);
+  margin-bottom: 0.35rem;
 }
 
-/* Número grande dos cards */
 .dashboard-card h3 {
   font-weight: 700;
+  font-size: 1.85rem;
+  letter-spacing: -0.03em;
   margin: 0;
+}
+
+/* Chart Canvas Container */
+.chart-container {
+  position: relative;
+  min-height: 260px;
+  width: 100%;
+}
+
+/* Year Pill Navigator */
+.year-navigator-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--sigi-surface-subtle);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--sigi-radius-full);
+  border: 1px solid var(--sigi-border);
+}
+
+.year-navigator-pill a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--sigi-text-secondary);
+  text-decoration: none;
+  transition: var(--sigi-transition-fast);
+}
+
+.year-navigator-pill a:hover {
+  background: var(--sigi-surface);
+  color: var(--sigi-primary);
+  box-shadow: var(--sigi-shadow-xs);
+}
+
+/* Anniversary List Group */
+.anniversary-list .list-group-item {
+  border: none;
+  border-bottom: 1px solid var(--sigi-surface-subtle);
+  padding: 0.85rem 0.5rem;
+  transition: var(--sigi-transition-fast);
+}
+
+.anniversary-list .list-group-item:last-child {
+  border-bottom: none;
+}
+
+.anniversary-list .list-group-item:hover {
+  background-color: var(--sigi-surface-subtle);
+  border-radius: var(--sigi-radius-md);
 }

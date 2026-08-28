@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
-from app.extensions import db   # ✅ importa o db único centralizado em app/extensions.py
+from app.extensions import db
 
 # -----------------------------
 # 📅 Eventos
@@ -42,7 +42,7 @@ class Evento(db.Model):
 
     status = db.Column(db.String(20), nullable=False, default="confirmado")
 
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # 🔗 Token público único para compartilhamento
     public_token = db.Column(

@@ -1,252 +1,328 @@
 {% extends "base.html" %}
-{% block title %}Entradas{% endblock %}
+{% block title %}Entradas & Receitas — SiGI{% endblock %}
+{% block nav_financeiro_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4"><i class="bi bi-arrow-down-circle text-success"></i> Entradas (Receitas)</h2>
-  
-  <!-- Card informativo -->
-  <div class="card border-info shadow-sm mb-4">
-    <div class="card-body text-muted small">
-      <i class="bi bi-info-circle"></i> 
-        Nesta página você pode registrar e consultar suas <strong>entradas financeiras</strong>. 
-        Utilize os filtros para buscar por período específico. Você também pode visualizar os comprovantes associados.
+<div class="container-fluid px-lg-5">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1"><i class="bi bi-arrow-down-circle text-success me-2"></i> Receitas & Entradas</h2>
+      <p class="text-muted mb-0">Controle eclesiástico de dízimos, ofertas de cultos, missões, eventos e doações.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Painel Geral
+      </a>
+      {% if has_permission("financeiro", "create") %}
+        <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formNovoLancamento" aria-expanded="false">
+          <i class="bi bi-plus-circle me-1"></i> Nova Entrada / Dízimo
+        </button>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Indicadores rápidos -->
-  <div class="row mb-4">
-    <div class="col-md-4 mb-3">
-      <div class="card shadow-sm h-100 card-hover">
+  <!-- Indicadores Rápidos -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card dashboard-card card-success h-100">
         <div class="card-body">
-          <h6 class="card-title text-success"><i class="bi bi-arrow-down-circle"></i> Total do Mês</h6>
-          <h4>R$ {{ ("{:,.2f}".format(total_mes)).replace(",", "X").replace(".", ",").replace("X", ".") }}</h4>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Total de Entradas (Mês Atual)</h6>
+              <h3 class="text-success">{{ total_mes | currency }}</h3>
+            </div>
+            <div class="dashboard-icon bg-success bg-opacity-10 text-success">
+              <i class="bi bi-calendar-check fs-4"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4 mb-3">
-      <div class="card shadow-sm h-100 card-hover">
+
+    <div class="col-md-4">
+      <div class="card dashboard-card card-primary h-100">
         <div class="card-body">
-          <h6 class="card-title text-primary"><i class="bi bi-calendar"></i> Total do Ano</h6>
-          <h4>R$ {{ ("{:,.2f}".format(total_ano)).replace(",", "X").replace(".", ",").replace("X", ".") }}</h4>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Total Filtrado</h6>
+              <h3 class="text-primary">{{ total_filtrado | currency }}</h3>
+            </div>
+            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary">
+              <i class="bi bi-filter-square fs-4"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4 mb-3">
-      <div class="card shadow-sm h-100 card-hover">
+
+    <div class="col-md-4">
+      <div class="card dashboard-card card-info h-100">
         <div class="card-body">
-          <h6 class="card-title text-secondary"><i class="bi bi-clock-history"></i> Última Entrada</h6>
-          <h4>{{ ultima.data.strftime('%d/%m/%Y') if ultima else '-' }}</h4>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Registros Encontrados</h6>
+              <h3 class="text-info">{{ pagination.total }}</h3>
+            </div>
+            <div class="dashboard-icon bg-info bg-opacity-10 text-info">
+              <i class="bi bi-receipt fs-4"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Formulário de criação -->
+  <!-- Formulário de Cadastro (Collapse) -->
   {% if has_permission("financeiro", "create") %}
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <form method="POST" enctype="multipart/form-data">
-          {{ form.hidden_tag() }}
-          <div class="row g-3">
-            <div class="col-md-3">
-              {{ form.tipo_receita.label }}
-              {{ form.tipo_receita(class="form-select") }}
-            </div>
-            <div class="col-md-3">
-              {{ form.valor.label }}
-              {{ form.valor(class="form-control", placeholder="0,00") }}
-            </div>
-            <div class="col-md-3">
-              {{ form.data.label }}
-              {{ form.data(class="form-control") }}
-            </div>
-            <div class="col-md-3">
-              {{ form.conta.label }}
-              {{ form.conta(class="form-select") }}
-            </div>
-            <div class="col-12">
-              {{ form.descricao.label }}
-              {{ form.descricao(class="form-control", placeholder="Dízimo de João") }}
-            </div>
-            <!-- Upload de comprovante -->
-            <div class="col-12">
-              {{ form.comprovante.label }}
-              {{ form.comprovante(class="form-control") }}
-            </div>
-          </div>
-          <div class="mt-3 d-flex gap-2">
-            <button type="submit" class="btn btn-success">
-              <i class="bi bi-check-circle"></i> Salvar
-            </button>
-            <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-secondary">
-              <i class="bi bi-x-circle"></i> Cancelar
-            </a>
-          </div>
-        </form>
-      </div>
-    </div>
-  {% endif %}
-
-  <!-- Histórico -->
-  {% if has_permission("financeiro", "view") %}
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Histórico de Entradas</h5>
-
-        <!-- Filtros -->
-        <form method="GET" class="row g-3 mb-3">
-          <div class="col-md-4">
-            <input type="text" name="filtro" class="form-control" 
-                   placeholder="Buscar por Tipo de Receita, Conta ou Descrição">
-          </div>
-          <div class="col-md-3"><input type="date" name="inicio" class="form-control"></div>
-          <div class="col-md-3"><input type="date" name="fim" class="form-control"></div>
-          <div class="col-md-2">
-            <button type="submit" class="btn btn-outline-primary w-100">
-              <i class="bi bi-filter"></i> Filtrar
-            </button>
-          </div>
-        </form>
-
-        <div class="table-responsive">
-          <table class="table table-striped align-middle">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Tipo de Receita</th>
-                <th>Conta</th>
-                <th>Descrição</th>
-                <th>Valor (R$)</th>
-                <th>Usuário</th>
-                <th>Comprovante</th>
-                {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
-                  <th>Ações</th>
-                {% endif %}
-              </tr>
-            </thead>
-            <tbody>
-
-              {% if entradas %}
-                {% for r in entradas %}
-                <tr>
-                  <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
-                  <td>{{ r.categoria }}</td>
-                  <td>{{ r.conta }}</td>
-                  <td>{{ r.descricao or '-' }}</td>
-                  <td>{{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
-                  <td>{{ r.usuario }}</td>
-                  <td>
-                    {% if r.comprovante %}
-                      <a href="{{ r.comprovante }}" target="_blank" class="btn btn-sm btn-outline-info">
-                        <i class="bi bi-file-earmark-text"></i> Ver
-                      </a>
-                    {% else %}
-                      <span class="text-muted">-</span>
-                    {% endif %}
-                  </td>
-                  {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
-                    <td>
-                      {% if has_permission("financeiro", "edit") %}
-                        <a href="{{ url_for('financeiro.editar_entrada', id=r.id) }}" 
-                           class="btn btn-sm btn-outline-warning me-1">
-                          <i class="bi bi-pencil-square"></i> Editar
-                        </a>
-                      {% endif %}
-                      {% if has_permission("financeiro", "delete") %}
-                        <button type="button" 
-                                class="btn btn-sm btn-outline-danger" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#confirmDelete{{ r.id }}">
-                          <i class="bi bi-trash"></i> Excluir
-                        </button>
-                      {% endif %}
-                    </td>
-                  {% endif %}
-                </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="8" class="text-center text-muted">Nenhuma entrada registrada.</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
+    <div class="collapse mb-4" id="formNovoLancamento">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-success bg-opacity-10 border-0 py-3">
+          <h5 class="mb-0 fw-bold text-success"><i class="bi bi-plus-circle me-1"></i> Registrar Nova Receita Eclesiástica</h5>
         </div>
-        <!-- Paginação centralizada e condicional -->
-        {% if pagination.total >= 10 %}
-        <nav class="d-flex justify-content-center mt-3">
-          <ul class="pagination">
-            {% if pagination.has_prev %}
-              <li class="page-item">
-                <a class="page-link" href="{{ url_for('financeiro.entradas', page=pagination.prev_num,
-                  filtro=filtro, inicio=filtro_data_inicio, fim=filtro_data_fim) }}">
-                  &laquo; Anterior
-                </a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
-            {% endif %}
+        <div class="card-body p-4">
+          <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="row g-3">
+              <!-- Categoria -->
+              <div class="col-md-4">
+                {{ form.tipo_receita.label(class="form-label") }}
+                {{ form.tipo_receita(class="form-select") }}
+              </div>
 
-            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-              {% if p %}
-                {% if p == pagination.page %}
-                  <li class="page-item active"><span class="page-link">{{ p }}</span></li>
-                {% else %}
-                  <li class="page-item">
-                    <a class="page-link" href="{{ url_for('financeiro.entradas', page=p,
-                      filtro=filtro, inicio=filtro_data_inicio, fim=filtro_data_fim) }}">{{ p }}</a>
-                  </li>
-                {% endif %}
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">…</span></li>
-              {% endif %}
-            {% endfor %}
+              <!-- Membro Opcional -->
+              <div class="col-md-4">
+                {{ form.membro_id.label(class="form-label") }}
+                {{ form.membro_id(class="form-select") }}
+              </div>
 
-            {% if pagination.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="{{ url_for('financeiro.entradas', page=pagination.next_num,
-                  filtro=filtro, inicio=filtro_data_inicio, fim=filtro_data_fim) }}">
-                  Próxima &raquo;
-                </a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">Próxima &raquo;</span></li>
-            {% endif %}
-          </ul>
-        </nav>
-        {% endif %}
+              <!-- Valor -->
+              <div class="col-md-4">
+                {{ form.valor.label(class="form-label") }}
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  {{ form.valor(class="form-control", placeholder="0,00") }}
+                </div>
+              </div>
+
+              <!-- Data -->
+              <div class="col-md-3">
+                {{ form.data.label(class="form-label") }}
+                {{ form.data(class="form-control") }}
+              </div>
+
+              <!-- Forma de Pagamento -->
+              <div class="col-md-3">
+                {{ form.forma_pagamento.label(class="form-label") }}
+                {{ form.forma_pagamento(class="form-select") }}
+              </div>
+
+              <!-- Conta / Fundo -->
+              <div class="col-md-3">
+                {{ form.conta.label(class="form-label") }}
+                {{ form.conta(class="form-select") }}
+              </div>
+
+              <!-- Departamento -->
+              <div class="col-md-3">
+                {{ form.departamento.label(class="form-label") }}
+                {{ form.departamento(class="form-select") }}
+              </div>
+
+              <!-- Descrição -->
+              <div class="col-md-6">
+                {{ form.descricao.label(class="form-label") }}
+                {{ form.descricao(class="form-control", placeholder="Ex: Culto de Domingo, Oferta de Missões") }}
+              </div>
+
+              <!-- Comprovante -->
+              <div class="col-md-6">
+                {{ form.comprovante.label(class="form-label") }}
+                {{ form.comprovante(class="form-control") }}
+              </div>
+
+              <!-- Observações -->
+              <div class="col-12">
+                {{ form.observacoes.label(class="form-label") }}
+                {{ form.observacoes(class="form-control", rows="2", placeholder="Detalhes adicionais sobre o lançamento...") }}
+              </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+              <button type="submit" class="btn btn-success px-4">
+                <i class="bi bi-check2-circle"></i> Salvar Lançamento
+              </button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#formNovoLancamento">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   {% endif %}
+
+  <!-- Barra de Filtros de Busca -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label" for="filtro">Busca por Descrição / Conta</label>
+          <input type="text" name="filtro" id="filtro" class="form-control" placeholder="Buscar..." value="{{ filtro }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="categoria">Categoria de Entrada</label>
+          <select name="categoria" id="categoria" class="form-select">
+            <option value="">Todas as Categorias</option>
+            {% for c in categorias_receitas %}
+              <option value="{{ c }}" {% if c == filtro_categoria %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label" for="inicio">Data Inicial</label>
+          <input type="date" name="inicio" id="inicio" class="form-control" value="{{ filtro_data_inicio }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label" for="fim">Data Final</label>
+          <input type="date" name="fim" id="fim" class="form-control" value="{{ filtro_data_fim }}">
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+          <a href="{{ url_for('financeiro.entradas') }}" class="btn btn-outline-secondary">Limpar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabela de Lançamentos -->
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Categoria</th>
+          <th>Identificação / Membro</th>
+          <th>Conta & Forma</th>
+          <th>Departamento</th>
+          <th>Comprovante</th>
+          <th class="text-end">Valor (R$)</th>
+          {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
+            <th class="text-end">Ações</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% if entradas %}
+          {% for r in entradas %}
+          <tr>
+            <td class="text-muted small">{{ r.data.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <span class="badge bg-success bg-opacity-10 text-success border">{{ r.categoria }}</span>
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ r.nome_identificador }}</div>
+              {% if r.membro %}
+                <span class="badge bg-primary bg-opacity-10 text-primary small">Membro Registrado</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="text-secondary small">{{ r.conta }}</div>
+              <div class="text-muted small"><i class="bi bi-credit-card me-1"></i> {{ r.forma_pagamento }}</div>
+            </td>
+            <td>
+              <span class="text-muted small">{{ r.departamento }}</span>
+            </td>
+            <td>
+              {% if r.comprovante %}
+                <a href="{{ url_for('static', filename=r.comprovante.replace('static/', '').lstrip('/')) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                  <i class="bi bi-paperclip"></i> Anexo
+                </a>
+              {% else %}
+                <span class="text-muted small">-</span>
+              {% endif %}
+            </td>
+            <td class="text-end fw-bold text-success">
+              + {{ r.valor | currency }}
+            </td>
+            {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
+              <td class="text-end">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Opções
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    {% if has_permission("financeiro", "edit") %}
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('financeiro.editar_entrada', id=r.id) }}">
+                          <i class="bi bi-pencil-square text-primary me-2"></i> Editar
+                        </a>
+                      </li>
+                    {% endif %}
+                    {% if has_permission("financeiro", "delete") %}
+                      <li><hr class="dropdown-divider my-1"></li>
+                      <li>
+                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ r.id }}">
+                          <i class="bi bi-trash me-2"></i> Excluir
+                        </button>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </div>
+              </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" class="p-0">
+              <div class="sigi-empty-state">
+                <div class="sigi-empty-icon">
+                  <i class="bi bi-arrow-down-circle"></i>
+                </div>
+                <div class="sigi-empty-title">Nenhuma receita registrada</div>
+                <div class="sigi-empty-text">Utilize o botão "Nova Entrada" acima para registrar dízimos e ofertas.</div>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginação -->
+  {% set pagination = pagination %}
+  {% include "pagination/pagination.html" %}
+
 </div>
 {% endblock %}
 
 {% block modals %}
+  <!-- Modais de Exclusão -->
   {% for r in entradas %}
     {% if has_permission("financeiro", "delete") %}
-      <div class="modal fade" id="confirmDelete{{ r.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ r.id }}" aria-hidden="true">
+      <div class="modal fade" id="confirmDelete{{ r.id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
-            <div class="modal-header bg-gradient-base">
-              <h5 class="modal-title" id="confirmDeleteLabel{{ r.id }}">Confirmar Exclusão</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            <div class="modal-header">
+              <h5 class="modal-title fw-bold text-danger">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Excluir Entrada
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              Tem certeza que deseja excluir a entrada de <strong>{{ r.data.strftime('%d/%m/%Y') }}</strong> no valor de 
-              <strong>{{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>?<br>
-              Esta ação não poderá ser desfeita.
+              Tem certeza que deseja excluir o lançamento de <strong>{{ r.categoria }}</strong> no valor de <strong>{{ r.valor | currency }}</strong>?<br>
+              <span class="text-muted small">Esta ação removerá o registro e atualizará os saldos e relatórios.</span>
             </div>
             <div class="modal-footer">
-              <form method="POST" action="{{ url_for('financeiro.excluir_entrada', id=r.id) }}">
+              <form method="POST" action="{{ url_for('financeiro.excluir_lancamento', id=r.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-danger">
-                  <i class="bi bi-trash me-1"></i> Excluir
+                  <i class="bi bi-trash me-1"></i> Confirmar Exclusão
                 </button>
               </form>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle me-1"></i> Cancelar
-              </button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
           </div>
         </div>

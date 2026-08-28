@@ -144,26 +144,37 @@ def enviar_lembretes_eventos():
         flash("Nenhum evento próximo para enviar lembrete.", "info")
         return redirect(url_for("event.listar_eventos"))
 
-    member_emails = [m.email.strip() for m in Member.query.filter(Member.email != None).all() if m.email.strip()]
-    admin = User.query.filter_by(role="admin").first()
+    member_emails = [m.email.strip() for m in Member.query.filter(Member.email != None).all() if m.email and m.email.strip()]
+    admin = User.query.filter_by(is_admin=True).first()
     admin_email = admin.email if admin else None
 
     recipients = member_emails
-    if admin_email:
+    if admin_email and admin_email not in recipients:
         recipients.append(admin_email)
 
-    for ev in eventos:
-        html_body = render_template("email/lembrete_evento.html", evento=ev)
-        msg = Message(
-            subject=f"Lembrete: {ev.titulo} está chegando!",
-            recipients=recipients,
-            html=html_body
-        )
-        mail.send(msg)
-        registrar_log(current_user.nome, f"Enviou lembrete do evento: {ev.titulo}", "sucesso")
-        print(f"Lembrete enviado para evento: {ev.titulo}")
+    if not recipients:
+        flash("Nenhum destinatário de e-mail encontrado para envio.", "warning")
+        return redirect(url_for("event.listar_eventos"))
 
-    flash("Lembretes enviados com sucesso!", "success")
+    enviados = 0
+    for ev in eventos:
+        try:
+            html_body = render_template("email/lembrete_evento.html", evento=ev)
+            msg = Message(
+                subject=f"Lembrete: {ev.titulo} está chegando!",
+                recipients=recipients,
+                html=html_body
+            )
+            mail.send(msg)
+            registrar_log(current_user.nome, f"Enviou lembrete do evento: {ev.titulo}", "sucesso")
+            enviados += 1
+        except Exception as e:
+            registrar_log(current_user.nome, f"Erro ao enviar lembrete do evento {ev.titulo}: {e}", "erro")
+
+    if enviados > 0:
+        flash(f"Lembretes enviados com sucesso para {enviados} evento(s)!", "success")
+    else:
+        flash("Ocorreu um erro ao tentar enviar os e-mails de lembrete.", "danger")
     return redirect(url_for("event.listar_eventos"))
     
 

@@ -24,35 +24,40 @@ from app.extensions import db
 member_bp = Blueprint('member', __name__, url_prefix="/membros")
 
 # -----------------------------
-# 📋 Listagem de Membros com Paginação (ajustada para link visitante)
+# 📋 Listagem e Busca de Membros com Paginação
 # -----------------------------
 @member_bp.route("/", methods=["GET"])
-@login_required   # 👈 protege a rota
+@login_required
 @permission_required("membros", "view")
 def listar_membros():
     page = request.args.get("page", 1, type=int)
-    termo = request.args.get("q", "")   # 🔹 captura termo de busca
+    termo = request.args.get("q", "").strip()
 
-    membros = Member.query.order_by(Member.nome.asc()).paginate(page=page, per_page=10)
+    query = Member.query
+    if termo:
+        query = query.filter(
+            (Member.nome.ilike(f"%{termo}%")) |
+            (Member.email.ilike(f"%{termo}%")) |
+            (Member.funcao.ilike(f"%{termo}%"))
+        )
 
-    # 🔹 Busca o último link de visitante ativo
+    membros = query.order_by(Member.nome.asc()).paginate(page=page, per_page=10)
+
+    # Busca o último link de visitante ativo
     visitante_link = PublicLink.query.filter_by(tipo="visitante", ativo=True).order_by(PublicLink.data_criacao.desc()).first()
-
-    # Se não existir, cria um novo
     if not visitante_link:
         novo_hash = PublicLink.gerar_hash()
         visitante_link = PublicLink(tipo="visitante", hash=novo_hash)
         db.session.add(visitante_link)
         db.session.commit()
 
-    # Monta a URL pública
     visitante_link_url = url_for("member.cadastro_visitante", hash=visitante_link.hash, _external=True)
 
     return render_template(
         "membros/listar_membros.html",
         membros=membros,
         visitante_link_url=visitante_link_url,
-        termo=termo   # 🔹 passa termo para o template
+        termo=termo
     )
 
 
@@ -580,6 +585,7 @@ def cadastro_visitante(hash):
 # -----------------------------
 # 📄 Relatório em PDF de Aniversariantes
 # -----------------------------
+@member_bp.route("/aniversariantes/pdf", methods=["GET"])
 @member_bp.route("/membros/aniversariantes/pdf", methods=["GET"])
 @login_required
 @permission_required("membros", "view")

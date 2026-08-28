@@ -32,11 +32,14 @@ def create_app(config_class=None):
     login_manager.login_message_category = "warning"
     login_manager.init_app(app)
 
-    # 🔹 Função para carregar usuário pelo ID (necessário para Flask-Login)
+    # 🔹 Função para carregar usuário pelo ID (compatível com SQLAlchemy 2.x)
     from app.models import User
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        try:
+            return db.session.get(User, int(user_id))
+        except (ValueError, TypeError):
+            return None
 
     # -----------------------------
     # 📌 Importa e registra os Blueprints
@@ -67,8 +70,11 @@ def create_app(config_class=None):
     @app.context_processor
     def inject_globals():
         from datetime import datetime
-        tz_name = os.getenv("APP_TIMEZONE", "UTC")
-        tz = pytz.timezone(tz_name)
+        tz_name = os.getenv("APP_TIMEZONE", "America/Sao_Paulo")
+        try:
+            tz = pytz.timezone(tz_name)
+        except Exception:
+            tz = pytz.UTC
         return {
             'current_year': datetime.now(tz).year,
             'timezone': tz
@@ -82,6 +88,18 @@ def create_app(config_class=None):
         from app.models.permissions_helper import has_permission
         return dict(has_permission=has_permission)
 
+    # -----------------------------
+    # 💰 Filtro Jinja para formatação de moeda brasileira (R$)
+    # -----------------------------
+    @app.template_filter('currency')
+    def format_currency_filter(value):
+        if value is None:
+            return "R$ 0,00"
+        try:
+            val = float(value)
+            return f"R$ {val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        except (ValueError, TypeError):
+            return "R$ 0,00"
 
     # -----------------------------
     # 🕒 Filtro Jinja para converter UTC → timezone local
@@ -91,11 +109,13 @@ def create_app(config_class=None):
         from datetime import timezone
         if dt is None:
             return dt
-        # se vier naive, assume UTC
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        tz_name = os.getenv("APP_TIMEZONE", "UTC")
-        tz = pytz.timezone(tz_name)
+        tz_name = os.getenv("APP_TIMEZONE", "America/Sao_Paulo")
+        try:
+            tz = pytz.timezone(tz_name)
+        except Exception:
+            tz = pytz.UTC
         return dt.astimezone(tz)
 
     # -----------------------------

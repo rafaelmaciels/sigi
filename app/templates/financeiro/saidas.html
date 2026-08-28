@@ -1,134 +1,328 @@
 {% extends "base.html" %}
-{% block title %}Saídas{% endblock %}
+{% block title %}Despesas & Saídas — SiGI{% endblock %}
+{% block nav_financeiro_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4"><i class="bi bi-arrow-up-circle text-danger"></i> Saídas (Despesas)</h2>
+<div class="container-fluid px-lg-5">
 
-  {% if has_permission("financeiro", "create") %}
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <form method="POST">
-          {{ form.hidden_tag() }}
-          <div class="row g-3">
-            <div class="col-md-3">
-              {{ form.categoria.label(class="form-label") }}
-              {{ form.categoria(class="form-select") }}
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1"><i class="bi bi-arrow-up-circle text-danger me-2"></i> Despesas & Saídas</h2>
+      <p class="text-muted mb-0">Controle de pagamentos ministeriais, prebendas, manutenção do templo, diaconia e compras.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Painel Geral
+      </a>
+      {% if has_permission("financeiro", "create") %}
+        <button class="btn btn-danger" type="button" data-bs-toggle="collapse" data-bs-target="#formNovaSaida" aria-expanded="false">
+          <i class="bi bi-dash-circle me-1"></i> Nova Despesa
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Indicadores Rápidos -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card dashboard-card card-danger h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Total de Saídas (Mês Atual)</h6>
+              <h3 class="text-danger">{{ total_mes | currency }}</h3>
             </div>
-            <div class="col-md-3">
-              {{ form.valor.label(class="form-label") }}
-              {{ form.valor(class="form-control", placeholder="0.00") }}
-            </div>
-            <div class="col-md-3">
-              {{ form.data.label(class="form-label") }}
-              {{ form.data(class="form-control", placeholder="dd/mm/aaaa") }}
-            </div>
-            <div class="col-md-3">
-              {{ form.conta.label(class="form-label") }}
-              {{ form.conta(class="form-select") }}
-            </div>
-            <div class="col-12">
-              {{ form.descricao.label(class="form-label") }}
-              {{ form.descricao(class="form-control", placeholder="Descrição (opcional)") }}
+            <div class="dashboard-icon bg-danger bg-opacity-10 text-danger">
+              <i class="bi bi-calendar-x fs-4"></i>
             </div>
           </div>
-          <div class="mt-3 d-flex gap-2">
-            <button type="submit" class="btn btn-danger">
-              <i class="bi bi-check-circle"></i> Salvar
-            </button>
-            <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-secondary">
-              <i class="bi bi-x-circle"></i> Cancelar
-            </a>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
-  {% endif %}
 
-  {% if has_permission("financeiro", "view") %}
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Histórico de Saídas</h5>
-        <div class="table-responsive">
-          <table class="table table-striped align-middle">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Categoria</th>
-                <th>Conta</th>
-                <th>Descrição</th>
-                <th>Valor (R$)</th>
-                {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
-                  <th>Ações</th>
-                {% endif %}
-              </tr>
-            </thead>
-            <tbody>
-              {% if saidas %}
-                {% for r in saidas %}
-                <tr>
-                  <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
-                  <td>{{ r.categoria }}</td>
-                  <td>{{ r.conta }}</td>
-                  <td>{{ r.descricao or '-' }}</td>
-                  <td>
-                    {{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}
-                  </td>
-                  {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
-                    <td>
-                      {% if has_permission("financeiro", "edit") %}
-                        <a href="{{ url_for('financeiro.editar_saida', id=r.id) }}" class="btn btn-sm btn-outline-warning">
-                          <i class="bi bi-pencil-square"></i> Editar
-                        </a>
-                      {% endif %}
-                      {% if has_permission("financeiro", "delete") %}
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ r.id }}">
-                          <i class="bi bi-trash"></i> Excluir
-                        </button>
-                      {% endif %}
-                    </td>
-                  {% endif %}
-                </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="6" class="text-center text-muted">Nenhuma saída registrada.</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
+    <div class="col-md-4">
+      <div class="card dashboard-card card-primary h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Total Filtrado</h6>
+              <h3 class="text-primary">{{ total_filtrado | currency }}</h3>
+            </div>
+            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary">
+              <i class="bi bi-filter-square fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card dashboard-card card-info h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6>Despesas Listadas</h6>
+              <h3 class="text-info">{{ pagination.total }}</h3>
+            </div>
+            <div class="dashboard-icon bg-info bg-opacity-10 text-info">
+              <i class="bi bi-receipt-cutoff fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulário de Cadastro de Saída (Collapse) -->
+  {% if has_permission("financeiro", "create") %}
+    <div class="collapse mb-4" id="formNovaSaida">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-danger bg-opacity-10 border-0 py-3">
+          <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-dash-circle me-1"></i> Registrar Nova Despesa Eclesiástica</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="row g-3">
+              <!-- Categoria -->
+              <div class="col-md-4">
+                {{ form.categoria.label(class="form-label") }}
+                {{ form.categoria(class="form-select") }}
+              </div>
+
+              <!-- Departamento / Centro de Custo -->
+              <div class="col-md-4">
+                {{ form.departamento.label(class="form-label") }}
+                {{ form.departamento(class="form-select") }}
+              </div>
+
+              <!-- Valor -->
+              <div class="col-md-4">
+                {{ form.valor.label(class="form-label") }}
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  {{ form.valor(class="form-control", placeholder="0,00") }}
+                </div>
+              </div>
+
+              <!-- Data -->
+              <div class="col-md-3">
+                {{ form.data.label(class="form-label") }}
+                {{ form.data(class="form-control") }}
+              </div>
+
+              <!-- Forma de Pagamento -->
+              <div class="col-md-3">
+                {{ form.forma_pagamento.label(class="form-label") }}
+                {{ form.forma_pagamento(class="form-select") }}
+              </div>
+
+              <!-- Conta / Fundo de Origem -->
+              <div class="col-md-3">
+                {{ form.conta.label(class="form-label") }}
+                {{ form.conta(class="form-select") }}
+              </div>
+
+              <!-- CNPJ / CPF Fornecedor -->
+              <div class="col-md-3">
+                {{ form.cnpj_fornecedor.label(class="form-label") }}
+                {{ form.cnpj_fornecedor(class="form-control", placeholder="CNPJ ou CPF do favorecido") }}
+              </div>
+
+              <!-- Descrição -->
+              <div class="col-md-6">
+                {{ form.descricao.label(class="form-label") }}
+                {{ form.descricao(class="form-control", placeholder="Ex: Conta de Luz Enel, Repasse Missionário, Compra EBD") }}
+              </div>
+
+              <!-- Comprovante / NF -->
+              <div class="col-md-6">
+                {{ form.comprovante.label(class="form-label") }}
+                {{ form.comprovante(class="form-control") }}
+              </div>
+
+              <!-- Observações -->
+              <div class="col-12">
+                {{ form.observacoes.label(class="form-label") }}
+                {{ form.observacoes(class="form-control", rows="2", placeholder="Justificativa ou detalhes da despesa...") }}
+              </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+              <button type="submit" class="btn btn-danger px-4">
+                <i class="bi bi-check2-circle"></i> Salvar Despesa
+              </button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#formNovaSaida">
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   {% endif %}
+
+  <!-- Barra de Filtros de Busca -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label" for="filtro">Busca por Descrição / Favorecido</label>
+          <input type="text" name="filtro" id="filtro" class="form-control" placeholder="Buscar..." value="{{ filtro }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="departamento">Departamento / Ministério</label>
+          <select name="departamento" id="departamento" class="form-select">
+            <option value="">Todos os Departamentos</option>
+            {% for d in departamentos %}
+              <option value="{{ d }}" {% if d == filtro_departamento %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label" for="inicio">Data Inicial</label>
+          <input type="date" name="inicio" id="inicio" class="form-control" value="{{ filtro_data_inicio }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label" for="fim">Data Final</label>
+          <input type="date" name="fim" id="fim" class="form-control" value="{{ filtro_data_fim }}">
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+          <a href="{{ url_for('financeiro.saidas') }}" class="btn btn-outline-secondary">Limpar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabela de Lançamentos de Saídas -->
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Categoria da Despesa</th>
+          <th>Departamento</th>
+          <th>Conta de Origem</th>
+          <th>Descrição / Favorecido</th>
+          <th>Comprovante / NF</th>
+          <th class="text-end">Valor (R$)</th>
+          {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
+            <th class="text-end">Ações</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% if saidas %}
+          {% for r in saidas %}
+          <tr>
+            <td class="text-muted small">{{ r.data.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <span class="badge bg-danger bg-opacity-10 text-danger border">{{ r.categoria }}</span>
+            </td>
+            <td>
+              <span class="fw-medium text-dark">{{ r.departamento }}</span>
+            </td>
+            <td>
+              <div class="text-secondary small">{{ r.conta }}</div>
+              <div class="text-muted small"><i class="bi bi-credit-card me-1"></i> {{ r.forma_pagamento }}</div>
+            </td>
+            <td>
+              <div class="text-dark">{{ r.descricao }}</div>
+              {% if r.cnpj_fornecedor %}
+                <div class="small text-muted">Doc: {{ r.cnpj_fornecedor }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.comprovante %}
+                <a href="{{ url_for('static', filename=r.comprovante.replace('static/', '').lstrip('/')) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                  <i class="bi bi-paperclip"></i> NF / Recibo
+                </a>
+              {% else %}
+                <span class="text-muted small">-</span>
+              {% endif %}
+            </td>
+            <td class="text-end fw-bold text-danger">
+              - {{ r.valor | currency }}
+            </td>
+            {% if has_permission("financeiro", "edit") or has_permission("financeiro", "delete") %}
+              <td class="text-end">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Opções
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    {% if has_permission("financeiro", "edit") %}
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('financeiro.editar_saida', id=r.id) }}">
+                          <i class="bi bi-pencil-square text-primary me-2"></i> Editar
+                        </a>
+                      </li>
+                    {% endif %}
+                    {% if has_permission("financeiro", "delete") %}
+                      <li><hr class="dropdown-divider my-1"></li>
+                      <li>
+                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ r.id }}">
+                          <i class="bi bi-trash me-2"></i> Excluir
+                        </button>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </div>
+              </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" class="p-0">
+              <div class="sigi-empty-state">
+                <div class="sigi-empty-icon">
+                  <i class="bi bi-arrow-up-circle"></i>
+                </div>
+                <div class="sigi-empty-title">Nenhuma despesa registrada</div>
+                <div class="sigi-empty-text">Utilize o botão "Nova Despesa" acima para lançar pagamentos ministeriais.</div>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginação -->
+  {% set pagination = pagination %}
+  {% include "pagination/pagination.html" %}
+
 </div>
 {% endblock %}
 
 {% block modals %}
+  <!-- Modais de Exclusão -->
   {% for r in saidas %}
     {% if has_permission("financeiro", "delete") %}
-      <div class="modal fade" id="confirmDelete{{ r.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ r.id }}" aria-hidden="true">
+      <div class="modal fade" id="confirmDelete{{ r.id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
-            <div class="modal-header bg-gradient-base">
-              <h5 class="modal-title" id="confirmDeleteLabel{{ r.id }}">Confirmar Exclusão</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            <div class="modal-header">
+              <h5 class="modal-title fw-bold text-danger">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Excluir Despesa
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              Tem certeza que deseja excluir a saída de <strong>{{ r.data.strftime('%d/%m/%Y') }}</strong> no valor de 
-              <strong>{{ ("R$ {:,.2f}".format(r.valor)).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>?<br>
-              Esta ação não poderá ser desfeita.
+              Tem certeza que deseja excluir a despesa de <strong>{{ r.categoria }}</strong> no valor de <strong>{{ r.valor | currency }}</strong>?<br>
+              <span class="text-muted small">Esta operação removerá o registro financeiro permanentemente.</span>
             </div>
             <div class="modal-footer">
-              <form method="POST" action="{{ url_for('financeiro.excluir_saida', id=r.id) }}">
+              <form method="POST" action="{{ url_for('financeiro.excluir_lancamento', id=r.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-danger">
-                  <i class="bi bi-trash me-1"></i> Excluir
+                  <i class="bi bi-trash me-1"></i> Confirmar Exclusão
                 </button>
               </form>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle me-1"></i> Cancelar
-              </button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
           </div>
         </div>

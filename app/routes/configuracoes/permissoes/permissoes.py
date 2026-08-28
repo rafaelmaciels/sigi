@@ -3,7 +3,7 @@ from flask_login import current_user
 from app.models import User, Permission, UserPermission
 from app.extensions import db
 from .forms import PermissoesForm
-from app.routes.configuracoes.config import permission_required
+from app.decorators import permission_required
 
 # Blueprint de Permissões
 permissoes_bp = Blueprint("permissoes", __name__, url_prefix="/permissoes")

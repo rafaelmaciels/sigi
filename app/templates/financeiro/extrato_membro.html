@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Extrato Anual de Dízimos & Contribuições — {{ membro.nome }} ({{ ano }})</title>
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #1e293b;
+      padding: 2rem 1rem;
+    }
+    .extrato-sheet {
+      background: #ffffff;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+      }
+      .extrato-sheet {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de Ações (Apenas na tela) -->
+  <div class="container text-center mb-4 no-print" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded-3 shadow-sm border">
+      <span class="fw-semibold text-muted">Demonstrativo de Dízimos do Membro</span>
+      <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-primary">
+          <i class="bi bi-printer me-1"></i> Imprimir Extrato Oficial
+        </button>
+        <button onclick="window.close()" class="btn btn-outline-secondary">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="extrato-sheet">
+    <!-- Cabeçalho Institucional -->
+    <div class="text-center pb-4 mb-4 border-bottom">
+      <h3 class="fw-bold mb-1 text-primary">{{ igreja.nome if igreja else 'Igreja Evangélica' }}</h3>
+      {% if igreja and igreja.cnpj %}
+        <div class="small text-muted">CNPJ: {{ igreja.cnpj }}</div>
+      {% endif %}
+      {% if igreja and igreja.endereco %}
+        <div class="small text-muted">{{ igreja.endereco }}</div>
+      {% endif %}
+      <h4 class="mt-3 text-uppercase fw-bold text-dark letter-spacing-1">
+        Declaração Anual de Contribuições & Dízimos
+      </h4>
+      <div class="badge bg-light text-dark border px-3 py-2 fs-6 mt-1">Ano-Calendário: {{ ano }}</div>
+    </div>
+
+    <!-- Dados do Membro -->
+    <div class="p-3 bg-light rounded-3 mb-4 border">
+      <div class="row g-2">
+        <div class="col-sm-8">
+          <span class="text-muted small">Nome do Membro Contribuinte:</span>
+          <div class="fw-bold fs-6">{{ membro.nome }}</div>
+        </div>
+        <div class="col-sm-4">
+          <span class="text-muted small">CPF:</span>
+          <div class="fw-bold fs-6">{{ membro.cpf or 'Não informado' }}</div>
+        </div>
+        <div class="col-sm-8 mt-2">
+          <span class="text-muted small">Rol / Função:</span>
+          <div>{{ membro.funcao or 'Membro da Igreja' }}</div>
+        </div>
+        <div class="col-sm-4 mt-2">
+          <span class="text-muted small">Situação Cadastral:</span>
+          <div><span class="badge bg-success">Membro Ativo</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="small text-muted mb-3">
+      Certificamos para os devidos fins de comprovação pessoal e prestação de contas que o(a) membro acima identificado(a) efetuou as seguintes contribuições devocionais e voluntárias (Dízimos e Ofertas) no decorrer do ano-base <strong>{{ ano }}</strong>:
+    </p>
+
+    <!-- Resumo Mês a Mês -->
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered table-sm align-middle text-center">
+        <thead class="table-light">
+          <tr>
+            <th>Mês</th>
+            <th>Total Contribuído (R$)</th>
+            <th>Mês</th>
+            <th>Total Contribuído (R$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(6) %}
+          <tr>
+            <td class="text-start ps-3 fw-semibold text-muted">{{ resumo_mensal[i].mes_nome }}</td>
+            <td class="fw-bold {% if resumo_mensal[i].total > 0 %}text-dark{% else %}text-muted{% endif %}">
+              {{ resumo_mensal[i].total | currency }}
+            </td>
+            <td class="text-start ps-3 fw-semibold text-muted">{{ resumo_mensal[i+6].mes_nome }}</td>
+            <td class="fw-bold {% if resumo_mensal[i+6].total > 0 %}text-dark{% else %}text-muted{% endif %}">
+              {{ resumo_mensal[i+6].total | currency }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+          <tr>
+            <th colspan="3" class="text-end pe-3 fs-6">TOTAL GERAL ACUMULADO NO ANO {{ ano }}:</th>
+            <th class="text-center text-primary fs-5 fw-bold">{{ total_anual | currency }}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Texto Bíblico e Declaração -->
+    <div class="p-3 border rounded-3 bg-light text-center mb-5 fst-italic small text-muted">
+      "Trazei todos os dízimos à casa do tesouro, para que haja mantimento na minha casa..." &mdash; Malaquias 3:10
+    </div>
+
+    <!-- Assinaturas -->
+    <div class="row pt-5 text-center">
+      <div class="col-6">
+        <div class="border-top border-dark mx-4 pt-2">
+          <strong>Tesouraria Geral</strong><br>
+          <span class="small text-muted">Responsável Financeiro</span>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="border-top border-dark mx-4 pt-2">
+          <strong>Pastor Presidente</strong><br>
+          <span class="small text-muted">{{ igreja.pastor_responsavel if igreja and igreja.pastor_responsavel else 'Ministério Pastoral' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-5 small text-muted border-top pt-3">
+      Documento emitido eletronicamente pelo sistema <strong>SiGI</strong> em {{ data_emissao.strftime('%d/%m/%Y às %H:%M') }}.
+    </div>
+  </div>
+
+</body>
+</html>

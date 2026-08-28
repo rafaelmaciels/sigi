@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta
 
-# Carrega variáveis do .env
+# Carrega variáveis do arquivo .env
 load_dotenv()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -11,31 +11,32 @@ class Config:
     # -----------------------------
     # 🔒 Segurança
     # -----------------------------
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret')
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
     # -----------------------------
     # 🗄️ Banco de Dados
     # -----------------------------
-    # Exemplo: export DATABASE_URL="postgresql://user:password@localhost/sigi"
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///sigi.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
 
     # -----------------------------
     # 📂 Uploads
     # -----------------------------
     UPLOAD_FOLDER = os.path.join(BASE_DIR, os.environ.get('UPLOAD_FOLDER', 'app/static/uploads'))
     TEMPLATES_AUTO_RELOAD = True
-
-    # 🔒 Limite máximo de upload (2 MB por exemplo)
-    MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # 2 MB
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH_MB', 5)) * 1024 * 1024
 
     # -----------------------------
     # 📧 Configuração de E-mail
     # -----------------------------
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'mail.riseup.net')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False') == 'True'
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() in ('true', '1')
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('true', '1')
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = (
@@ -46,11 +47,8 @@ class Config:
     # -----------------------------
     # ⏱️ Sessão e Cookies
     # -----------------------------
-    # Tempo de vida da sessão (expira automaticamente após X minutos)
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('SESSION_TIMEOUT', 30)))
-
-    # Duração do cookie "remember me" do Flask-Login
-    REMEMBER_COOKIE_DURATION = timedelta(minutes=int(os.environ.get('REMEMBER_TIMEOUT', 30)))
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('SESSION_TIMEOUT', 60)))
+    REMEMBER_COOKIE_DURATION = timedelta(days=int(os.environ.get('REMEMBER_DAYS', 7)))
 
 
 class DevelopmentConfig(Config):
@@ -60,27 +58,24 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
 
-    # 🔒 Cookies só trafegam via HTTPS
+    # 🔒 Cookies via HTTPS
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
 
-    # 🔒 Proteção contra CSRF também só via HTTPS
+    # 🔒 Proteção contra CSRF rigorosa
     WTF_CSRF_SSL_STRICT = True
 
-    # 🔒 SameSite evita envio de cookies em requisições cross-site
+    # 🔒 SameSite
     SESSION_COOKIE_SAMESITE = "Lax"
     REMEMBER_COOKIE_SAMESITE = "Lax"
 
-    # 🔒 Cookies HttpOnly (não acessíveis via JavaScript)
+    # 🔒 Cookies HttpOnly
     SESSION_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_HTTPONLY = True
 
 
-# -----------------------------
-# 🌍 Seleção automática de ambiente
-# -----------------------------
 def get_config():
-    env = os.environ.get("FLASK_ENV", "development")
+    env = os.environ.get("FLASK_ENV", "development").lower()
     if env == "production":
         return ProductionConfig
     return DevelopmentConfig

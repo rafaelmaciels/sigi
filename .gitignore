@@ -1,0 +1,35 @@
+# Byte-compiled / Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos temporários e backups de código no projeto (.old, .txt temporários)
+*.old
+*.bak
+*.swp
+*~
+app/routes/financeiro/financeiro.py.txt
+
+# Arquivos de upload de mídia/usuários (preserva a estrutura do diretório)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+# Ambientes virtuais Python
+.venv/
+venv/
+env/
+ENV/
+
+# Variáveis de ambiente e segredos
+.env
+.env.*
+*.pem
+*.key
+
+# IDEs e Editores
+.vscode/
+.idea/
+
+# Arquivos de SO
+.DS_Store
+Thumbs.db

@@ -1,10 +1,82 @@
-/* ===========================
-   LAYOUT GLOBAL
-   =========================== */
+/* ==========================================================================
+   SiGI — Premium Enterprise SaaS Design System
+   Inspired by Linear, Stripe, Vercel & Tailwind UI
+   ========================================================================== */
+
+:root {
+  /* Core Brand Colors */
+  --sigi-primary: #2563eb;
+  --sigi-primary-hover: #1d4ed8;
+  --sigi-primary-light: #eff6ff;
+  --sigi-primary-glow: rgba(37, 99, 235, 0.25);
+
+  --sigi-indigo: #4f46e5;
+  --sigi-indigo-light: #eef2ff;
+
+  /* Status Colors */
+  --sigi-success: #10b981;
+  --sigi-success-bg: #ecfdf5;
+  --sigi-success-text: #065f46;
+
+  --sigi-warning: #f59e0b;
+  --sigi-warning-bg: #fffbeb;
+  --sigi-warning-text: #92400e;
+
+  --sigi-danger: #ef4444;
+  --sigi-danger-bg: #fef2f2;
+  --sigi-danger-text: #991b1b;
+
+  --sigi-info: #0ea5e9;
+  --sigi-info-bg: #f0f9ff;
+  --sigi-info-text: #075985;
+
+  /* Surfaces & Neutrals */
+  --sigi-bg-app: #f8fafc;
+  --sigi-surface: #ffffff;
+  --sigi-surface-subtle: #f1f5f9;
+  --sigi-surface-hover: #f8fafc;
+  --sigi-border: #e2e8f0;
+  --sigi-border-focus: #3b82f6;
+
+  /* Typography */
+  --sigi-text-main: #0f172a;
+  --sigi-text-secondary: #475569;
+  --sigi-text-muted: #64748b;
+  --sigi-text-inverse: #ffffff;
+
+  /* Elevations & Shadows */
+  --sigi-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --sigi-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+  --sigi-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --sigi-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --sigi-shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+  --sigi-shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
+
+  /* Geometry */
+  --sigi-radius-sm: 6px;
+  --sigi-radius-md: 10px;
+  --sigi-radius-lg: 14px;
+  --sigi-radius-xl: 20px;
+  --sigi-radius-full: 9999px;
+
+  /* Transitions */
+  --sigi-transition-fast: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --sigi-transition-normal: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   Global Base & Typography
+   ========================================================================== */
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: var(--sigi-bg-app);
+  color: var(--sigi-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -13,126 +85,433 @@ body {
   min-height: 100vh;
 }
 
-/* Área principal ocupa espaço entre header e footer */
 .content-wrap {
   flex: 1;
-  padding-top: 120px;   /* espaço para não ficar escondido atrás da navbar fixa */
-  padding-bottom: 60px; /* espaço para não colidir com o footer */
+  padding-top: 88px;
+  padding-bottom: 60px;
 }
 
-/* ===========================
-   NAVBAR MODERNA COM DEGRADÊ
-   =========================== */
-.navbar-top {
-  background: linear-gradient(135deg, #4e73df, #1cc88a);
-  backdrop-filter: blur(6px);
-  padding: 0.5rem 1rem;
-  color: #fff;
+/* ==========================================================================
+   Single Unified Navigation Header (Linear / Vercel Style)
+   ========================================================================== */
+.sigi-navbar {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--sigi-shadow-md);
+  padding: 0.65rem 1.5rem;
+  transition: var(--sigi-transition-normal);
+  z-index: 1050;
 }
 
-.navbar-brand {
-  color: #fff !important;
+.sigi-brand {
+  color: var(--sigi-text-inverse) !important;
   font-weight: 700;
-  font-size: 1.3rem;
-  letter-spacing: 0.5px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
 }
 
-.navbar-bottom {
-  background: linear-gradient(135deg, #4e73df, #1cc88a);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.navbar-bottom .nav-link {
-  color: #fff !important;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.navbar-bottom .nav-link:hover {
-  color: #f8f9fc !important;
-  transform: translateY(-2px);
-}
-
-/* Dropdown menu */
-.navbar-bottom .dropdown-menu {
-  background: rgba(255,255,255,0.95);
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.navbar-bottom .dropdown-item {
-  color: #333;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-.navbar-bottom .dropdown-item:hover {
-  background: linear-gradient(135deg, #4e73df, #1cc88a);
-  color: #fff;
-  border-radius: 8px;
-}
-
-/* Botão hamburger */
-.navbar-toggler {
-  border: none;
-  background: rgba(255,255,255,0.2);
-  border-radius: 6px;
-}
-
-.navbar-toggler-icon {
-  filter: invert(1);
-}
-
-/* ===========================
-   FOOTER CENTRALIZADO E PROFISSIONAL
-   =========================== */
-footer {
-  background: #f1f3f5; /* cor neutra */
-  color: #444;
-  padding: 20px 0;
+.sigi-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sigi-radius-md);
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #ffffff;
   font-size: 0.9rem;
-  border-top: 1px solid #ddd;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+}
+
+.sigi-navbar .nav-link {
+  color: #94a3b8 !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.85rem !important;
+  border-radius: var(--sigi-radius-md);
+  transition: var(--sigi-transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sigi-navbar .nav-link:hover,
+.sigi-navbar .nav-link.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Dropdown Menus */
+.sigi-navbar .dropdown-menu {
+  background: #ffffff;
+  border: 1px solid var(--sigi-border);
+  border-radius: var(--sigi-radius-lg);
+  box-shadow: var(--sigi-shadow-xl);
+  padding: 0.5rem;
+  min-width: 220px;
+  animation: sigiDropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sigiDropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sigi-navbar .dropdown-item {
+  color: var(--sigi-text-main);
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--sigi-radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--sigi-transition-fast);
+}
+
+.sigi-navbar .dropdown-item:hover {
+  background: var(--sigi-surface-subtle);
+  color: var(--sigi-primary);
+  transform: translateX(2px);
+}
+
+.sigi-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--sigi-shadow-xs);
+}
+
+/* ==========================================================================
+   Cards & Surfaces
+   ========================================================================== */
+.card {
+  background: var(--sigi-surface);
+  border: 1px solid var(--sigi-border);
+  border-radius: var(--sigi-radius-lg);
+  box-shadow: var(--sigi-shadow-sm);
+  transition: var(--sigi-transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--sigi-shadow-md);
+}
+
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--sigi-border);
+  padding: 1.1rem 1.4rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.card-body {
+  padding: 1.4rem;
+}
+
+/* ==========================================================================
+   Buttons & Interactive Elements
+   ========================================================================== */
+.btn {
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-radius: var(--sigi-radius-md);
+  padding: 0.52rem 1.1rem;
+  transition: var(--sigi-transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid transparent;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--sigi-primary);
+  border-color: var(--sigi-primary);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+  background: var(--sigi-primary-hover);
+  border-color: var(--sigi-primary-hover);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-outline-primary {
+  border-color: var(--sigi-border);
+  color: var(--sigi-text-main);
+  background: var(--sigi-surface);
+}
+
+.btn-outline-primary:hover {
+  background: var(--sigi-surface-subtle);
+  border-color: #cbd5e1;
+  color: var(--sigi-primary);
+}
+
+.btn-success {
+  background: var(--sigi-success);
+  border-color: var(--sigi-success);
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: var(--sigi-danger);
+  border-color: var(--sigi-danger);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Form Inputs & Controls
+   ========================================================================== */
+.form-control, .form-select {
+  border-radius: var(--sigi-radius-md);
+  border: 1px solid var(--sigi-border);
+  padding: 0.6rem 0.95rem;
+  font-size: 0.92rem;
+  background-color: var(--sigi-surface);
+  color: var(--sigi-text-main);
+  transition: var(--sigi-transition-fast);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--sigi-border-focus);
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.12);
+  outline: none;
+}
+
+.form-label {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--sigi-text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+/* ==========================================================================
+   Tables & Data Grid
+   ========================================================================== */
+.table-responsive {
+  border: 1px solid var(--sigi-border);
+  border-radius: var(--sigi-radius-lg);
+  background: var(--sigi-surface);
+  box-shadow: var(--sigi-shadow-sm);
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+  color: var(--sigi-text-main);
+  border-color: var(--sigi-border);
+}
+
+.table thead th {
+  background-color: var(--sigi-surface-subtle);
+  color: var(--sigi-text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid var(--sigi-border);
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  transition: var(--sigi-transition-fast);
+}
+
+.table tbody tr:hover {
+  background-color: var(--sigi-surface-hover);
+}
+
+.table tbody td {
+  padding: 0.95rem 1.2rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--sigi-border);
+  font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   Badges & Pills
+   ========================================================================== */
+.badge {
+  font-weight: 500;
+  font-size: 0.76rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--sigi-radius-full);
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.badge.bg-success {
+  background-color: var(--sigi-success-bg) !important;
+  color: var(--sigi-success-text) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge.bg-warning {
+  background-color: var(--sigi-warning-bg) !important;
+  color: var(--sigi-warning-text) !important;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.badge.bg-danger {
+  background-color: var(--sigi-danger-bg) !important;
+  color: var(--sigi-danger-text) !important;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.badge.bg-primary {
+  background-color: var(--sigi-primary-light) !important;
+  color: var(--sigi-primary) !important;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.badge.bg-info {
+  background-color: var(--sigi-info-bg) !important;
+  color: var(--sigi-info-text) !important;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+/* ==========================================================================
+   Empty States
+   ========================================================================== */
+.sigi-empty-state {
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+}
+
+.sigi-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--sigi-surface-subtle);
+  color: var(--sigi-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
+}
+
+.sigi-empty-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--sigi-text-main);
+  margin-bottom: 0.4rem;
+}
+
+.sigi-empty-text {
+  color: var(--sigi-text-muted);
+  font-size: 0.9rem;
+  max-width: 360px;
+  margin: 0 auto 1.5rem auto;
+}
+
+/* ==========================================================================
+   Alerts & Notifications
+   ========================================================================== */
+.alert {
+  border: 1px solid transparent;
+  border-radius: var(--sigi-radius-lg);
+  box-shadow: var(--sigi-shadow-lg);
+  padding: 0.9rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.alert-success {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.alert-danger {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.alert-warning {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.alert-info {
+  background-color: #f0f9ff;
+  border-color: #bae6fd;
+  color: #075985;
+}
+
+/* ==========================================================================
+   Modals
+   ========================================================================== */
+.modal-content {
+  border: 1px solid var(--sigi-border);
+  border-radius: var(--sigi-radius-xl);
+  box-shadow: var(--sigi-shadow-xl);
+  overflow: hidden;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--sigi-border);
+  padding: 1.2rem 1.5rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--sigi-border);
+  padding: 1rem 1.5rem;
+  background: var(--sigi-surface-subtle);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+footer {
+  background: var(--sigi-surface);
+  color: var(--sigi-text-muted);
+  padding: 1.75rem 0;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--sigi-border);
   text-align: center;
 }
 
 footer a {
-  color: #444;
-  font-weight: 500;
-  text-decoration: none; /* remove sublinhado */
-  transition: color 0.3s ease;
+  color: var(--sigi-text-main);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--sigi-transition-fast);
 }
 
 footer a:hover {
-  color: #000;
-}
-
-/* ===========================
-   RESPONSIVIDADE NAVBAR
-   =========================== */
-@media (max-width: 992px) {
-  .navbar-bottom .nav-link {
-    padding: 0.75rem 1rem;
-  }
-  .navbar-brand {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .navbar-top {
-    text-align: center;
-  }
-  .navbar-brand {
-    display: block;
-    margin: auto;
-  }
-}
-
-/* ===========================
-   MODAL CONFIRMAR EXCLUSÃO
-   =========================== */
-.bg-gradient-base {
-  background: linear-gradient(135deg, #4e73df, #1cc88a); 
-  color: #fff; /* texto branco */
+  color: var(--sigi-primary);
 }

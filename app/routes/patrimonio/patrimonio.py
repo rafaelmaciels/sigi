@@ -1,12 +1,12 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.extensions import db                           # ✅ importa db da extensions.py
-from app.models import Patrimonio                       # ✅ importa Patrimonio do pacote app.models
-from app.routes.patrimonio.forms import PatrimonioForm  # ✅ ajusta para app.routes
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from app.extensions import db
+from app.models import Patrimonio
+from app.routes.patrimonio.forms import PatrimonioForm
 from datetime import datetime
 from werkzeug.datastructures import MultiDict
-from flask_login import login_required, current_user    # 👈 protege rotas com Flask-Login
-from utils.logs import registrar_log                    # 👈 importa função de log
-from app.decorators import permission_required 		# 👈 importa o decorator
+from flask_login import login_required, current_user
+from utils.logs import registrar_log
+from app.decorators import permission_required
 
 patrimonio_bp = Blueprint("patrimonio", __name__, url_prefix="/patrimonios")
 
@@ -37,14 +37,11 @@ def _to_float(value):
 # 📋 Listar Patrimônios com paginação
 # -----------------------------
 @patrimonio_bp.route("/", methods=["GET"])
-@login_required   # 👈 protege a rota
+@login_required
 @permission_required("patrimonios", "view")
 def listar_patrimonios():
     page = request.args.get("page", 1, type=int)
-
     patrimonios = Patrimonio.query.order_by(Patrimonio.nome.asc()).paginate(page=page, per_page=10)
-
-    # 👉 não dispara flash aqui, o template já mostra mensagem quando não há patrimônios
     return render_template("patrimonios/listar_patrimonios.html", patrimonios=patrimonios)
 
 
@@ -52,7 +49,7 @@ def listar_patrimonios():
 # ➕ Criar novo Patrimônio
 # -----------------------------
 @patrimonio_bp.route("/novo", methods=["GET", "POST"])
-@login_required   # 👈 protege a rota
+@login_required
 @permission_required("patrimonios", "create")
 def novo_patrimonio():
     if request.method == "POST":
@@ -74,19 +71,19 @@ def novo_patrimonio():
         )
         db.session.add(item)
         db.session.commit()
-        registrar_log(current_user.nome, f"Cadastrou patrimônio: {item.nome}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Cadastrou patrimônio: {item.nome}", "sucesso")
         flash(f"Patrimônio {item.nome} cadastrado com sucesso!", "success")
         return redirect(url_for("patrimonio.listar_patrimonios"))
     else:
         if request.method == "POST":
-            print("Erros de validação:", form.errors)
+            current_app.logger.debug(f"Erros de validação ao criar patrimônio: {form.errors}")
     return render_template("patrimonios/novo_patrimonio.html", form=form)
 
 # -----------------------------
 # ✏️ Editar Patrimônio
 # -----------------------------
 @patrimonio_bp.route("/editar/<int:id>", methods=["GET", "POST"])
-@login_required   # 👈 protege a rota
+@login_required
 @permission_required("patrimonios", "edit")
 def editar_patrimonio(id):
     item = Patrimonio.query.get_or_404(id)
@@ -108,12 +105,12 @@ def editar_patrimonio(id):
         item.situacao = form.situacao.data
 
         db.session.commit()
-        registrar_log(current_user.nome, f"Editou patrimônio: {item.nome}", "sucesso")  # 👈 log
+        registrar_log(current_user.nome, f"Editou patrimônio: {item.nome}", "sucesso")
         flash(f"Patrimônio {item.nome} atualizado com sucesso!", "success")
         return redirect(url_for("patrimonio.listar_patrimonios"))
     else:
         if request.method == "POST":
-            print("Erros de validação:", form.errors)
+            current_app.logger.debug(f"Erros de validação ao editar patrimônio: {form.errors}")
     return render_template("patrimonios/editar_patrimonio.html", form=form, item=item)
 
 
@@ -121,14 +118,13 @@ def editar_patrimonio(id):
 # ❌ Excluir Patrimônio
 # -----------------------------
 @patrimonio_bp.route("/excluir/<int:id>", methods=["POST"])
-@login_required   # 👈 protege a rota
+@login_required
 @permission_required("patrimonios", "delete")
 def excluir_patrimonio(id):
     item = Patrimonio.query.get_or_404(id)
     db.session.delete(item)
     db.session.commit()
-    from utils.logs import registrar_log
-    registrar_log(current_user.nome, f"Excluiu patrimônio: {item.nome}", "sucesso")  # 👈 log
+    registrar_log(current_user.nome, f"Excluiu patrimônio: {item.nome}", "sucesso")
     flash(f"Patrimônio {item.nome} excluído com sucesso!", "danger")
     return redirect(url_for("patrimonio.listar_patrimonios"))
 
@@ -137,7 +133,7 @@ def excluir_patrimonio(id):
 # 🔍 Buscar Patrimônios com paginação
 # -----------------------------
 @patrimonio_bp.route("/buscar", methods=["GET"])
-@login_required   # 👈 protege a rota
+@login_required
 @permission_required("patrimonios", "view")
 def buscar_patrimonios():
     termo = request.args.get("q", "").strip().lower()
@@ -154,7 +150,6 @@ def buscar_patrimonios():
     query = query.order_by(Patrimonio.nome.asc())
     patrimonios = query.paginate(page=page, per_page=10)
 
-    # 🔹 Só mostra mensagem se realmente houve busca
     if termo:
         if patrimonios.total == 0:
             flash("Nenhum patrimônio corresponde ao termo pesquisado", "warning")
@@ -163,8 +158,6 @@ def buscar_patrimonios():
         else:
             flash(f"{patrimonios.total} patrimônio(s) encontrados", "info")
 
-        # 👇 log da busca
-        from utils.logs import registrar_log
         registrar_log(current_user.nome, f"Buscou patrimônio com termo: {termo}", "sucesso")
 
     return render_template("patrimonios/listar_patrimonios.html", patrimonios=patrimonios, termo=termo)
@@ -174,7 +167,7 @@ def buscar_patrimonios():
 # 📦 Inventário de Patrimônios
 # -----------------------------
 @patrimonio_bp.route("/inventario", methods=["GET"])
-@login_required   # 👈 protege a rota
+@login_required
 @permission_required("patrimonios", "view")
 def inventario():
     categoria = request.args.get("categoria", "").strip()
@@ -201,11 +194,9 @@ def inventario():
         else:
             categorias[cat] = {"qtde": 1, "valor": valor}
 
-    # 🔹 Só mostra aviso se houve filtro aplicado e não retornou nada
     if not patrimonios and (categoria or situacao):
         flash("Nenhum patrimônio encontrado com os filtros aplicados", "warning")
 
-    from utils.logs import registrar_log
     registrar_log(current_user.nome, "Gerou inventário de patrimônios", "sucesso")
 
     return render_template(

@@ -1,5 +1,5 @@
-from datetime import datetime
-from app.extensions import db   # ✅ importa o db único centralizado em app/extensions.py
+from datetime import datetime, timezone
+from app.extensions import db
 
 # -----------------------------
 # 📦 Patrimônio
@@ -16,7 +16,7 @@ class Patrimonio(db.Model):
     data_entrada = db.Column(db.Date, nullable=True)
     situacao = db.Column(db.String(50), default="Ativo")
 
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_em = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         data_str = self.data_entrada.strftime('%d-%m-%Y') if self.data_entrada else "sem data"

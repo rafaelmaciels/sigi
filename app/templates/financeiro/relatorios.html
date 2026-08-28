@@ -1,77 +1,102 @@
 {% extends "base.html" %}
-{% block title %}Relatórios Financeiros{% endblock %}
-{% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4"><i class="bi bi-journal-text text-primary"></i> Relatórios</h2>
+{% block title %}Relatórios Financeiros — SiGI{% endblock %}
+{% block nav_financeiro_active %}active{% endblock %}
 
-  <!-- Card informativo -->
-  <div class="card border-info shadow-sm mb-4">
-    <div class="card-body text-muted small">
-      <i class="bi bi-info-circle"></i> 
-      Use os filtros abaixo para gerar relatórios personalizados. 
-      Você pode selecionar um período, tipo <strong>(Entrada ou Saída)</strong> e categoria. 
-      Também é possível exportar os resultados em CSV ou PDF.
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-bar-graph text-primary me-2"></i> Relatórios & Análise Financeira</h2>
+      <p class="text-muted mb-0">Filtros avançados de movimentações, centros de custo, contas e exportação de dados.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Painel Geral
+      </a>
+      <a class="btn btn-success" href="{{ url_for('financeiro.export_csv',
+                    inicio=form.inicio.data.strftime('%Y-%m-%d') if form.inicio.data else '',
+                    fim=form.fim.data.strftime('%Y-%m-%d') if form.fim.data else '',
+                    tipo=form.tipo.data if form.tipo.data else '',
+                    categoria=form.categoria.data if form.categoria.data else '') }}">
+        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar Livro Caixa (CSV)
+      </a>
     </div>
   </div>
 
-  <!-- Filtros -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form method="POST">
+  <!-- Barra de Filtros -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <form method="POST" class="row g-3">
         {{ form.hidden_tag() }}
-        <div class="row g-3">
-          <div class="col-md-3">
-            {{ form.inicio.label(class="form-label") }}
-            {{ form.inicio(class="form-control", placeholder="dd/mm/aaaa") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.fim.label(class="form-label") }}
-            {{ form.fim(class="form-control", placeholder="dd/mm/aaaa") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.tipo.label(class="form-label") }}
-            {{ form.tipo(class="form-select") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.categoria.label(class="form-label") }}
-            {{ form.categoria(class="form-control", placeholder="Categoria (opcional)") }}
-          </div>
+        <div class="col-md-2">
+          {{ form.inicio.label(class="form-label") }}
+          {{ form.inicio(class="form-control") }}
         </div>
-        <div class="mt-3 d-flex gap-2">
-          {{ form.submit(class="btn btn-primary") }}
-          <a class="btn btn-outline-secondary"
-             href="{{ url_for('financeiro.export_csv',
-                               inicio=form.inicio.data.strftime('%d-%m-%Y') if form.inicio.data else '',
-                               fim=form.fim.data.strftime('%d-%m-%Y') if form.fim.data else '',
-                               tipo=form.tipo.data if form.tipo.data else '',
-                               categoria=form.categoria.data if form.categoria.data else '') }}">
-            Exportar CSV
-          </a>
-          <a class="btn btn-outline-danger" href="#">
-            Exportar PDF
+        <div class="col-md-2">
+          {{ form.fim.label(class="form-label") }}
+          {{ form.fim(class="form-control") }}
+        </div>
+        <div class="col-md-2">
+          {{ form.tipo.label(class="form-label") }}
+          {{ form.tipo(class="form-select") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.categoria.label(class="form-label") }}
+          {{ form.categoria(class="form-select") }}
+        </div>
+        <div class="col-md-3">
+          {{ form.departamento.label(class="form-label") }}
+          {{ form.departamento(class="form-select") }}
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-funnel me-1"></i> Filtrar Relatório
+          </button>
+          <a href="{{ url_for('financeiro.relatorios') }}" class="btn btn-outline-secondary">
+            Limpar Filtros
           </a>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Totais e gráfico -->
-  <div class="row g-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h6>Total</h6>
-          <h3>{{ total|currency }}</h3>
-          <p class="mb-0 text-success">Entradas: {{ total_entradas|currency }}</p>
-          <p class="mb-0 text-danger">Saídas: {{ total_saidas|currency }}</p>
+  <!-- Indicadores e Gráfico -->
+  <div class="row g-4 mb-4">
+    <!-- Totais -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-calculator me-1"></i> Resumo do Período Filtrado
+        </div>
+        <div class="card-body d-flex flex-column justify-content-around">
+          <div class="p-3 bg-light rounded-3 mb-3 border">
+            <div class="small text-muted text-uppercase fw-bold">Total de Receitas</div>
+            <h4 class="text-success fw-bold mb-0">+ {{ total_entradas | currency }}</h4>
+          </div>
+          <div class="p-3 bg-light rounded-3 mb-3 border">
+            <div class="small text-muted text-uppercase fw-bold">Total de Despesas</div>
+            <h4 class="text-danger fw-bold mb-0">- {{ total_saidas | currency }}</h4>
+          </div>
+          <div class="p-3 rounded-3 border {% if saldo_filtrado >= 0 %}bg-primary bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}">
+            <div class="small text-muted text-uppercase fw-bold">Saldo do Período</div>
+            <h3 class="{% if saldo_filtrado >= 0 %}text-primary{% else %}text-danger{% endif %} fw-bold mb-0">
+              {{ saldo_filtrado | currency }}
+            </h3>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-8">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title"><i class="bi bi-pie-chart"></i> Por categoria</h5>
-          <div style="height:200px;">
+
+    <!-- Gráfico por Categoria -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-pie-chart text-primary me-1"></i> Distribuição Financeira por Categoria
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <div style="width: 100%; max-height: 280px;">
             <canvas id="pieChart"></canvas>
           </div>
         </div>
@@ -79,26 +104,28 @@
     </div>
   </div>
 
-  <!-- Registros -->
-  <div class="card shadow-sm mt-4">
-    <div class="card-body">
-      <h5 class="card-title">Registros</h5>
-      <div class="table-responsive shadow-sm">
-        <table class="table table-striped table-hover align-middle">
-          <thead class="table-primary">
+  <!-- Tabela de Resultados -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-bold"><i class="bi bi-list-check me-1"></i> Lançamentos Filtrados ({{ registros.total }} encontrados)</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive border-0">
+        <table class="table align-middle mb-0">
+          <thead>
             <tr>
               <th>Data</th>
               <th>Tipo</th>
               <th>Categoria</th>
-              <th>Conta</th>
-              <th>Descrição</th>
-              <th>Valor (R$)</th>
+              <th>Departamento / Fundo</th>
+              <th>Descrição / Favorecido</th>
+              <th class="text-end">Valor (R$)</th>
             </tr>
           </thead>
           <tbody>
             {% for r in registros.items %}
             <tr>
-              <td>{{ r.data.strftime('%d/%m/%Y') }}</td>
+              <td class="text-muted small">{{ r.data.strftime('%d/%m/%Y') }}</td>
               <td>
                 {% if r.tipo == 'Entrada' %}
                   <span class="badge bg-success">Entrada</span>
@@ -106,75 +133,64 @@
                   <span class="badge bg-danger">Saída</span>
                 {% endif %}
               </td>
-              <td>{{ r.categoria }}</td>
-              <td>{{ r.conta }}</td>
-              <td>{{ r.descricao or '-' }}</td>
-              <td><span class="badge bg-secondary">{{ r.valor|currency }}</span></td>
+              <td class="fw-semibold text-dark">{{ r.categoria }}</td>
+              <td>
+                <div class="text-secondary small">{{ r.departamento }}</div>
+                <div class="text-muted small">{{ r.conta }}</div>
+              </td>
+              <td>
+                <div class="text-dark">{{ r.nome_identificador }}</div>
+                <div class="text-muted small">{{ r.forma_pagamento }}</div>
+              </td>
+              <td class="text-end fw-bold {% if r.tipo == 'Entrada' %}text-success{% else %}text-danger{% endif %}">
+                {% if r.tipo == 'Entrada' %}+{% else %}-{% endif %} {{ r.valor | currency }}
+              </td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="text-center text-muted">Nenhum registro no período.</td></tr>
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">Nenhum lançamento no período filtrado.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-
-      <!-- Paginação -->
-      {% if registros.pages > 1 %}
-      <div class="d-flex justify-content-center mt-3">
-        <ul class="pagination">
-          {% if registros.has_prev %}
-            <li class="page-item">
-              <a class="page-link" href="{{ url_for('financeiro.relatorios', page=registros.prev_num) }}">&laquo; Anterior</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
-          {% endif %}
-
-          <li class="page-item disabled">
-            <span class="page-link">Página {{ registros.page }} de {{ registros.pages }}</span>
-          </li>
-
-          {% if registros.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="{{ url_for('financeiro.relatorios', page=registros.next_num) }}">Próxima &raquo;</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Próxima &raquo;</span></li>
-          {% endif %}
-        </ul>
-      </div>
-      {% endif %}
     </div>
   </div>
+
+  <!-- Paginação -->
+  {% set pagination = registros %}
+  {% include "pagination/pagination.html" %}
+
 </div>
 
 <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
 <script>
   const labels = {{ categorias_labels|tojson }};
   const dataVals = {{ categorias_data|tojson }};
-  new Chart(document.getElementById('pieChart'), {
-    type: 'pie',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: dataVals,
-        backgroundColor: [
-          'rgba(25,135,84,0.7)',
-          'rgba(220,53,69,0.7)',
-          'rgba(13,110,253,0.7)',
-          'rgba(255,193,7,0.7)',
-          'rgba(32,201,151,0.7)',
-          'rgba(111,66,193,0.7)'
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom' }
+
+  if (labels.length > 0) {
+    new Chart(document.getElementById('pieChart'), {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: dataVals,
+          backgroundColor: [
+            '#2563eb', '#10b981', '#f59e0b', '#ef4444',
+            '#8b5cf6', '#06b6d4', '#ec4899', '#64748b'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right' }
+        },
+        cutout: '65%'
       }
-    }
-  });
+    });
+  }
 </script>
 {% endblock %}
