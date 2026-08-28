@@ -28,7 +28,6 @@ ENV/
 
 # Variáveis de ambiente e segredos
 .env
-.env.*
 *.pem
 *.key
 
