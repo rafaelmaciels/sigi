@@ -12,7 +12,8 @@ def dashboard():
     user = current_user
     user_name = user.nome if user.nome else user.email.split('@')[0].capitalize()
 
-    metrics = DashboardService.get_dashboard_metrics()
+    is_admin = getattr(user, "is_admin", False)
+    metrics = DashboardService.get_dashboard_metrics(is_admin=is_admin)
 
     # Checa eventos próximos para disparar notificação
     agora = datetime.now()

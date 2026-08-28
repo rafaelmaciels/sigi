@@ -49,6 +49,7 @@
             </li>
 
             <!-- Secretaria / Membros -->
+            {% if has_permission('membros', 'view') %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navSecretaria" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-people"></i> Secretaria
@@ -59,15 +60,19 @@
                     <i class="bi bi-person-badge text-primary"></i> Membros & Visitantes
                   </a>
                 </li>
+                {% if current_user.is_admin %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('member.relatorio_membros') }}">
                     <i class="bi bi-bar-chart-line text-info"></i> Relatório Estatístico
                   </a>
                 </li>
+                {% endif %}
               </ul>
             </li>
+            {% endif %}
 
             <!-- Eventos & Aniversariantes -->
+            {% if has_permission('eventos', 'view') %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navEventos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-calendar3"></i> Eventos
@@ -85,32 +90,42 @@
                 </li>
               </ul>
             </li>
+            {% endif %}
 
             <!-- Documentos -->
+            {% if has_permission('atas', 'view') or has_permission('certificados', 'view') or has_permission('cartas', 'view') %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navDocumentos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-file-earmark-text"></i> Documentos
               </a>
               <ul class="dropdown-menu" aria-labelledby="navDocumentos">
+                {% if has_permission('atas', 'view') %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('documentos.atas.listar_atas') }}">
                     <i class="bi bi-journal-text text-primary"></i> Livro de Atas
                   </a>
                 </li>
+                {% endif %}
+                {% if has_permission('certificados', 'view') %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('documentos.certificados.listar_certificados') }}">
                     <i class="bi bi-award text-success"></i> Certificados
                   </a>
                 </li>
+                {% endif %}
+                {% if has_permission('cartas', 'view') %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('documentos.cartas.listar_cartas') }}">
                     <i class="bi bi-envelope-paper text-secondary"></i> Cartas Pastorais
                   </a>
                 </li>
+                {% endif %}
               </ul>
             </li>
+            {% endif %}
 
             <!-- Patrimônio -->
+            {% if has_permission('patrimonios', 'view') %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navPatrimonio" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-box-seam"></i> Patrimônio
@@ -128,8 +143,10 @@
                 </li>
               </ul>
             </li>
+            {% endif %}
 
             <!-- Financeiro -->
+            {% if has_permission('financeiro', 'view') %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle {% block nav_financeiro_active %}{% endblock %}" href="#" id="navFinanceiro" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-wallet2"></i> Financeiro
@@ -173,6 +190,7 @@
                 </li>
               </ul>
             </li>
+            {% endif %}
           </ul>
 
           <!-- Perfil do Usuário -->
@@ -201,11 +219,13 @@
                     <i class="bi bi-person text-secondary"></i> Meu Perfil
                   </a>
                 </li>
+                {% if has_permission('config', 'view') %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('configuracoes.configuracoes') }}">
                     <i class="bi bi-sliders text-secondary"></i> Configurações Gerais
                   </a>
                 </li>
+                {% endif %}
                 <li><hr class="dropdown-divider my-1"></li>
                 <li>
                   <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
@@ -272,7 +292,7 @@
           &copy; {{ current_year }} <strong>SiGI</strong> &mdash; Sistema Integrado de Gestão de Igreja
         </div>
         <div class="small text-muted mt-1">
-          Plataforma Enterprise de Gestão Ministerial
+          Desenvolvido por Paulo Soares
         </div>
       </div>
     </footer>

@@ -389,6 +389,10 @@ def imprimir_ficha_pdf(id):
 @login_required   # 👈 protege a rota
 @permission_required("membros", "view")
 def relatorio_membros():
+    if not getattr(current_user, "is_admin", False):
+        flash("Você não tem permissão para acessar o Relatório Estatístico.", "danger")
+        return redirect(url_for("dashboard.dashboard"))
+
     sexo = request.args.get("sexo")
     status = request.args.get("status")
     estado_civil = request.args.get("estado_civil")
@@ -471,6 +475,10 @@ def relatorio_membros():
 @login_required   # 👈 protege a rota
 @permission_required("membros", "view")
 def relatorio_membros_pdf():
+    if not getattr(current_user, "is_admin", False):
+        flash("Você não tem permissão para acessar o Relatório Estatístico.", "danger")
+        return redirect(url_for("dashboard.dashboard"))
+
     sexo = request.args.get("sexo")
     status = request.args.get("status")
     estado_civil = request.args.get("estado_civil")
