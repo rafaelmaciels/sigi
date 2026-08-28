@@ -73,7 +73,9 @@
               <tr>
                 <td class="fw-semibold text-dark">{{ certificado.titulo }}</td>
                 <td>{{ certificado.evento or '-' }}</td>
-                <td>{{ certificado.criado_por or '-' }}</td>
+                <td>
+                  <span class="fw-bold text-dark">{{ certificado.criado_por or '-' }}</span>
+                </td>
                 <td class="text-muted small">{{ certificado.data_emissao.strftime('%d/%m/%Y') if certificado.data_emissao else '-' }}</td>
                 <td>
                   {% if certificado.situacao %}
@@ -94,7 +96,21 @@
                   <td class="text-end">
                     <div class="d-inline-flex gap-1">
                       {% if has_permission("certificados", "view") %}
-                        <a href="{{ url_for('documentos.certificados.visualizar_certificado', id=certificado.id) }}" class="btn btn-sm btn-outline-primary btn-icon" title="Visualizar Certificado">
+                        <!-- Botão Imprimir com ícone de impressora -->
+                        <a href="{{ url_for('documentos.certificados.visualizar_certificado', id=certificado.id) }}?print=1" 
+                           class="btn btn-sm btn-outline-dark btn-icon" title="Imprimir Certificado">
+                          <i class="bi bi-printer"></i>
+                        </a>
+
+                        <!-- Botão Compartilhar pelo WhatsApp -->
+                        <a href="https://api.whatsapp.com/send?text={{ ('*Certificado Oficial — ' ~ certificado.titulo ~ '*%0A%0A*Homenageado(a):* ' ~ (certificado.criado_por or '') ~ '%0A*Evento:* ' ~ (certificado.evento or '') ~ '%0A*Data de Emissão:* ' ~ (certificado.data_emissao.strftime('%d/%m/%Y') if certificado.data_emissao else '') ~ '%0A%0A' ~ (certificado.corpo or '')) | urlencode }}" 
+                           target="_blank" class="btn btn-sm btn-outline-success btn-icon" title="Compartilhar pelo WhatsApp">
+                          <i class="bi bi-whatsapp"></i>
+                        </a>
+
+                        <!-- Botão Visualizar -->
+                        <a href="{{ url_for('documentos.certificados.visualizar_certificado', id=certificado.id) }}" 
+                           class="btn btn-sm btn-outline-primary btn-icon" title="Visualizar Detalhes">
                           <i class="bi bi-eye"></i>
                         </a>
                       {% endif %}
