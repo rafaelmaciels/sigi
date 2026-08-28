@@ -17,6 +17,7 @@ except (ImportError, OSError):
 from werkzeug.datastructures import FileStorage
 
 from utils.pagination import paginate_query
+from utils.sanitizer import sanitizar_html
 from app.models import Member, PublicLink, User, Permission, UserPermission        # 👈 importa os modelos
 from app.models.log import Log, registrar_log    # 👈 modelo de log
 from app.routes.member.forms import MemberForm   # 👈 formulário
@@ -133,7 +134,7 @@ def cadastro_membro():
             dizimista=form.dizimista.data,
             data_batismo=form.data_batismo.data,
             funcao=form.funcao.data,
-            observacoes=form.observacoes.data,
+            observacoes=sanitizar_html(form.observacoes.data),
             status=form.status.data,
             nacionalidade=form.nacionalidade.data,
             naturalidade=form.naturalidade.data,
@@ -207,7 +208,7 @@ def editar_membro(id):
         membro.dizimista = form.dizimista.data
         membro.data_batismo = form.data_batismo.data
         membro.funcao = form.funcao.data
-        membro.observacoes = form.observacoes.data
+        membro.observacoes = sanitizar_html(form.observacoes.data)
         membro.status = form.status.data
         membro.nacionalidade = form.nacionalidade.data
         membro.naturalidade = form.naturalidade.data
@@ -579,7 +580,7 @@ def cadastro_visitante(hash):
             bairro=bairro,
             naturalidade=naturalidade,
             cep=cep,
-            observacoes=observacoes,
+            observacoes=sanitizar_html(observacoes),
             funcao="Visitante",
             status="Ativo",
             data_cadastro=datetime.utcnow()
