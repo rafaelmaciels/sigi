@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SiGI — Premium SaaS Authentication Stylesheet
+   SiGI — Premium SaaS Authentication Stylesheet (Light Theme)
    ========================================================================== */
 
 html, body {
@@ -7,8 +7,8 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #0b0f19;
-  color: #f8fafc;
+  background-color: var(--sigi-bg-app, #f8fafc);
+  color: var(--sigi-text-main, #0f172a);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -20,30 +20,29 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.15), transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.12), transparent 45%),
-              #0b0f19;
-  overflow: hidden;
+  background: radial-gradient(circle at 50% 10%, rgba(37, 99, 235, 0.08), transparent 45%),
+              radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.06), transparent 40%),
+              #f8fafc;
+  overflow-y: auto;
   padding: 1.5rem;
 }
 
 .login-card {
-  background: rgba(17, 24, 39, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(37, 99, 235, 0.1);
-  padding: 3rem 2.5rem;
+  background: #ffffff;
+  border: 1px solid var(--sigi-border, #e2e8f0);
+  border-radius: 20px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  padding: 2.75rem 2.25rem;
   max-width: 440px;
   width: 100%;
-  animation: sigiAuthFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: sigiAuthFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
 }
 
 @keyframes sigiAuthFadeIn {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
+    transform: translateY(14px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -66,73 +65,75 @@ html, body {
   background: linear-gradient(135deg, #2563eb, #4f46e5);
   color: #ffffff;
   font-size: 1.5rem;
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
   margin-bottom: 1.25rem;
 }
 
 .login-header h2 {
   font-weight: 700;
-  font-size: 1.6rem;
-  color: #ffffff;
+  font-size: 1.55rem;
+  color: var(--sigi-text-main, #0f172a);
   letter-spacing: -0.03em;
   margin-bottom: 0.35rem;
 }
 
 .login-header p {
-  color: #94a3b8;
+  color: var(--sigi-text-muted, #64748b);
   font-size: 0.9rem;
   margin: 0;
 }
 
 /* Inputs */
 .login-card .form-control {
-  background: rgba(15, 23, 42, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #f8fafc !important;
-  border-radius: 12px;
-  padding: 0.8rem 1rem;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: var(--sigi-text-main, #0f172a) !important;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.93rem;
+  transition: all 0.15s ease;
 }
 
 .login-card .form-control:focus {
   border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3.5px rgba(59, 130, 246, 0.25) !important;
-  background: rgba(15, 23, 42, 0.95) !important;
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.12) !important;
+  background: #ffffff !important;
 }
 
 .login-card .form-control::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .login-card .form-label {
-  color: #cbd5e1;
+  color: var(--sigi-text-secondary, #475569);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 0.4rem;
 }
 
 /* Primary Button */
 .btn-login {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: #2563eb;
   color: #ffffff;
-  border: none;
-  border-radius: 12px;
+  border: 1px solid #2563eb;
+  border-radius: 10px;
   font-weight: 600;
   font-size: 0.95rem;
-  padding: 0.85rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   width: 100%;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  cursor: pointer;
 }
 
 .btn-login:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
   transform: translateY(-1px);
   color: #ffffff;
 }
@@ -142,19 +143,20 @@ html, body {
 }
 
 .forgot-link {
-  color: #60a5fa;
+  color: #2563eb;
   text-decoration: none;
-  font-size: 0.88rem;
-  transition: color 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
 }
 
 .forgot-link:hover {
-  color: #93c5fd;
+  color: #1d4ed8;
   text-decoration: underline;
 }
 
 @media (max-width: 480px) {
   .login-card {
-    padding: 2.25rem 1.5rem;
+    padding: 2rem 1.5rem;
   }
 }

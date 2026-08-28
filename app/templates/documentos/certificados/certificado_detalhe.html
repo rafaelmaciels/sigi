@@ -1,59 +1,83 @@
 {% extends "base.html" %}
-{% block title %}Certificado{% endblock %}
+{% block title %}{{ certificado.titulo }} — SiGI{% endblock %}
+{% block nav_documentos_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid px-lg-5">
 
-  <!-- Cabeçalho com título e botão voltar -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="text-primary mb-0">
-      <i class="bi bi-award me-2"></i> Certificado
-    </h2>
-    <a href="{{ url_for('documentos.certificados.listar_certificados') }}" class="btn btn-secondary">
-      <i class="bi bi-arrow-left me-1"></i> Voltar
-    </a>
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="fw-bold mb-0">
+          <i class="bi bi-award text-success me-2"></i> {{ certificado.titulo }}
+        </h2>
+        {% if certificado.situacao %}
+          {% if certificado.situacao|lower == 'enviado' %}
+            <span class="badge bg-warning">Enviado</span>
+          {% elif certificado.situacao|lower == 'entregue' %}
+            <span class="badge bg-success">Entregue</span>
+          {% elif certificado.situacao|lower == 'aprovado' %}
+            <span class="badge bg-primary">Aprovado</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ certificado.situacao }}</span>
+          {% endif %}
+        {% endif %}
+      </div>
+      <p class="text-muted mb-0">
+        Data de Emissão: <strong>{{ certificado.data_emissao.strftime('%d/%m/%Y') if certificado.data_emissao else '-' }}</strong> &bull; Evento: <strong>{{ certificado.evento or '-' }}</strong>
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if has_permission("certificados", "edit") %}
+        <a href="{{ url_for('documentos.certificados.editar_certificado', id=certificado.id) }}" class="btn btn-primary">
+          <i class="bi bi-pencil me-1"></i> Editar Certificado
+        </a>
+      {% endif %}
+      <a href="{{ url_for('documentos.certificados.listar_certificados') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Lista de Certificados
+      </a>
+    </div>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <h4 class="card-title text-primary mb-3">{{ certificado.titulo }}</h4>
+  <div class="row g-4 mb-4">
+    <!-- Metadados -->
+    <div class="col-md-4 col-xl-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-info-circle text-primary me-1"></i> Informações
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <span class="text-muted small d-block text-uppercase fw-semibold">Homenageado(a)</span>
+            <span class="fw-medium text-dark">{{ certificado.criado_por or '-' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted small d-block text-uppercase fw-semibold">Evento</span>
+            <span class="fw-medium text-dark">{{ certificado.evento or '-' }}</span>
+          </div>
+          <div>
+            <span class="text-muted small d-block text-uppercase fw-semibold">Data de Emissão</span>
+            <span class="fw-medium text-dark">{{ certificado.data_emissao.strftime('%d/%m/%Y') if certificado.data_emissao else '-' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <!-- Informações principais -->
-      <table class="table table-borderless">
-        <tbody>
-          <tr>
-            <th scope="row" style="width: 180px;">Nome do Participante:</th>
-            <td>{{ certificado.criado_por or '-' }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Evento:</th>
-            <td>{{ certificado.evento or '-' }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Data de Emissão:</th>
-            <td>{{ certificado.data_emissao.strftime('%d/%m/%Y') if certificado.data_emissao else '-' }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Situação:</th>
-            <td>
-              {% if certificado.situacao == 'enviado' %}
-                <span class="badge bg-warning text-dark">Enviado</span>
-              {% elif certificado.situacao == 'entregue' %}
-                <span class="badge bg-success">Entregue</span>
-              {% elif certificado.situacao == 'aprovado' %}
-                <span class="badge bg-primary">Aprovado</span>
-              {% else %}
-                <span class="badge bg-secondary">-</span>
-              {% endif %}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <hr>
-
-      <!-- Corpo do certificado -->
-      <p class="mt-3">{{ certificado.corpo }}</p>
+    <!-- Conteúdo do Certificado -->
+    <div class="col-md-8 col-xl-9">
+      <div class="card shadow-sm border-0">
+        <div class="card-header fw-bold">
+          <i class="bi bi-file-earmark-text text-primary me-1"></i> Texto do Certificado
+        </div>
+        <div class="card-body p-4">
+          <div class="p-4 bg-light rounded-3 border text-center" style="min-height: 200px;">
+            <p class="mb-0 text-dark fs-5 fst-italic" style="white-space: pre-line; line-height: 1.8;">
+              "{{ certificado.corpo }}"
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

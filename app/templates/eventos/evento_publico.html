@@ -3,187 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ evento.titulo }}</title>
+  <title>{{ evento.titulo }} — Programação Oficial</title>
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/base.css') }}" rel="stylesheet">
   <style>
     body {
-      background: #f5f5f5;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: var(--sigi-bg-app, #f8fafc);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      margin: 0;
+      padding: 2rem 1rem;
     }
-    .evento-container {
-      max-width: 900px;
+    .evento-card {
+      max-width: 780px;
       width: 100%;
-      background: white;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid var(--sigi-border, #e2e8f0);
+      border-radius: var(--sigi-radius-lg, 16px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
       overflow: hidden;
     }
-    /* 🔹 Banner com degradê igual ao header do sistema */
-    .evento-header {
-      background: linear-gradient(135deg, #4e73df, #1cc88a);
+    .evento-header-card {
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
       color: white;
-      padding: 50px 30px;
+      padding: 3rem 2rem;
       text-align: center;
-    }
-    .evento-header h1 {
-      margin: 0 0 15px 0;
-      font-size: 36px;
-      font-weight: bold;
-    }
-    .evento-badge {
-      display: inline-block;
-      padding: 6px 18px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 20px;
-      font-size: 15px;
-      margin: 5px;
-    }
-    .status-badge {
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 14px;
-      display: inline-block;
-      margin: 5px;
-    }
-    .status-planejado { background: #ffc107; color: #000; }
-    .status-confirmado { background: #28a745; color: #fff; }
-    .status-em_andamento { background: #17a2b8; color: #fff; }
-    .status-concluido { background: #6c757d; color: #fff; }
-    .status-cancelado { background: #dc3545; color: #fff; }
-    .evento-body {
-      padding: 30px;
-    }
-    .evento-descricao {
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 30px;
-    }
-    .evento-descricao h3 {
-      margin-top: 0;
-      color: #333;
-    }
-    .evento-descricao p {
-      color: #666;
-      line-height: 1.6;
-    }
-    .info-item {
-      padding: 15px 0;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: flex-start;
-    }
-    .info-item:last-child {
-      border-bottom: none;
-    }
-    .info-icon {
-      color: #4e73df;
-      font-size: 24px;
-      margin-right: 15px;
-      width: 30px;
-    }
-    .info-content h4 {
-      margin: 0 0 5px 0;
-      color: #333;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .info-content p {
-      margin: 0;
-      color: #666;
-      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <div class="evento-container">
-    <!-- Banner centralizado com degradê -->
-    <div class="evento-header">
-      <h1>{{ evento.titulo }}</h1>
-      <div>
-        <!-- Tipo formatado -->
-        <span class="evento-badge">
-          {% if evento.tipo == "culto_especial" %}
-            Culto Especial
-          {% elif evento.tipo == "retiro" %}
-            Retiro
-          {% elif evento.tipo == "batismo" %}
-            Batismo
-          {% elif evento.tipo == "reuniao" %}
-            Reunião
-          {% elif evento.tipo == "evangelismo" %}
-            Evangelismo
-          {% elif evento.tipo == "conferencia" %}
-            Conferência
-          {% elif evento.tipo == "outros" %}
-            Outros
-          {% else %}
-            {{ evento.tipo }}
-          {% endif %}
+  <div class="evento-card">
+    <div class="evento-header-card">
+      <div class="d-flex justify-content-center gap-2 mb-3">
+        <span class="badge bg-white text-primary fw-semibold px-3 py-2">
+          {% if evento.tipo == "culto_especial" %}Culto Especial
+          {% elif evento.tipo == "retiro" %}Retiro
+          {% elif evento.tipo == "batismo" %}Batismo
+          {% elif evento.tipo == "reuniao" %}Reunião
+          {% elif evento.tipo == "evangelismo" %}Evangelismo
+          {% elif evento.tipo == "conferencia" %}Conferência
+          {% elif evento.tipo == "outros" %}Outros
+          {% else %}{{ evento.tipo }}{% endif %}
         </span>
-        <!-- Status com badge colorido -->
-        <span class="status-badge status-{{ evento.status|lower }}">
-          {% if evento.status == "confirmado" %}
-            Confirmado
-          {% elif evento.status == "planejado" %}
-            Planejado
-          {% elif evento.status == "em_andamento" %}
-            Em Andamento
-          {% elif evento.status == "concluido" %}
-            Concluído
-          {% elif evento.status == "cancelado" %}
-            Cancelado
-          {% else %}
-            {{ evento.status }}
-          {% endif %}
+        <span class="badge bg-primary bg-opacity-75 text-white px-3 py-2">
+          {{ evento.status | capitalize }}
         </span>
       </div>
+      <h2 class="fw-bold mb-2 text-white">{{ evento.titulo }}</h2>
+      <p class="text-white text-opacity-75 mb-0">Programação Eclesiástica & Eventos</p>
     </div>
 
-    <!-- Corpo do evento -->
-    <div class="evento-body">
-      <div class="evento-descricao">
-        <h3>Sobre o Evento</h3>
-        <p>{{ evento.descricao }}</p>
+    <div class="p-4 p-md-5">
+      {% if evento.descricao %}
+      <div class="p-3 bg-light rounded-3 border mb-4">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle text-primary me-1"></i> Sobre o Evento</h6>
+        <p class="mb-0 text-muted" style="white-space: pre-line;">{{ evento.descricao }}</p>
       </div>
+      {% endif %}
 
-      <div class="evento-info">
-        <div class="info-item">
-          <div class="info-icon"><i class="bi bi-calendar-event"></i></div>
-          <div class="info-content">
-            <h4>Data e Hora</h4>
-            <p><strong>Início:</strong> {{ evento.data_inicio.strftime('%d/%m/%Y %H:%M') }}</p>
-            <p><strong>Término:</strong> {{ evento.data_fim.strftime('%d/%m/%Y %H:%M') }}</p>
+      <div class="row g-4">
+        <div class="col-sm-6">
+          <div class="d-flex align-items-start gap-3">
+            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary">
+              <i class="bi bi-calendar3 fs-4"></i>
+            </div>
+            <div>
+              <span class="text-muted small d-block text-uppercase fw-semibold">Data & Horário</span>
+              <div class="fw-bold text-dark">{{ evento.data_inicio.strftime('%d/%m/%Y às %H:%M') }}</div>
+              {% if evento.data_fim %}
+                <div class="text-muted small">Término: {{ evento.data_fim.strftime('%d/%m/%Y às %H:%M') }}</div>
+              {% endif %}
+            </div>
           </div>
         </div>
 
-        <div class="info-item">
-          <div class="info-icon"><i class="bi bi-geo-alt"></i></div>
-          <div class="info-content">
-            <h4>Local</h4>
-            <p>{{ evento.local }}</p>
+        <div class="col-sm-6">
+          <div class="d-flex align-items-start gap-3">
+            <div class="dashboard-icon bg-success bg-opacity-10 text-success">
+              <i class="bi bi-geo-alt fs-4"></i>
+            </div>
+            <div>
+              <span class="text-muted small d-block text-uppercase fw-semibold">Local</span>
+              <div class="fw-bold text-dark">{{ evento.local or 'Local a definir' }}</div>
+            </div>
           </div>
         </div>
 
-        <div class="info-item">
-          <div class="info-icon"><i class="bi bi-person"></i></div>
-          <div class="info-content">
-            <h4>Organizador</h4>
-            <p>{{ evento.organizador }}</p>
+        {% if evento.organizador %}
+        <div class="col-12">
+          <div class="d-flex align-items-start gap-3">
+            <div class="dashboard-icon bg-info bg-opacity-10 text-info">
+              <i class="bi bi-person-badge fs-4"></i>
+            </div>
+            <div>
+              <span class="text-muted small d-block text-uppercase fw-semibold">Organização / Ministério Responsável</span>
+              <div class="fw-bold text-dark">{{ evento.organizador }}</div>
+            </div>
           </div>
         </div>
+        {% endif %}
       </div>
     </div>
   </div>
-
-  <!-- Bootstrap Icons -->
-  <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
 </body>
 </html>

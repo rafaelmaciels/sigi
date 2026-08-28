@@ -10,7 +10,10 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
 from sqlalchemy import func
-from weasyprint import HTML  # ➕ para gerar PDF
+try:
+    from weasyprint import HTML  # ➕ para gerar PDF
+except (ImportError, OSError):
+    HTML = None
 from werkzeug.datastructures import FileStorage
 
 from utils.pagination import paginate_query
@@ -495,6 +498,10 @@ def relatorio_membros_pdf():
         data_emissao=date.today().strftime("%d/%m/%Y")
     )
     # Gera o PDF com WeasyPrint
+    if HTML is None:
+        flash("Geração de PDF indisponível neste ambiente (bibliotecas do GTK/WeasyPrint não encontradas).", "warning")
+        return redirect(url_for("member.index"))
+
     pdf = HTML(string=html).write_pdf()
 
     return Response(

@@ -3,56 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Erro Interno do Servidor</title>
+  <title>Instabilidade Temporária (500) — SiGI</title>
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/base.css') }}" rel="stylesheet">
   <style>
     body {
-      background: #f5f5f5;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: var(--sigi-bg-app, #f8fafc);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      margin: 0;
+      padding: 1.5rem;
     }
-    .error-container {
-      max-width: 650px;
-      background: white;
-      box-shadow: 0 6px 25px rgba(0,0,0,0.15);
-      border-radius: 12px;
-      overflow: hidden;
+    .error-card {
+      max-width: 520px;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--sigi-border, #e2e8f0);
+      border-radius: var(--sigi-radius-lg, 16px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      padding: 3rem 2rem;
       text-align: center;
     }
-    .error-header {
-      background: linear-gradient(135deg, #4e73df, #1cc88a);
-      color: white;
-      padding: 40px 20px;
-    }
-    .error-header h1 {
-      margin: 0;
-      font-size: 32px;
-      font-weight: bold;
-    }
-    .error-body {
-      padding: 35px 25px;
-    }
-    .error-body p {
-      color: #555;
-      font-size: 17px;
-      line-height: 1.6;
-      margin-bottom: 15px;
+    .error-badge {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #fff7ed;
+      color: #f97316;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
     }
   </style>
 </head>
 <body>
-  <div class="error-container">
-    <div class="error-header">
-      <h1>Erro Interno</h1>
+  <div class="error-card">
+    <div class="error-badge">
+      <i class="bi bi-exclamation-triangle"></i>
     </div>
-    <div class="error-body">
-      <p>Ocorreu um erro inesperado no servidor.</p>
-      <p>Nossa equipe já foi notificada e está verificando o problema.</p>
-    </div>
+    <h3 class="fw-bold text-dark mb-2">Erro Interno no Servidor</h3>
+    <p class="text-muted mb-4">
+      Ocorreu uma instabilidade inesperada ao processar sua solicitação. O registro foi gravado para análise técnica.
+    </p>
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary px-4">
+      <i class="bi bi-arrow-clockwise me-1"></i> Retornar ao Início
+    </a>
   </div>
 </body>
 </html>

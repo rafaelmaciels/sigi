@@ -1,56 +1,75 @@
 {% extends "base.html" %}
-{% block title %}Editar Perfil{% endblock %}
+{% block title %}Editar Perfil — SiGI{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2><i class="bi bi-pencil-square text-primary"></i> Editar Perfil</h2>
+<div class="container-fluid px-lg-5">
 
-  <div class="card shadow-sm border-0 mt-3">
-    <div class="card-body">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-pencil-square text-primary me-2"></i> Editar Perfil
+      </h2>
+      <p class="text-muted mb-0">Atualização de dados cadastrais e permissões do usuário.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('perfil.meu_perfil') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Meu Perfil
+      </a>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
       <form method="POST" autocomplete="off">
         {{ form.hidden_tag() }}
 
-        <!-- Nome -->
-        <div class="mb-3">
-          {{ form.nome.label(class="form-label") }}
-          {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), placeholder="Digite seu nome completo") }}
-          {% for error in form.nome.errors %}
-            <div class="text-danger small">{{ error }}</div>
-          {% endfor %}
+        <div class="sigi-form-section-title">
+          <i class="bi bi-person text-primary"></i> Informações do Perfil
         </div>
 
-        <!-- Email -->
-        <div class="mb-3">
-          {{ form.email.label(class="form-label") }}
-          {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Digite seu email") }}
-          {% for error in form.email.errors %}
-            <div class="text-danger small">{{ error }}</div>
-          {% endfor %}
-        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            {{ form.nome.label(class="form-label") }}
+            {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), placeholder="Digite seu nome completo") }}
+            {% for error in form.nome.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
 
-        <!-- Status -->
-        <div class="mb-3">
-          {{ form.ativo.label(class="form-label") }}
-          {{ form.ativo(class="form-select" + (" is-invalid" if form.ativo.errors else "")) }}
-          {% for error in form.ativo.errors %}
-            <div class="text-danger small">{{ error }}</div>
-          {% endfor %}
-        </div>
+          <div class="col-md-6">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="exemplo@igreja.com.br") }}
+            {% for error in form.email.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
 
-        <!-- Nível -->
-        <div class="mb-3">
-          {{ form.role.label(class="form-label") }}
-          {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
-          {% for error in form.role.errors %}
-            <div class="text-danger small">{{ error }}</div>
-          {% endfor %}
+          <div class="col-md-6">
+            {{ form.ativo.label(class="form-label") }}
+            {{ form.ativo(class="form-select" + (" is-invalid" if form.ativo.errors else "")) }}
+            {% for error in form.ativo.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            {{ form.role.label(class="form-label") }}
+            {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
+            {% for error in form.role.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
         </div>
 
         <!-- Botões -->
-        {{ form.submit(class="btn btn-success") }}
-        <a href="{{ url_for('perfil.meu_perfil') }}" class="btn btn-secondary">
-          <i class="bi bi-x-circle"></i> Cancelar
-        </a>
+        <div class="d-flex gap-2 pt-3 border-top">
+          {{ form.submit(class="btn btn-primary px-4") }}
+          <a href="{{ url_for('perfil.meu_perfil') }}" class="btn btn-outline-secondary">
+            Cancelar
+          </a>
+        </div>
       </form>
     </div>
   </div>

@@ -1,132 +1,104 @@
 {% extends "base.html" %}
-{% block title %}Detalhes da Ata - SiGI{% endblock %}
+{% block title %}{{ ata.titulo }} — SiGI{% endblock %}
+{% block nav_documentos_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid px-lg-5">
 
-  <!-- Cabeçalho -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="text-primary">
-      <i class="bi bi-journal-text me-2"></i> {{ ata.titulo }}
-    </h2>
-    <a href="{{ url_for('documentos.atas.listar_atas') }}" class="btn btn-secondary">
-      <i class="bi bi-arrow-left"></i> Voltar
-    </a>
-  </div>
-
-  <!-- Data -->
-  <p class="text-muted mb-4">
-    <i class="bi bi-calendar-event me-1"></i>
-    Data da reunião: <strong>{{ ata.data_emissao.strftime('%d/%m/%Y') if ata.data_emissao else '-' }}</strong>
-  </p>
-
-  <!-- Informações principais -->
-  <div class="row g-3">
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <i class="bi bi-geo-alt me-1"></i> Local
-        </div>
-        <div class="card-body">
-          <p class="mb-0">{{ ata.local or '-' }}</p>
-        </div>
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="fw-bold mb-0">
+          <i class="bi bi-journal-text text-primary me-2"></i> {{ ata.titulo }}
+        </h2>
+        {% if ata.situacao %}
+          {% if ata.situacao|lower == 'enviado' %}
+            <span class="badge bg-warning">Enviado</span>
+          {% elif ata.situacao|lower == 'entregue' %}
+            <span class="badge bg-success">Entregue</span>
+          {% elif ata.situacao|lower == 'aprovado' %}
+            <span class="badge bg-primary">Aprovado</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ ata.situacao }}</span>
+          {% endif %}
+        {% endif %}
       </div>
+      <p class="text-muted mb-0">
+        <i class="bi bi-calendar3 me-1"></i> Data da Reunião: <strong>{{ ata.data_emissao.strftime('%d/%m/%Y') if ata.data_emissao else '-' }}</strong> &bull; Tipo: <strong>{{ ata.tipo or 'Geral' }}</strong>
+      </p>
     </div>
-
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <i class="bi bi-person-badge me-1"></i> Presidente
-        </div>
-        <div class="card-body">
-          <p class="mb-0">{{ ata.presidente or '-' }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <i class="bi bi-person-lines-fill me-1"></i> Secretário
-        </div>
-        <div class="card-body">
-          <p class="mb-0">{{ ata.secretario or '-' }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <i class="bi bi-people-fill me-1"></i> Participantes
-        </div>
-        <div class="card-body">
-          <p class="mb-0">{{ ata.participantes or '-' }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Novo campo: Tipo da Ata -->
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">
-          <i class="bi bi-tags me-1"></i> Tipo da Ata
-        </div>
-        <div class="card-body">
-          <p class="mb-0">{{ ata.tipo or '-' }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Novo campo: Situação -->
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">
-          <i class="bi bi-flag me-1"></i> Situação
-        </div>
-        <div class="card-body">
-          <p class="mb-0">{{ ata.situacao or '-' }}</p>
-        </div>
-      </div>
+    <div class="d-flex gap-2">
+      {% if has_permission("atas", "edit") %}
+        <a href="{{ url_for('documentos.atas.editar_ata', id=ata.id) }}" class="btn btn-primary">
+          <i class="bi bi-pencil me-1"></i> Editar Ata
+        </a>
+      {% endif %}
+      <a href="{{ url_for('documentos.atas.listar_atas') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Voltar ao Livro
+      </a>
     </div>
   </div>
 
-  <!-- Conteúdo detalhado -->
-  <div class="row g-3 mt-3">
-    <div class="col-md-12">
-      <div class="card shadow-sm">
-        <div class="card-header bg-warning text-dark">
-          <i class="bi bi-list-check me-1"></i> Pauta
+  <div class="row g-4 mb-4">
+    <!-- Metadados em Cards -->
+    <div class="col-md-4 col-xl-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-info-circle text-primary me-1"></i> Informações
         </div>
         <div class="card-body">
-          <p class="mb-0">{{ ata.pauta or '-' }}</p>
+          <div class="mb-3">
+            <span class="text-muted small d-block text-uppercase fw-semibold">Local</span>
+            <span class="fw-medium text-dark">{{ ata.local or '-' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted small d-block text-uppercase fw-semibold">Presidente</span>
+            <span class="fw-medium text-dark">{{ ata.presidente or '-' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted small d-block text-uppercase fw-semibold">Secretário(a)</span>
+            <span class="fw-medium text-dark">{{ ata.secretario or '-' }}</span>
+          </div>
+          <div>
+            <span class="text-muted small d-block text-uppercase fw-semibold">Participantes</span>
+            <span class="text-secondary small">{{ ata.participantes or 'Nenhum participante listado.' }}</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Novo card: Deliberações -->
-    <div class="col-md-12">
-      <div class="card shadow-sm">
-        <div class="card-header bg-success text-white">
-          <i class="bi bi-check2-circle me-1"></i> Deliberações
+    <!-- Conteúdo da Ata -->
+    <div class="col-md-8 col-xl-9">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header fw-bold">
+          <i class="bi bi-list-task text-primary me-1"></i> Pauta da Sessão
         </div>
         <div class="card-body">
-          <p class="mb-0">{{ ata.deliberacoes or '-' }}</p>
+          <p class="mb-0 text-dark" style="white-space: pre-line;">{{ ata.pauta or 'Nenhuma pauta descrita.' }}</p>
         </div>
       </div>
-    </div>
 
-    <div class="col-md-12">
-      <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white">
-          <i class="bi bi-pencil-square me-1"></i> Observações
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header fw-bold">
+          <i class="bi bi-check2-all text-success me-1"></i> Deliberações & Resoluções
         </div>
         <div class="card-body">
-          <p class="mb-0">{{ ata.observacoes or '-' }}</p>
+          <p class="mb-0 text-dark" style="white-space: pre-line;">{{ ata.deliberacoes or 'Nenhuma deliberação registrada.' }}</p>
         </div>
       </div>
+
+      {% if ata.observacoes %}
+      <div class="card shadow-sm border-0">
+        <div class="card-header fw-bold">
+          <i class="bi bi-chat-left-text text-secondary me-1"></i> Observações Pastorais
+        </div>
+        <div class="card-body">
+          <p class="mb-0 text-secondary" style="white-space: pre-line;">{{ ata.observacoes }}</p>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
-
 </div>
 {% endblock %}
