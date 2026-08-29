@@ -13,8 +13,11 @@
       <p class="text-muted mb-0">Diretrizes institucionais, horários, dia de aula e coordenação geral.</p>
     </div>
     <div class="d-flex gap-2">
-      <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Voltar ao Painel
+      <a href="{{ url_for('configuracoes.configuracoes') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Configurações
+      </a>
+      <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-primary">
+        <i class="bi bi-speedometer2 me-1"></i> Painel EBD
       </a>
     </div>
   </div>
@@ -69,7 +72,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-              <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-secondary">Cancelar</a>
+              <a href="{{ url_for('configuracoes.configuracoes') }}" class="btn btn-outline-secondary">Cancelar</a>
               <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-circle me-1"></i> Salvar Configurações
               </button>
