@@ -7,6 +7,7 @@ from app.routes.event.forms import EventoForm    # ✅ ajusta para app.routes
 from flask_login import login_required, current_user   # 👈 protege rotas com Flask-Login
 from utils.logs import registrar_log             # 👈 importa função de log
 from app.decorators import permission_required   # 🔹 importa o decorator
+from utils.sanitizer import sanitizar_html
 
 event_bp = Blueprint("event", __name__, url_prefix="/eventos")
 
@@ -33,7 +34,7 @@ def novo_evento():
     if form.validate_on_submit():
         evento = Evento(
             titulo=form.titulo.data,
-            descricao=form.descricao.data,
+            descricao=sanitizar_html(form.descricao.data),
             tipo=form.tipo.data,
             data_inicio=form.data_inicio.data,
             data_fim=form.data_fim.data,
@@ -60,7 +61,7 @@ def editar_evento(id):
     form = EventoForm(obj=evento)
     if form.validate_on_submit():
         evento.titulo = form.titulo.data
-        evento.descricao = form.descricao.data
+        evento.descricao = sanitizar_html(form.descricao.data)
         evento.tipo = form.tipo.data
         evento.data_inicio = form.data_inicio.data
         evento.data_fim = form.data_fim.data

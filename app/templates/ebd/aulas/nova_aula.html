@@ -70,13 +70,33 @@
             </div>
 
             <div class="mb-3">
-              {{ form.resumo_conteudo.label(class="form-label") }}
-              {{ form.resumo_conteudo(class="form-control", rows=3, placeholder="Textos bíblicos e tópicos abordados...") }}
+              <label class="form-label fw-semibold">Resumo do Conteúdo & Textos Bíblicos</label>
+              <input type="hidden" name="resumo_conteudo" id="resumo_conteudo_input" value="{{ form.resumo_conteudo.data or '' }}">
+              <div class="sigi-editor-wrapper" id="resumoEditorWrapper">
+                <div id="resumoEditorContainer">{{ (form.resumo_conteudo.data or '') | safe }}</div>
+                <div class="sigi-editor-footer">
+                  <span id="resumoCharCount">0 caracteres</span>
+                  <span id="resumoWordCount">0 palavras</span>
+                </div>
+              </div>
+              <div class="form-text small text-muted mt-1">
+                <i class="bi bi-info-circle me-1"></i> Referências bíblicas, versículo-chave, tópicos principais e aplicações práticas da lição.
+              </div>
             </div>
 
             <div class="mb-4">
-              {{ form.observacoes.label(class="form-label") }}
-              {{ form.observacoes(class="form-control", rows=2, placeholder="Observações gerais da aula...") }}
+              <label class="form-label fw-semibold">Observações da Aula</label>
+              <input type="hidden" name="observacoes" id="observacoes_input" value="{{ form.observacoes.data or '' }}">
+              <div class="sigi-editor-wrapper" id="observacoesEditorWrapper">
+                <div id="observacoesEditorContainer">{{ (form.observacoes.data or '') | safe }}</div>
+                <div class="sigi-editor-footer">
+                  <span id="observacoesCharCount">0 caracteres</span>
+                  <span id="observacoesWordCount">0 palavras</span>
+                </div>
+              </div>
+              <div class="form-text small text-muted mt-1">
+                <i class="bi bi-info-circle me-1"></i> Anotações do professor sobre participação, visitantes, pedidos de oração ou avisos.
+              </div>
             </div>
 
             <div class="d-flex justify-content-end gap-2">
@@ -92,4 +112,28 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'resumoEditorContainer',
+    inputId: 'resumo_conteudo_input',
+    charCountId: 'resumoCharCount',
+    wordCountId: 'resumoWordCount',
+    placeholder: 'Textos bíblicos, tópicos da lição e pontos principais...',
+    minHeight: 160
+  });
+
+  initSigiEditor({
+    editorId: 'observacoesEditorContainer',
+    inputId: 'observacoes_input',
+    charCountId: 'observacoesCharCount',
+    wordCountId: 'observacoesWordCount',
+    placeholder: 'Observações gerais da aula, dinâmica e participação...',
+    minHeight: 120
+  });
+});
+</script>
 {% endblock %}

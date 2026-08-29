@@ -5,7 +5,7 @@ from wtforms.validators import DataRequired, Optional, Length
 
 class EventoForm(FlaskForm):
     titulo = StringField("Título", validators=[DataRequired(), Length(max=100)])
-    descricao = TextAreaField("Descrição", validators=[Optional(), Length(max=500)])
+    descricao = TextAreaField("Descrição", validators=[Optional()])
     
     tipo = SelectField("Tipo", choices=[
         ("culto_especial", "Culto Especial"),

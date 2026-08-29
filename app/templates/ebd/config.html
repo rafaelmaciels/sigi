@@ -41,8 +41,18 @@
             </div>
 
             <div class="mb-3">
-              {{ form.descricao.label(class="form-label") }}
-              {{ form.descricao(class="form-control", rows=3, placeholder="Descrição institucional da EBD...") }}
+              <label class="form-label fw-semibold">Descrição Institucional</label>
+              <input type="hidden" name="descricao" id="descricao_input" value="{{ form.descricao.data or '' }}">
+              <div class="sigi-editor-wrapper" id="descricaoEditorWrapper">
+                <div id="descricaoEditorContainer">{{ (form.descricao.data or '') | safe }}</div>
+                <div class="sigi-editor-footer">
+                  <span id="descricaoCharCount">0 caracteres</span>
+                  <span id="descricaoWordCount">0 palavras</span>
+                </div>
+              </div>
+              <div class="form-text small text-muted mt-1">
+                <i class="bi bi-info-circle me-1"></i> Apresentação geral, objetivos e diretrizes da Escola Bíblica Dominical.
+              </div>
             </div>
 
             <div class="row g-3 mb-3">
@@ -84,4 +94,19 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'descricaoEditorContainer',
+    inputId: 'descricao_input',
+    charCountId: 'descricaoCharCount',
+    wordCountId: 'descricaoWordCount',
+    placeholder: 'Descrição institucional da Escola Dominical...',
+    minHeight: 180
+  });
+});
+</script>
 {% endblock %}

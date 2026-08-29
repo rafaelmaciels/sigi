@@ -64,8 +64,18 @@
             </div>
 
             <div class="mb-4">
-              {{ form.descricao.label(class="form-label") }}
-              {{ form.descricao(class="form-control", rows=3, placeholder="Ementa da classe, objetivos e público-alvo...") }}
+              <label class="form-label fw-semibold">Ementa e Descrição da Classe</label>
+              <input type="hidden" name="descricao" id="descricao_input" value="{{ form.descricao.data or '' }}">
+              <div class="sigi-editor-wrapper" id="descricaoEditorWrapper">
+                <div id="descricaoEditorContainer">{{ (form.descricao.data or '') | safe }}</div>
+                <div class="sigi-editor-footer">
+                  <span id="descricaoCharCount">0 caracteres</span>
+                  <span id="descricaoWordCount">0 palavras</span>
+                </div>
+              </div>
+              <div class="form-text small text-muted mt-1">
+                <i class="bi bi-info-circle me-1"></i> Ementa da classe, objetivos pedagógicos, faixa etária e perfil dos alunos.
+              </div>
             </div>
 
             <div class="d-flex justify-content-end gap-2">
@@ -81,4 +91,19 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'descricaoEditorContainer',
+    inputId: 'descricao_input',
+    charCountId: 'descricaoCharCount',
+    wordCountId: 'descricaoWordCount',
+    placeholder: 'Ementa da classe, objetivos e público-alvo...',
+    minHeight: 180
+  });
+});
+</script>
 {% endblock %}

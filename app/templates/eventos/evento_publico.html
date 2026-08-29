@@ -153,7 +153,7 @@
           <h6 class="fw-bold text-dark mb-2 d-flex align-items-center">
             <i class="bi bi-info-circle text-primary me-2 fs-5"></i> Sobre o Evento
           </h6>
-          <p class="mb-0 text-secondary" style="white-space: pre-line; line-height: 1.6;">{{ evento.descricao }}</p>
+          <div class="sigi-rich-content text-secondary">{{ evento.descricao | safe }}</div>
         </div>
         {% endif %}
 

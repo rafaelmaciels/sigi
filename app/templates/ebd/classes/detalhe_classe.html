@@ -73,6 +73,18 @@
     <!-- Coluna da Esquerda: Professores e Aulas -->
     <div class="col-lg-5">
       
+      <!-- Ementa e Descrição da Classe -->
+      {% if classe.descricao %}
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white fw-bold">
+          <i class="bi bi-info-circle text-primary me-1"></i> Ementa & Diretrizes da Classe
+        </div>
+        <div class="card-body">
+          <div class="sigi-rich-content text-secondary">{{ classe.descricao | safe }}</div>
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Professores da Classe -->
       <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">

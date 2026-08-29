@@ -59,8 +59,18 @@
 
         <div class="row g-3 mb-4">
           <div class="col-12">
-            {{ form.corpo.label(class="form-label") }}
-            {{ form.corpo(class="form-control", rows="5", placeholder="Certificamos que [Nome] concluiu com êxito...") }}
+            <label class="form-label fw-semibold">Texto do Certificado</label>
+            <input type="hidden" name="corpo" id="corpo_input" value="{{ form.corpo.data or '' }}">
+            <div class="sigi-editor-wrapper" id="corpoEditorWrapper">
+              <div id="corpoEditorContainer">{{ (form.corpo.data or '') | safe }}</div>
+              <div class="sigi-editor-footer">
+                <span id="corpoCharCount">0 caracteres</span>
+                <span id="corpoWordCount">0 palavras</span>
+              </div>
+            </div>
+            <div class="form-text small text-muted mt-1">
+              <i class="bi bi-info-circle me-1"></i> Utilize negrito e itálico para enfatizar nomes, homenagens e passagens bíblicas no certificado.
+            </div>
           </div>
         </div>
 
@@ -77,4 +87,19 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'corpoEditorContainer',
+    inputId: 'corpo_input',
+    charCountId: 'corpoCharCount',
+    wordCountId: 'corpoWordCount',
+    placeholder: 'Certificamos que [Nome] concluiu com êxito...',
+    minHeight: 180
+  });
+});
+</script>
 {% endblock %}
