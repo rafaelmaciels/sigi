@@ -58,3 +58,21 @@ class Evento(db.Model):
     def __repr__(self):
         data_str = self.data_inicio.strftime('%d/%m/%Y %H:%M') if self.data_inicio else "sem data"
         return f"<Evento {self.titulo} - {data_str}>"
+
+    @classmethod
+    def get_order_by_proximos_e_passados(cls, ref_now=None):
+        """
+        Retorna as expressões de ordenação dinâmica para eventos:
+        1. Próximos eventos (>= ref_now), ordenados do mais próximo ao mais distante (ASC).
+        2. Eventos passados (< ref_now), ordenados do mais recente ao mais antigo (DESC).
+        """
+        from sqlalchemy import case
+        if ref_now is None:
+            from utils.dates import get_current_datetime
+            ref_now = get_current_datetime()
+
+        order_group = case((cls.data_inicio >= ref_now, 0), else_=1).asc()
+        order_future = case((cls.data_inicio >= ref_now, cls.data_inicio), else_=None).asc()
+        order_past = case((cls.data_inicio < ref_now, cls.data_inicio), else_=None).desc()
+
+        return (order_group, order_future, order_past)
