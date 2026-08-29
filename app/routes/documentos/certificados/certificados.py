@@ -53,8 +53,10 @@ def visualizar_certificado(id):
     return render_template("documentos/certificados/certificado_detalhe.html", certificado=certificado)
 
 
+from utils.sanitizer import sanitizar_html
+
 # -----------------------------
-# 📝 Criar novo certificado
+# ➕ Criar novo certificado
 # -----------------------------
 @certificados_bp.route("/novo", methods=["GET", "POST"])
 @permission_required("certificados", "create")
@@ -63,7 +65,7 @@ def novo_certificado():
     if form.validate_on_submit():
         certificado = Certificado(
             titulo=form.titulo.data,
-            corpo=form.corpo.data,
+            corpo=sanitizar_html(form.corpo.data),
             data_emissao=form.data_emissao.data or datetime.utcnow(),
             criado_por=form.criado_por.data,      # ✅ corrigido
             evento=form.evento.data,
@@ -87,7 +89,7 @@ def editar_certificado(id):
 
     if form.validate_on_submit():
         certificado.titulo = form.titulo.data
-        certificado.corpo = form.corpo.data
+        certificado.corpo = sanitizar_html(form.corpo.data)
         certificado.data_emissao = form.data_emissao.data or datetime.utcnow()
         certificado.criado_por = form.criado_por.data   # ✅ corrigido
         certificado.evento = form.evento.data

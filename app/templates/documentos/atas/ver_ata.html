@@ -75,7 +75,7 @@
           <i class="bi bi-list-task text-primary me-1"></i> Pauta da Sessão
         </div>
         <div class="card-body">
-          <p class="mb-0 text-dark" style="white-space: pre-line;">{{ ata.pauta or 'Nenhuma pauta descrita.' }}</p>
+          <div class="sigi-rich-content text-dark">{{ (ata.pauta or 'Nenhuma pauta descrita.') | safe }}</div>
         </div>
       </div>
 
@@ -84,7 +84,7 @@
           <i class="bi bi-check2-all text-success me-1"></i> Deliberações & Resoluções
         </div>
         <div class="card-body">
-          <p class="mb-0 text-dark" style="white-space: pre-line;">{{ ata.deliberacoes or 'Nenhuma deliberação registrada.' }}</p>
+          <div class="sigi-rich-content text-dark">{{ (ata.deliberacoes or 'Nenhuma deliberação registrada.') | safe }}</div>
         </div>
       </div>
 
@@ -94,7 +94,7 @@
           <i class="bi bi-chat-left-text text-secondary me-1"></i> Observações Pastorais
         </div>
         <div class="card-body">
-          <p class="mb-0 text-secondary" style="white-space: pre-line;">{{ ata.observacoes }}</p>
+          <div class="sigi-rich-content text-secondary">{{ (ata.observacoes or '') | safe }}</div>
         </div>
       </div>
       {% endif %}

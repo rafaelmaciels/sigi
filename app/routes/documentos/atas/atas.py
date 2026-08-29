@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from flask import request
 from app.extensions import db
 from app.decorators import permission_required  # 🔹 import do decorator
+from utils.sanitizer import sanitizar_html
 
 atas_bp = Blueprint("atas", __name__, url_prefix="/atas")
 
@@ -102,9 +103,9 @@ def nova_ata():
             presidente=form.presidente.data,
             secretario=form.secretario.data,
             participantes=form.participantes.data,
-            pauta=form.pauta.data,
-            deliberacoes=form.deliberacoes.data,
-            observacoes=form.observacoes.data
+            pauta=sanitizar_html(form.pauta.data),
+            deliberacoes=sanitizar_html(form.deliberacoes.data),
+            observacoes=sanitizar_html(form.observacoes.data)
         )
         db.session.add(ata)
         db.session.commit()
@@ -152,9 +153,9 @@ def editar_ata(id):
         ata.presidente = form.presidente.data
         ata.secretario = form.secretario.data
         ata.participantes = form.participantes.data
-        ata.pauta = form.pauta.data
-        ata.deliberacoes = form.deliberacoes.data
-        ata.observacoes = form.observacoes.data
+        ata.pauta = sanitizar_html(form.pauta.data)
+        ata.deliberacoes = sanitizar_html(form.deliberacoes.data)
+        ata.observacoes = sanitizar_html(form.observacoes.data)
         db.session.commit()
 
         # 🔹 Mensagem flash

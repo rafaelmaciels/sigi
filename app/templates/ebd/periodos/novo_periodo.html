@@ -60,8 +60,18 @@
             </div>
 
             <div class="mb-4">
-              {{ form.observacoes.label(class="form-label") }}
-              {{ form.observacoes(class="form-control", rows=3, placeholder="Diretrizes do período, revistas utilizadas, etc.") }}
+              <label class="form-label fw-semibold">Observações e Diretrizes do Trimestre</label>
+              <input type="hidden" name="observacoes" id="observacoes_input" value="{{ form.observacoes.data or '' }}">
+              <div class="sigi-editor-wrapper" id="observacoesEditorWrapper">
+                <div id="observacoesEditorContainer">{{ (form.observacoes.data or '') | safe }}</div>
+                <div class="sigi-editor-footer">
+                  <span id="observacoesCharCount">0 caracteres</span>
+                  <span id="observacoesWordCount">0 palavras</span>
+                </div>
+              </div>
+              <div class="form-text small text-muted mt-1">
+                <i class="bi bi-info-circle me-1"></i> Descreva temas, revistas adotadas, datas comemorativas e orientações aos professores.
+              </div>
             </div>
 
             <div class="d-flex justify-content-end gap-2">
@@ -77,4 +87,19 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'observacoesEditorContainer',
+    inputId: 'observacoes_input',
+    charCountId: 'observacoesCharCount',
+    wordCountId: 'observacoesWordCount',
+    placeholder: 'Diretrizes pedagógicas do trimestre, revistas utilizadas, eventos especiais...',
+    minHeight: 180
+  });
+});
+</script>
 {% endblock %}

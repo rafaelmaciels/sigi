@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models import Member, User, Log
 from app.models.ebd import EbdConfig, EbdPeriodo, EbdClasse, EbdProfessor, EbdMatricula, EbdAula, EbdFrequencia
 from app.decorators import permission_required
+from utils.sanitizer import sanitizar_html
 from .forms import (
     EbdConfigForm, EbdPeriodoForm, EbdClasseForm,
     EbdProfessorForm, EbdMatriculaForm, EbdTransferenciaForm, EbdAulaForm
@@ -246,7 +247,7 @@ def config_ebd():
 
     if form.validate_on_submit():
         config.nome = form.nome.data
-        config.descricao = form.descricao.data
+        config.descricao = sanitizar_html(form.descricao.data)
         config.dia_semana = form.dia_semana.data
         config.horario_inicio = form.horario_inicio.data
         config.horario_termino = form.horario_termino.data
@@ -286,7 +287,7 @@ def novo_periodo():
             data_inicio=form.data_inicio.data,
             data_fim=form.data_fim.data,
             status=form.status.data,
-            observacoes=form.observacoes.data
+            observacoes=sanitizar_html(form.observacoes.data)
         )
         db.session.add(periodo)
         db.session.commit()
@@ -307,7 +308,7 @@ def editar_periodo(id):
         periodo.data_inicio = form.data_inicio.data
         periodo.data_fim = form.data_fim.data
         periodo.status = form.status.data
-        periodo.observacoes = form.observacoes.data
+        periodo.observacoes = sanitizar_html(form.observacoes.data)
         db.session.commit()
         registrar_log_ebd(f"Editou período letivo da EBD: {periodo.nome}")
         flash("Período letivo atualizado com sucesso!", "success")
@@ -362,7 +363,7 @@ def nova_classe():
             sala=form.sala.data,
             capacidade=form.capacidade.data,
             status=form.status.data,
-            descricao=form.descricao.data
+            descricao=sanitizar_html(form.descricao.data)
         )
         db.session.add(classe)
         db.session.commit()
@@ -421,7 +422,7 @@ def editar_classe(id):
         classe.sala = form.sala.data
         classe.capacidade = form.capacidade.data
         classe.status = form.status.data
-        classe.descricao = form.descricao.data
+        classe.descricao = sanitizar_html(form.descricao.data)
         db.session.commit()
         registrar_log_ebd(f"Editou classe da EBD: {classe.nome}")
         flash("Classe atualizada com sucesso!", "success")
@@ -704,9 +705,9 @@ def nova_aula():
             data_aula=form.data_aula.data,
             numero_licao=form.numero_licao.data,
             tema=form.tema.data,
-            resumo_conteudo=form.resumo_conteudo.data,
+            resumo_conteudo=sanitizar_html(form.resumo_conteudo.data),
             status=form.status.data,
-            observacoes=form.observacoes.data
+            observacoes=sanitizar_html(form.observacoes.data)
         )
         db.session.add(aula)
         db.session.commit()
@@ -735,9 +736,9 @@ def editar_aula(id):
         aula.data_aula = form.data_aula.data
         aula.numero_licao = form.numero_licao.data
         aula.tema = form.tema.data
-        aula.resumo_conteudo = form.resumo_conteudo.data
+        aula.resumo_conteudo = sanitizar_html(form.resumo_conteudo.data)
         aula.status = form.status.data
-        aula.observacoes = form.observacoes.data
+        aula.observacoes = sanitizar_html(form.observacoes.data)
         db.session.commit()
         registrar_log_ebd(f"Editou aula de EBD ID {aula.id}: {aula.tema}")
         flash("Aula atualizada com sucesso!", "success")
