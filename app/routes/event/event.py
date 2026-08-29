@@ -18,7 +18,7 @@ event_bp = Blueprint("event", __name__, url_prefix="/eventos")
 @permission_required("eventos", "view")
 def listar_eventos():
     page = request.args.get("page", 1, type=int)
-    eventos = Evento.query.order_by(Evento.data_inicio.asc()).paginate(page=page, per_page=10)
+    eventos = Evento.query.order_by(*Evento.get_order_by_proximos_e_passados()).paginate(page=page, per_page=10)
     return render_template("eventos/listar_eventos.html", eventos=eventos)
     
 
@@ -111,7 +111,7 @@ def buscar_eventos():
             (Evento.organizador.ilike(f"%{termo}%"))
         )
 
-    query = query.order_by(Evento.data_inicio.asc())
+    query = query.order_by(*Evento.get_order_by_proximos_e_passados())
     eventos = query.paginate(page=page, per_page=10)
 
     if termo:

@@ -2,145 +2,735 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Carteira de Membro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carteira de Membro — {{ membro.nome or 'SiGI' }}</title>
+  <!-- Google Fonts para tipografia premium e moderna -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
   <style>
-    @page { size: A4; margin: 20mm; }
-    body {
-      font-family: "Arial", sans-serif;
-      background: #eaeaea;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+    /* ==========================================================================
+       🎨 ESTILOS GERAIS & VARIÁVEIS VISUAIS
+       ========================================================================== */
+    :root {
+      --primary-navy: #0f2b5c;
+      --primary-dark: #0a1c3d;
+      --primary-light: #1e40af;
+      --accent-gold: #d97706;
+      --accent-gold-light: #fef3c7;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --border-color: #e2e8f0;
+      --bg-card: #ffffff;
+      --bg-surface: #f8fafc;
     }
-    .carteira {
-      width: 800px;
-      height: 500px;
-      border: 3px solid #1a3c8d;
-      background: #fff;
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 15px;
+      color: var(--text-main);
+    }
+
+    /* Barra de Ações (Oculta na Impressão) */
+    .action-bar {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
+    }
+
+    .action-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary-navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--primary-navy);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-light);
+      box-shadow: 0 4px 10px rgba(15, 43, 92, 0.25);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Container de Impressão */
+    .sheet-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .instructions {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    /* ==========================================================================
+       🪪 ESTRUTURA PRINCIPAL DA CARTEIRINHA (FRENTE E VERSO)
+       ========================================================================== */
+    .carteira-wrapper {
       display: flex;
       flex-direction: row;
-      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.07);
+      border: 1px solid #cbd5e1;
+      width: 860px;
       position: relative;
     }
-    .faixa-topo {
+
+    /* Linha de Dobra Central */
+    .linha-dobra {
+      width: 0;
+      border-right: 1.5px dashed #94a3b8;
+      position: relative;
+    }
+
+    .linha-dobra::after {
+      content: "✂ DOBRA / RECORTE";
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      background: linear-gradient(to right, #1a3c8d, #f1c40f);
-      color: #fff;
-      text-align: center;
-      line-height: 60px;
-      font-weight: bold;
-      font-size: 18px;
-      letter-spacing: 1px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(90deg);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #94a3b8;
+      background: #ffffff;
+      padding: 0 8px;
+      white-space: nowrap;
     }
-    .lado-esquerdo, .lado-direito {
-      width: 50%;
-      padding: 80px 20px 20px 20px; /* espaço para faixa */
-      box-sizing: border-box;
-    }
-    .lado-esquerdo {
-      border-right: 2px solid #000;
+
+    /* Lado Frente / Lado Verso */
+    .card-face {
+      width: 430px;
+      height: 275px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
       position: relative;
+      overflow: hidden;
     }
-    .foto-perfil {
-      width: 120px;
-      height: 150px;
-      border: 2px solid #000;
-      margin-bottom: 15px;
+
+    /* Marca d'água elegante no fundo */
+    .card-watermark {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 190px;
+      height: 190px;
+      opacity: 0.035;
+      pointer-events: none;
+      z-index: 1;
+      object-fit: contain;
+    }
+
+    /* ==========================================================================
+       🏛️ CABEÇALHO DO DOCUMENTO
+       ========================================================================== */
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-navy) 100%);
+      color: #ffffff;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2.5px solid var(--accent-gold);
+      position: relative;
+      z-index: 2;
+    }
+
+    .header-logo {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px;
+      border-radius: 6px;
+    }
+
+    .header-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .inst-name {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      color: #ffffff;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .doc-title {
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #fde68a;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .header-badge {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .card-num-label {
+      font-size: 7px;
+      text-transform: uppercase;
+      color: #cbd5e1;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .card-num-val {
+      font-size: 10px;
+      font-weight: 800;
+      color: #ffffff;
+      font-family: monospace;
+    }
+
+    /* ==========================================================================
+       📋 CORPO DO CARD - FRENTE
+       ========================================================================== */
+    .card-body-front {
+      flex: 1;
+      padding: 10px 14px 6px 14px;
+      display: flex;
+      gap: 12px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Coluna Foto */
+    .photo-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 82px;
+      flex-shrink: 0;
+    }
+
+    .photo-box {
+      width: 80px;
+      height: 102px;
+      border-radius: 6px;
+      border: 1.5px solid #cbd5e1;
+      overflow: hidden;
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .photo-box img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       display: block;
     }
-    .campo {
-      font-size: 13px;
-      margin-bottom: 8px;
+
+    .photo-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
     }
-    .campo strong {
+
+    .photo-placeholder i {
+      font-size: 32px;
+      color: #94a3b8;
+    }
+
+    .photo-label {
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
+
+    /* Coluna de Dados - Frente */
+    .data-col-front {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    .member-name-box {
+      border-bottom: 1.5px solid var(--border-color);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    .member-name-label {
+      font-size: 7px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--primary-navy);
+      letter-spacing: 0.5px;
+    }
+
+    .member-name-val {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      letter-spacing: -0.2px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 4px;
+      column-gap: 8px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .info-item.full-width {
+      grid-column: span 2;
+    }
+
+    .info-lbl {
+      font-size: 6.8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+      line-height: 1;
+    }
+
+    .info-val {
+      font-size: 9px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge-funcao {
       display: inline-block;
-      width: 130px;
-      color: #1a3c8d;
+      background: var(--primary-navy);
+      color: #ffffff;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-top: 1px;
     }
-    .versiculo {
-      margin-top: 20px;
-      font-style: italic;
-      font-size: 12px;
+
+    /* Rodapé da Frente (Versículo) */
+    .card-footer-front {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      padding: 4px 12px;
       text-align: center;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-      color: #555;
+      position: relative;
+      z-index: 2;
     }
-    .assinaturas {
-      margin-top: 40px;
+
+    .verse-text {
+      font-size: 7.5px;
+      font-style: italic;
+      color: #475569;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .verse-ref {
+      font-weight: 700;
+      color: var(--primary-navy);
+    }
+
+    /* ==========================================================================
+       📋 CORPO DO CARD - VERSO
+       ========================================================================== */
+    .card-body-back {
+      flex: 1;
+      padding: 8px 14px 6px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    .back-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 4.5px;
+      column-gap: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+
+    /* Área de Assinaturas */
+    .signatures-area {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
+      gap: 16px;
+      padding: 6px 4px 2px 4px;
     }
-    .assinaturas div {
+
+    .sig-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
-      width: 45%;
     }
-    .assinaturas div::before {
-      content: "_________________________";
-      display: block;
-      margin-bottom: 5px;
+
+    .sig-line {
+      width: 100%;
+      height: 1px;
+      background: #64748b;
+      margin-bottom: 3px;
     }
-    .legal {
-      margin-top: 30px;
-      font-size: 10px;
+
+    .sig-title {
+      font-size: 7.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--primary-navy);
+      letter-spacing: 0.3px;
+    }
+
+    /* Amparo Constitucional / Jurídico */
+    .legal-box {
+      background: var(--bg-surface);
+      border-left: 2.5px solid var(--primary-navy);
+      padding: 4px 8px;
+      border-radius: 0 4px 4px 0;
+      font-size: 6.8px;
+      color: #334155;
+      line-height: 1.25;
       text-align: justify;
-      background: #f9f9f9;
-      padding: 8px;
-      border-left: 3px solid #1a3c8d;
+    }
+
+    .legal-ref {
+      display: block;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 2px;
+      font-style: normal;
+    }
+
+    /* ==========================================================================
+       🖨️ CONFIGURAÇÃO DE IMPRESSÃO (A4 / PORTRAIT / LANDSCAPE)
+       ========================================================================== */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 15mm;
+      }
+
+      body {
+        background: transparent !important;
+        padding: 0 !important;
+        height: auto !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .carteira-wrapper {
+        box-shadow: none !important;
+        border: 1px solid #94a3b8 !important;
+        margin: 0 auto;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .card-face {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .card-header {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .badge-funcao {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .legal-box {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="carteira">
-    <div class="faixa-topo">IGREJA DE DEUS MISSIONÁRIA PENTECOSTAL</div>
 
-    <!-- Lado esquerdo -->
-    <div class="lado-esquerdo">
-      {% if membro.foto %}
-        <img src="{{ url_for('static', filename=membro.foto) }}" alt="Foto do Membro" class="foto-perfil">
-      {% else %}
-        <div class="foto-perfil"></div>
-      {% endif %}
-
-      <div class="campo"><strong>Carteira Nº:</strong> {{ membro.numero_carteira or '-' }}</div>
-      <div class="campo"><strong>Nome:</strong> {{ membro.nome or '-' }}</div>
-      <div class="campo"><strong>Nacionalidade:</strong> {{ membro.nacionalidade or '-' }}</div>
-      <div class="campo"><strong>Naturalidade:</strong> {{ membro.naturalidade or '-' }}</div>
-      <div class="campo"><strong>Nascimento:</strong> {{ membro.data_nascimento.strftime('%d/%m/%Y') if membro.data_nascimento else '-' }}</div>
-      <div class="campo"><strong>Estado civil:</strong> {{ membro.estado_civil or '-' }}</div>
-      <div class="campo"><strong>RG:</strong> {{ membro.rg or '-' }}</div>
-      <div class="campo"><strong>CPF:</strong> {{ membro.cpf or '-' }}</div>
-      <div class="campo"><strong>Igreja Local:</strong> {{ membro.igreja_local or '-' }}</div>
-
-      <div class="versiculo">"Obedecei a vossos pastores e sujeitai-vos a eles." Hb 13.17</div>
+  <!-- Barra de Ações do Sistema (Oculta na Impressão) -->
+  <div class="action-bar no-print">
+    <div class="action-title">
+      <i class="bi bi-person-vcard text-primary fs-5"></i>
+      <span>Carteira de Membro Oficial</span>
     </div>
-
-    <!-- Lado direito -->
-    <div class="lado-direito">
-      <div class="campo"><strong>Filiação:</strong> {{ membro.filiacao or '-' }}</div>
-      <div class="campo"><strong>Membro desde:</strong> {{ membro.data_cadastro.strftime('%d/%m/%Y') if membro.data_cadastro else '-' }}</div>
-      <div class="campo"><strong>Batismo:</strong> {{ membro.data_batismo.strftime('%d/%m/%Y') if membro.data_batismo else '-' }}</div>
-      <div class="campo"><strong>Validade:</strong> {{ membro.validade.strftime('%d/%m/%Y') if membro.validade else '-' }}</div>
-      <div class="campo"><strong>Função:</strong> {{ membro.funcao or '-' }}</div>
-
-      <div class="assinaturas">
-        <div>Pastor da igreja</div>
-        <div>Secretário</div>
-      </div>
-
-      <div class="legal">
-        É assegurado o livre exercício dos Cultos Religiosos e garantida, na forma da Lei.<br>
-        É assegurado, nos termos da Lei, a prestação de assistência religiosa nas entidades Civis e Militares de internação coletiva.<br>
-        <em>Art. 5º - Incisos 6 e 7 da Constituição Federal do Brasil</em>
-      </div>
+    <div class="action-buttons">
+      <a href="javascript:history.back()" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+      <button onclick="window.print()" class="btn btn-primary">
+        <i class="bi bi-printer"></i> Imprimir Carteirinha
+      </button>
     </div>
   </div>
+
+  <!-- Container da Carteirinha (Frente e Verso) -->
+  <div class="sheet-container">
+    <div class="carteira-wrapper">
+      
+      <!-- ==================================================================
+           🪪 LADO ESQUERDO: FRENTE DO DOCUMENTO
+           ================================================================== -->
+      <div class="card-face">
+        <!-- Marca d'água -->
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="" class="card-watermark">
+
+        <!-- Cabeçalho Frente -->
+        <div class="card-header">
+          <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="header-logo">
+          <div class="header-text">
+            <div class="inst-name">IGREJA DE DEUS MISSIONÁRIA PENTECOSTAL</div>
+            <div class="doc-title">CREDENCIAL DE IDENTIFICAÇÃO DE MEMBRO</div>
+          </div>
+          <div class="header-badge">
+            <div class="card-num-label">CARTEIRA Nº</div>
+            <div class="card-num-val">{{ membro.numero_carteira or 'S/N' }}</div>
+          </div>
+        </div>
+
+        <!-- Conteúdo Frente -->
+        <div class="card-body-front">
+          <!-- Coluna da Foto -->
+          <div class="photo-col">
+            <div class="photo-box">
+              {% if membro.foto %}
+                <img src="{{ url_for('static', filename=membro.foto) }}" alt="{{ membro.nome }}">
+              {% else %}
+                <div class="photo-placeholder">
+                  <i class="bi bi-person-fill"></i>
+                  <span class="photo-label">3 x 4</span>
+                </div>
+              {% endif %}
+            </div>
+            <div class="badge-funcao mt-1 text-center w-100" title="Função Eclesiástica">
+              {{ membro.funcao or 'Membro' }}
+            </div>
+          </div>
+
+          <!-- Coluna dos Dados Pessoais -->
+          <div class="data-col-front">
+            <div class="member-name-box">
+              <div class="member-name-label">Nome Completo</div>
+              <div class="member-name-val" title="{{ membro.nome }}">{{ membro.nome or '-' }}</div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-lbl">Nascimento</span>
+                <span class="info-val">{{ membro.data_nascimento.strftime('%d/%m/%Y') if membro.data_nascimento else '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">Estado Civil</span>
+                <span class="info-val">{{ membro.estado_civil or '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">Nacionalidade</span>
+                <span class="info-val">{{ membro.nacionalidade or 'Brasileira' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">Naturalidade</span>
+                <span class="info-val">{{ membro.naturalidade or '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">RG</span>
+                <span class="info-val">{{ membro.rg or '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">CPF</span>
+                <span class="info-val">{{ membro.cpf or '-' }}</span>
+              </div>
+              <div class="info-item full-width">
+                <span class="info-lbl">Igreja Local</span>
+                <span class="info-val text-primary" style="color: var(--primary-navy);">{{ membro.igreja_local or 'Sede' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rodapé Frente com Versículo Bíblico -->
+        <div class="card-footer-front">
+          <div class="verse-text">
+            "Obedecei a vossos pastores e sujeitai-vos a eles; porque velam por vossas almas." <span class="verse-ref">Hb 13.17</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha de Dobra Central para Corte / Plastificação -->
+      <div class="linha-dobra"></div>
+
+      <!-- ==================================================================
+           🪪 LADO DIREITO: VERSO DO DOCUMENTO
+           ================================================================== -->
+      <div class="card-face">
+        <!-- Marca d'água -->
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="" class="card-watermark">
+
+        <!-- Cabeçalho Verso -->
+        <div class="card-header">
+          <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="header-logo">
+          <div class="header-text">
+            <div class="inst-name">IGREJA DE DEUS MISSIONÁRIA PENTECOSTAL</div>
+            <div class="doc-title">REGISTRO ECLESIÁSTICO & MINISTERIAL</div>
+          </div>
+        </div>
+
+        <!-- Conteúdo Verso -->
+        <div class="card-body-back">
+          <!-- Grade de Informações Ministeriais -->
+          <div class="back-info-grid">
+            <div class="info-item full-width">
+              <span class="info-lbl">Filiação</span>
+              <span class="info-val">{{ membro.filiacao or '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-lbl">Membro Desde</span>
+              <span class="info-val">{{ membro.data_cadastro.strftime('%d/%m/%Y') if membro.data_cadastro else '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-lbl">Batismo nas Águas</span>
+              <span class="info-val">{{ membro.data_batismo.strftime('%d/%m/%Y') if membro.data_batismo else '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-lbl">Função Ministerial</span>
+              <span class="info-val">{{ membro.funcao or 'Membro' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-lbl">Validade da Carteira</span>
+              <span class="info-val text-danger" style="color: #b91c1c;">{{ membro.validade.strftime('%d/%m/%Y') if membro.validade else 'Indeterminada' }}</span>
+            </div>
+          </div>
+
+          <!-- Área de Assinaturas Oficiais -->
+          <div class="signatures-area">
+            <div class="sig-block">
+              <div class="sig-line"></div>
+              <div class="sig-title">Pastor da Igreja</div>
+            </div>
+            <div class="sig-block">
+              <div class="sig-line"></div>
+              <div class="sig-title">Secretário(a) Geral</div>
+            </div>
+          </div>
+
+          <!-- Amparo Constitucional / Legal -->
+          <div class="legal-box">
+            É assegurado o livre exercício dos Cultos Religiosos e garantida, na forma da Lei.
+            É assegurado, nos termos da Lei, a prestação de assistência religiosa nas entidades Civis e Militares de internação coletiva.
+            <span class="legal-ref">Art. 5º - Incisos VI e VII da Constituição Federal do Brasil</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="instructions no-print">
+      <i class="bi bi-info-circle me-1"></i> Para melhor resultado de impressão, selecione o tamanho <strong>A4</strong> e habilite a opção <strong>"Gráficos de segundo plano"</strong> nas configurações do seu navegador.
+    </div>
+  </div>
+
 </body>
 </html>
