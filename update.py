@@ -90,7 +90,11 @@ def sincronizar_banco(python_exe):
     print("  Sincronizando novas tabelas e matriz de permissões...")
     script_sync = """
 from app import create_app, db
-from app.models import Permission
+from app.models import (
+    User, Permission, UserPermission, Member, PublicLink, Evento, Financeiro,
+    Patrimonio, Log, Ata, Certificado, Carta, Igreja,
+    EbdConfig, EbdPeriodo, EbdClasse, EbdProfessor, EbdMatricula, EbdAula, EbdFrequencia
+)
 
 app = create_app()
 with app.app_context():
@@ -116,6 +120,22 @@ with app.app_context():
             if not Permission.query.filter_by(area=area, action=acao).first():
                 db.session.add(Permission(area=area, action=acao))
                 
+    # Garante registro inicial de igreja se vazio
+    igreja = Igreja.query.first()
+    if not igreja:
+        igreja = Igreja(
+            nome="Igreja Evangélica Comunidade da Graça — Sede",
+            cnpj="12.345.678/0001-90",
+            endereco="Av. Principal, 1000 - Centro, São Paulo - SP, CEP 01000-000",
+            telefone="(11) 3333-4444",
+            email="contato@igrejadagraca.com.br",
+            site="www.igrejadagraca.com.br",
+            pastor_responsavel="Pr. Carlos Eduardo da Silva",
+            ano_fundacao=1995,
+            versiculo_tema="Porque dEle, por Ele e para Ele são todas as coisas. (Romanos 11:36)"
+        )
+        db.session.add(igreja)
+
     db.session.commit()
     print('SYNC_OK')
 """

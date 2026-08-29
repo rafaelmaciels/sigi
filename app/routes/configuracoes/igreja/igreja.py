@@ -8,12 +8,22 @@ from utils.logs import registrar_log
 
 igreja_bp = Blueprint("igreja", __name__, url_prefix="/igreja")
 
+def _obter_dados_igreja():
+    """Recupera os dados da igreja garantindo que a tabela exista."""
+    try:
+        return Igreja.query.first()
+    except Exception:
+        db.session.rollback()
+        db.create_all()
+        return Igreja.query.first()
+
 # Página principal - visualizar dados da igreja
+@igreja_bp.route("", methods=["GET"])
 @igreja_bp.route("/", methods=["GET"])
 @login_required
 @permission_required("config", "view")
 def igreja_page():
-    dados = Igreja.query.first()
+    dados = _obter_dados_igreja()
     return render_template("configuracoes/igreja.html", dados=dados)
 
 
@@ -22,7 +32,7 @@ def igreja_page():
 @login_required
 @permission_required("config", "edit")
 def editar_igreja():
-    dados = Igreja.query.first()
+    dados = _obter_dados_igreja()
     form = IgrejaForm(obj=dados)
 
     if form.validate_on_submit():
@@ -57,7 +67,7 @@ def editar_igreja():
 @login_required
 @permission_required("config", "delete")
 def excluir_igreja():
-    dados = Igreja.query.first()
+    dados = _obter_dados_igreja()
     if dados:
         nome_igreja = dados.nome
         db.session.delete(dados)
@@ -72,3 +82,4 @@ def excluir_igreja():
 
 # Alias para compatibilidade com rotas legadas
 deletar_igreja = excluir_igreja
+
