@@ -24,6 +24,21 @@ def create_app(config_class=None):
     csrf.init_app(app)
 
     # -----------------------------
+    # 🔄 Auto-migração segura de colunas (compatibilidade de schema)
+    # -----------------------------
+    with app.app_context():
+        try:
+            from sqlalchemy import text, inspect
+            inspector = inspect(db.engine)
+            if 'users' in inspector.get_table_names():
+                colunas = [c['name'] for c in inspector.get_columns('users')]
+                if 'member_id' not in colunas:
+                    db.session.execute(text("ALTER TABLE users ADD COLUMN member_id INTEGER REFERENCES members(id)"))
+                    db.session.commit()
+        except Exception:
+            pass
+
+    # -----------------------------
     # 👤 Configuração do LoginManager
     # -----------------------------
     login_manager = LoginManager()

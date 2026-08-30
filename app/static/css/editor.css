@@ -1,26 +1,7 @@
-/* Campos bloqueados ficam com cursor de proibido e fundo cinza */
-#formEditar input[readonly],
-#formEditar textarea[readonly],
-#formEditar select[disabled],
-#formEditar input[disabled] {
-  cursor: not-allowed;        /* mostra o cursor de proibido */
-  background-color: #e9ecef;  /* fundo cinza claro */
-  color: #6c757d;             /* texto mais apagado */
-}
-
-/* Remove qualquer efeito de foco em campos bloqueados */
-#formEditar input[readonly]:focus,
-#formEditar textarea[readonly]:focus,
-#formEditar select[disabled]:focus,
-#formEditar input[disabled]:focus {
-  outline: none !important;     /* remove a borda azul padrão */
-  box-shadow: none !important;  /* remove o brilho do foco */
-  border-color: #ced4da;        /* volta para a cor padrão do Bootstrap */
-}
-
 /* ==========================================================================
-   🖋️ Estilização Nativa do Editor de Texto Rico (WYSIWYG - Estilo WordPress)
+   🖋️ SiGI — Estilização Global do Editor de Texto Rico (WYSIWYG Quill)
    ========================================================================== */
+
 .sigi-editor-wrapper {
   background: #ffffff;
   border-radius: 0.5rem;
@@ -69,6 +50,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 0.375rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 1050;
 }
 
 .sigi-editor-wrapper .ql-snow button:hover .ql-stroke,
@@ -136,3 +118,30 @@
   cursor: not-allowed;
 }
 
+/* Container de Conteúdo Rico Formatado para Visualização */
+.sigi-rich-content {
+  line-height: 1.65;
+  color: #1e293b;
+}
+
+.sigi-rich-content p {
+  margin-bottom: 0.75rem;
+}
+
+.sigi-rich-content p:last-child {
+  margin-bottom: 0;
+}
+
+.sigi-rich-content ul,
+.sigi-rich-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.sigi-rich-content blockquote {
+  border-left: 4px solid #2563eb;
+  padding-left: 1rem;
+  margin-left: 0;
+  color: #475569;
+  font-style: italic;
+}

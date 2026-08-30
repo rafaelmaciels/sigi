@@ -140,6 +140,28 @@
         </div>
       </div>
     </div>
+
+    <!-- Configurações da EBD -->
+    {% if current_user.is_admin or has_permission('ebd', 'edit') or has_permission('config', 'view') %}
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-primary h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary mb-3">
+              <i class="bi bi-sliders fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Configurações da EBD</h5>
+            <p class="text-muted small">Diretrizes institucionais, horários, dia de aula e coordenação da Escola Dominical.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('ebd.config_ebd') }}" class="btn btn-sm btn-outline-primary w-100">
+              Configurações da EBD <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

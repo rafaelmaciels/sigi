@@ -13,8 +13,11 @@
       <p class="text-muted mb-0">Diretrizes institucionais, horários, dia de aula e coordenação geral.</p>
     </div>
     <div class="d-flex gap-2">
-      <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Voltar ao Painel
+      <a href="{{ url_for('configuracoes.configuracoes') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Configurações
+      </a>
+      <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-primary">
+        <i class="bi bi-speedometer2 me-1"></i> Painel EBD
       </a>
     </div>
   </div>
@@ -38,8 +41,18 @@
             </div>
 
             <div class="mb-3">
-              {{ form.descricao.label(class="form-label") }}
-              {{ form.descricao(class="form-control", rows=3, placeholder="Descrição institucional da EBD...") }}
+              <label class="form-label fw-semibold">Descrição Institucional</label>
+              <input type="hidden" name="descricao" id="descricao_input" value="{{ form.descricao.data or '' }}">
+              <div class="sigi-editor-wrapper" id="descricaoEditorWrapper">
+                <div id="descricaoEditorContainer">{{ (form.descricao.data or '') | safe }}</div>
+                <div class="sigi-editor-footer">
+                  <span id="descricaoCharCount">0 caracteres</span>
+                  <span id="descricaoWordCount">0 palavras</span>
+                </div>
+              </div>
+              <div class="form-text small text-muted mt-1">
+                <i class="bi bi-info-circle me-1"></i> Apresentação geral, objetivos e diretrizes da Escola Bíblica Dominical.
+              </div>
             </div>
 
             <div class="row g-3 mb-3">
@@ -69,7 +82,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-              <a href="{{ url_for('ebd.dashboard') }}" class="btn btn-outline-secondary">Cancelar</a>
+              <a href="{{ url_for('configuracoes.configuracoes') }}" class="btn btn-outline-secondary">Cancelar</a>
               <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-circle me-1"></i> Salvar Configurações
               </button>
@@ -81,4 +94,19 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'descricaoEditorContainer',
+    inputId: 'descricao_input',
+    charCountId: 'descricaoCharCount',
+    wordCountId: 'descricaoWordCount',
+    placeholder: 'Descrição institucional da Escola Dominical...',
+    minHeight: 180
+  });
+});
+</script>
 {% endblock %}

@@ -109,7 +109,9 @@
   <!-- Observações -->
   <div class="section">
     <h2>Observações</h2>
-    <p>{{ membro.observacoes or '-' }}</p>
+    <div class="observacoes-content">
+      {{ (membro.observacoes or '-') | safe }}
+    </div>
   </div>
 
   <!-- Rodapé -->

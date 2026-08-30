@@ -44,8 +44,18 @@
             {{ form.tipo(class="form-select") }}
           </div>
           <div class="col-12">
-            {{ form.descricao.label(class="form-label") }}
-            {{ form.descricao(class="form-control", rows="3") }}
+            <label class="form-label fw-semibold">Descrição do Evento</label>
+            <input type="hidden" name="descricao" id="descricao_input" value="{{ evento.descricao or '' }}">
+            <div class="sigi-editor-wrapper" id="descricaoEditorWrapper">
+              <div id="descricaoEditorContainer">{{ (evento.descricao or '') | safe }}</div>
+              <div class="sigi-editor-footer">
+                <span id="descricaoCharCount">0 caracteres</span>
+                <span id="descricaoWordCount">0 palavras</span>
+              </div>
+            </div>
+            <div class="form-text small text-muted mt-1">
+              <i class="bi bi-info-circle me-1"></i> Descreva a programação, preletores convidados, temas e orientações aos participantes.
+            </div>
           </div>
         </div>
 
@@ -91,4 +101,19 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'descricaoEditorContainer',
+    inputId: 'descricao_input',
+    charCountId: 'descricaoCharCount',
+    wordCountId: 'descricaoWordCount',
+    placeholder: 'Breve descrição dos objetivos e programação do evento...',
+    minHeight: 180
+  });
+});
+</script>
 {% endblock %}

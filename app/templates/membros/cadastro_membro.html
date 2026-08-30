@@ -2,6 +2,11 @@
 {% block title %}Cadastro de Membro — SiGI{% endblock %}
 {% block nav_membros_active %}active{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/membro.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-lg-5">
 
@@ -240,10 +245,24 @@
             <div class="row g-3">
               <div class="col-12">
                 <div class="sigi-form-section-title">
-                  <i class="bi bi-chat-left-text text-primary"></i> Informações Adicionais
+                  <i class="bi bi-chat-left-text text-primary"></i> Anotações Pastorais & Observações
                 </div>
-                {{ form.observacoes.label(class="form-label") }}
-                {{ form.observacoes(class="form-control", rows="4", placeholder="Anotações pastorais, observações e histórico do membro...") }}
+                <label class="form-label fw-semibold">Observações e Histórico do Membro</label>
+                
+                <!-- Input oculto para envio no formulário -->
+                <input type="hidden" name="observacoes" id="observacoes_input" value="{{ form.observacoes.data or '' }}">
+
+                <!-- Container do Editor de Texto Rico (WYSIWYG) -->
+                <div class="sigi-editor-wrapper" id="editorWrapper">
+                  <div id="editorContainer">{{ (form.observacoes.data or '') | safe }}</div>
+                  <div class="sigi-editor-footer">
+                    <span id="charCount">0 caracteres</span>
+                    <span id="wordCount">0 palavras</span>
+                  </div>
+                </div>
+                <div class="form-text small text-muted mt-1">
+                  <i class="bi bi-info-circle me-1"></i> Utilize o editor para registrar anotações ministeriais, histórico e observações formatadas.
+                </div>
               </div>
             </div>
           </div>
@@ -266,20 +285,78 @@
 <!-- JavaScript inline -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script>
-// Mostrar/ocultar campo de cônjuge
-document.getElementById("estadoCivil").addEventListener("change", function() {
-  const field = document.getElementById("conjugeField");
-  if (!field) return;
-  field.style.display = (this.value === "Casado") ? "block" : "none";
-});
+document.addEventListener("DOMContentLoaded", function() {
+  // Mostrar/ocultar campo de cônjuge
+  const estadoCivil = document.getElementById("estadoCivil");
+  if (estadoCivil) {
+    estadoCivil.addEventListener("change", function() {
+      const field = document.getElementById("conjugeField");
+      if (!field) return;
+      field.style.display = (this.value === "Casado") ? "block" : "none";
+    });
+  }
 
-// Aplicar máscaras
-$(function(){
-  $('#telefone').mask('(00) 00000-0000');
-  $('#cpf').mask('000.000.000-00');
-  $('#rg').mask('00.000.000-0');
-  $('#cep').mask('00000-000');
+  // Aplicar máscaras
+  if (typeof $ !== "undefined" && typeof $.fn.mask !== "undefined") {
+    $('#telefone').mask('(00) 00000-0000');
+    $('#cpf').mask('000.000.000-00');
+    $('#rg').mask('00.000.000-0');
+    $('#cep').mask('00000-000');
+  }
+
+  // Toolbar completa semelhante ao WordPress
+  const toolbarOptions = [
+    [{ 'header': [2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'align': [] }],
+    ['blockquote', 'link'],
+    ['clean']
+  ];
+
+  // Inicializa o Quill
+  const quill = new Quill('#editorContainer', {
+    theme: 'snow',
+    readOnly: false,
+    placeholder: 'Digite aqui as anotações pastorais, histórico ou observações do novo membro...',
+    modules: {
+      toolbar: toolbarOptions,
+      history: {
+        delay: 1000,
+        maxStack: 50,
+        userOnly: true
+      }
+    }
+  });
+
+  const hiddenInput = document.getElementById('observacoes_input');
+  const charCountEl = document.getElementById('charCount');
+  const wordCountEl = document.getElementById('wordCount');
+  const form = document.querySelector('form');
+
+  function atualizarContadores() {
+    const text = quill.getText().trim();
+    const chars = text.length;
+    const words = text ? text.split(/\s+/).length : 0;
+    charCountEl.textContent = chars + (chars === 1 ? ' caractere' : ' caracteres');
+    wordCountEl.textContent = words + (words === 1 ? ' palavra' : ' palavras');
+  }
+
+  atualizarContadores();
+  quill.on('text-change', atualizarContadores);
+
+  if (form) {
+    form.addEventListener('submit', function() {
+      const text = quill.getText().trim();
+      if (!text) {
+        hiddenInput.value = '';
+      } else {
+        hiddenInput.value = quill.root.innerHTML;
+      }
+    });
+  }
 });
 </script>
 {% endblock %}

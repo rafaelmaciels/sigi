@@ -81,16 +81,48 @@
 
         <div class="row g-3 mb-4">
           <div class="col-12">
-            <label class="form-label">Pauta da Reunião</label>
-            {{ form.pauta(class="form-control", rows="4", placeholder="Descreva detalhadamente os assuntos e tópicos em pauta...") }}
+            <label class="form-label fw-semibold">Pauta da Reunião</label>
+            <input type="hidden" name="pauta" id="pauta_input" value="{{ form.pauta.data or '' }}">
+            <div class="sigi-editor-wrapper" id="pautaEditorWrapper">
+              <div id="pautaEditorContainer">{{ (form.pauta.data or '') | safe }}</div>
+              <div class="sigi-editor-footer">
+                <span id="pautaCharCount">0 caracteres</span>
+                <span id="pautaWordCount">0 palavras</span>
+              </div>
+            </div>
+            <div class="form-text small text-muted mt-1">
+              <i class="bi bi-info-circle me-1"></i> Descreva detalhadamente os assuntos e tópicos em pauta utilizando listas e marcadores.
+            </div>
           </div>
+
           <div class="col-12">
-            <label class="form-label">Deliberações & Decisões</label>
-            {{ form.deliberacoes(class="form-control", rows="4", placeholder="Informe as resoluções, votações e decisões tomadas...") }}
+            <label class="form-label fw-semibold">Deliberações & Decisões</label>
+            <input type="hidden" name="deliberacoes" id="deliberacoes_input" value="{{ form.deliberacoes.data or '' }}">
+            <div class="sigi-editor-wrapper" id="deliberacoesEditorWrapper">
+              <div id="deliberacoesEditorContainer">{{ (form.deliberacoes.data or '') | safe }}</div>
+              <div class="sigi-editor-footer">
+                <span id="deliberacoesCharCount">0 caracteres</span>
+                <span id="deliberacoesWordCount">0 palavras</span>
+              </div>
+            </div>
+            <div class="form-text small text-muted mt-1">
+              <i class="bi bi-info-circle me-1"></i> Registre as resoluções, votações aprovadas e decisões tomadas pela assembleia.
+            </div>
           </div>
+
           <div class="col-12">
-            <label class="form-label">Observações Complementares</label>
-            {{ form.observacoes(class="form-control", rows="3", placeholder="Anotações pastorais ou observações finais...") }}
+            <label class="form-label fw-semibold">Observações Complementares</label>
+            <input type="hidden" name="observacoes" id="observacoes_input" value="{{ form.observacoes.data or '' }}">
+            <div class="sigi-editor-wrapper" id="observacoesEditorWrapper">
+              <div id="observacoesEditorContainer">{{ (form.observacoes.data or '') | safe }}</div>
+              <div class="sigi-editor-footer">
+                <span id="observacoesCharCount">0 caracteres</span>
+                <span id="observacoesWordCount">0 palavras</span>
+              </div>
+            </div>
+            <div class="form-text small text-muted mt-1">
+              <i class="bi bi-info-circle me-1"></i> Anotações pastorais ou observações finais da lavratura.
+            </div>
           </div>
         </div>
 
@@ -107,4 +139,37 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'pautaEditorContainer',
+    inputId: 'pauta_input',
+    charCountId: 'pautaCharCount',
+    wordCountId: 'pautaWordCount',
+    placeholder: 'Descreva os assuntos e tópicos em pauta...',
+    minHeight: 150
+  });
+
+  initSigiEditor({
+    editorId: 'deliberacoesEditorContainer',
+    inputId: 'deliberacoes_input',
+    charCountId: 'deliberacoesCharCount',
+    wordCountId: 'deliberacoesWordCount',
+    placeholder: 'Informe as resoluções, votações e decisões tomadas...',
+    minHeight: 180
+  });
+
+  initSigiEditor({
+    editorId: 'observacoesEditorContainer',
+    inputId: 'observacoes_input',
+    charCountId: 'observacoesCharCount',
+    wordCountId: 'observacoesWordCount',
+    placeholder: 'Anotações pastorais ou observações finais...',
+    minHeight: 120
+  });
+});
+</script>
 {% endblock %}

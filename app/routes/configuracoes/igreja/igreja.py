@@ -1,19 +1,29 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 from app.extensions import db
-from app.models import Igreja              # 🔹 modelo que você deve criar em app/models
+from app.models import Igreja
 from .forms import IgrejaForm
-from app.decorators import permission_required # 🔹 importa o decorator
+from app.decorators import permission_required
+from utils.logs import registrar_log
 
 igreja_bp = Blueprint("igreja", __name__, url_prefix="/igreja")
 
+def _obter_dados_igreja():
+    """Recupera os dados da igreja garantindo que a tabela exista."""
+    try:
+        return Igreja.query.first()
+    except Exception:
+        db.session.rollback()
+        db.create_all()
+        return Igreja.query.first()
+
 # Página principal - visualizar dados da igreja
+@igreja_bp.route("", methods=["GET"])
 @igreja_bp.route("/", methods=["GET"])
 @login_required
 @permission_required("config", "view")
 def igreja_page():
-    dados = Igreja.query.first()
-    # 🔹 Não precisa montar dicionário de permissões, pois usaremos has_permission() no template
+    dados = _obter_dados_igreja()
     return render_template("configuracoes/igreja.html", dados=dados)
 
 
@@ -22,13 +32,15 @@ def igreja_page():
 @login_required
 @permission_required("config", "edit")
 def editar_igreja():
-    dados = Igreja.query.first()
+    dados = _obter_dados_igreja()
     form = IgrejaForm(obj=dados)
 
     if form.validate_on_submit():
+        novo_registro = False
         if not dados:
             dados = Igreja()
             db.session.add(dados)
+            novo_registro = True
 
         dados.nome = form.nome.data
         dados.cnpj = form.cnpj.data
@@ -41,23 +53,33 @@ def editar_igreja():
         dados.versiculo_tema = form.versiculo_tema.data
 
         db.session.commit()
+        acao_log = "Cadastrou dados institucionais da igreja" if novo_registro else "Atualizou dados institucionais da igreja"
+        registrar_log(current_user.nome, f"{acao_log}: {dados.nome}", "sucesso")
         flash("Dados da igreja atualizados com sucesso!", "success")
         return redirect(url_for("configuracoes.igreja.igreja_page"))
 
     return render_template("configuracoes/editar_igreja.html", form=form, dados=dados)
 
 
-# Deletar dados da igreja
+# Excluir dados da igreja
 @igreja_bp.route("/deletar", methods=["POST", "GET"])
+@igreja_bp.route("/excluir", methods=["POST", "GET"])
 @login_required
 @permission_required("config", "delete")
-def deletar_igreja():
-    dados = Igreja.query.first()
+def excluir_igreja():
+    dados = _obter_dados_igreja()
     if dados:
+        nome_igreja = dados.nome
         db.session.delete(dados)
         db.session.commit()
+        registrar_log(current_user.nome, f"Excluiu dados institucionais da igreja: {nome_igreja}", "sucesso")
         flash("Dados da igreja foram excluídos com sucesso!", "success")
     else:
         flash("Nenhum dado encontrado para excluir.", "warning")
 
     return redirect(url_for("configuracoes.igreja.igreja_page"))
+
+
+# Alias para compatibilidade com rotas legadas
+deletar_igreja = excluir_igreja
+

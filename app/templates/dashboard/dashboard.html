@@ -171,7 +171,7 @@
     <div class="{% if current_user.is_admin %}col-lg-6{% else %}col-12{% endif %}">
       <div class="card shadow-sm h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span class="fw-bold"><i class="bi bi-gift text-warning me-2"></i> Aniversariantes de {{ mes_nome }}</span>
+          <span class="fw-bold"><i class="bi bi-gift text-warning me-2"></i> Próximos Aniversariantes</span>
           <a href="{{ url_for('member.aniversariantes_mes') }}" class="btn btn-sm btn-outline-primary">
             Ver Todos <i class="bi bi-chevron-right"></i>
           </a>
@@ -202,7 +202,7 @@
                 <div class="sigi-empty-icon mb-2" style="width:48px;height:48px;font-size:1.3rem;">
                   <i class="bi bi-gift text-muted"></i>
                 </div>
-                <div class="sigi-empty-title fs-6">Nenhum aniversariante este mês</div>
+                <div class="sigi-empty-title fs-6">Nenhum aniversariante encontrado</div>
                 <div class="sigi-empty-text small mb-0">Cadastre a data de nascimento dos membros para vê-los aqui.</div>
               </div>
             {% endfor %}

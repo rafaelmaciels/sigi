@@ -16,6 +16,18 @@ class User(db.Model, UserMixin):
     foto = db.Column(db.String(255), nullable=True)
     is_admin = db.Column(db.Boolean, default=False)  # 🔹 define se é administrador
 
+    # 🔗 Vínculo 1-para-1 com Membro da Igreja (sem duplicação de cadastro)
+    member_id = db.Column(
+        db.Integer,
+        db.ForeignKey("members.id", ondelete="SET NULL"),
+        unique=True,
+        nullable=True
+    )
+    member = db.relationship(
+        "Member",
+        backref=db.backref("user", uselist=False, lazy="joined")
+    )
+
     # Relacionamento com permissões
     user_permissions = db.relationship(
         "UserPermission",
@@ -40,6 +52,20 @@ class User(db.Model, UserMixin):
             up.permission.area == area and up.permission.action == action
             for up in self.user_permissions
         )
+
+    @property
+    def display_name(self) -> str:
+        if self.member and self.member.nome:
+            return self.member.nome
+        return self.nome or self.email.split("@")[0].capitalize()
+
+    @property
+    def display_foto(self):
+        if self.foto:
+            return self.foto
+        if self.member and self.member.foto:
+            return self.member.foto
+        return None
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"

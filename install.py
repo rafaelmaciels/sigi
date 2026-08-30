@@ -199,6 +199,7 @@ LOG_LEVEL=INFO
 
 def inicializar_banco(python_exe):
     print("  Inicializando esquema e tabelas do banco de dados...")
+    (BASE_DIR / "instance").mkdir(parents=True, exist_ok=True)
     script_init = """
 import sys
 from app import create_app, db
@@ -233,7 +234,7 @@ with app.app_context():
     print('BANCO_OK')
 """
     try:
-        res = subprocess.run([str(python_exe), "-c", script_init], capture_output=True, text=True, check=True)
+        res = subprocess.run([str(python_exe), "-c", script_init], cwd=str(BASE_DIR), capture_output=True, text=True, check=True)
         if "BANCO_OK" in res.stdout:
             print_ok("Tabelas do banco de dados e matriz de permissões inicializadas com sucesso.")
         else:
@@ -254,7 +255,7 @@ app = create_app()
 with app.app_context():
     print(User.query.filter_by(is_admin=True).count())
 """
-    res = subprocess.run([str(python_exe), "-c", script_check], capture_output=True, text=True)
+    res = subprocess.run([str(python_exe), "-c", script_check], cwd=str(BASE_DIR), capture_output=True, text=True)
     count_admin = int(res.stdout.strip().split()[-1]) if res.stdout.strip() else 0
 
     if count_admin > 0:
@@ -286,7 +287,7 @@ with app.app_context():
     db.session.commit()
     print('USER_OK')
 """
-    res = subprocess.run([str(python_exe), "-c", script_create_user], capture_output=True, text=True)
+    res = subprocess.run([str(python_exe), "-c", script_create_user], cwd=str(BASE_DIR), capture_output=True, text=True)
     if "USER_OK" in res.stdout:
         print_ok(f"Usuário administrador criado com sucesso ({email}).")
     else:
@@ -302,7 +303,7 @@ with app.app_context():
     db.session.execute(db.text('SELECT 1'))
     print('HEALTH_OK')
 """
-    res = subprocess.run([str(python_exe), "-c", script_health], capture_output=True, text=True)
+    res = subprocess.run([str(python_exe), "-c", script_health], cwd=str(BASE_DIR), capture_output=True, text=True)
     if "HEALTH_OK" in res.stdout:
         print_ok("Verificação de saúde aprovada com 100% de integridade.")
     else:

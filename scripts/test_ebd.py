@@ -61,7 +61,12 @@ def run_tests():
             print(f"  ✅ Classe criada com sucesso (ID: {classe_criada.id}).")
 
             print("\n[4/8] Testando Matrícula de Aluno...")
-            membro = Member.query.first()
+            membro = Member.query.filter_by(status="Ativo").first()
+            if not membro:
+                membro = Member.query.first()
+            # Limpa qualquer matricula anterior deste membro nesta classe
+            EbdMatricula.query.filter_by(classe_id=classe_criada.id, membro_id=membro.id).delete()
+            db.session.commit()
             mat_data = {
                 "classe_id": classe_criada.id,
                 "membro_id": membro.id,
@@ -117,7 +122,10 @@ def run_tests():
             print("  ✅ Relatórios e mapas de frequência gerados com sucesso.")
 
             print("\n[8/8] Testando Isolamento e Limpeza dos Dados de Teste...")
-            db.session.delete(classe_criada) # Cascade remove matrículas, aulas e frequências de teste
+            EbdFrequencia.query.filter_by(aula_id=aula_criada.id).delete()
+            EbdAula.query.filter_by(classe_id=classe_criada.id).delete()
+            EbdMatricula.query.filter_by(classe_id=classe_criada.id).delete()
+            EbdClasse.query.filter_by(nome="Classe Teste Automatizado").delete()
             db.session.commit()
             assert EbdClasse.query.filter_by(nome="Classe Teste Automatizado").first() is None
             print("  ✅ Limpeza concluída sem afetar dados existentes.")

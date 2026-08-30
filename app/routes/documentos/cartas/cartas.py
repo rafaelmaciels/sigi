@@ -4,6 +4,7 @@ from app import db
 from app.models import Carta, Member   # ✅ agora usamos o modelo Carta
 from .forms import CartaForm
 from app.decorators import permission_required	# 🔹 import do decorator
+from utils.sanitizer import sanitizar_html
 
 cartas_bp = Blueprint("cartas", __name__, url_prefix="/cartas")
 
@@ -82,7 +83,7 @@ def nova_carta():
     if form.validate_on_submit():
         carta = Carta(
             titulo=form.titulo.data,
-            corpo=form.corpo.data,
+            corpo=sanitizar_html(form.corpo.data),
             destinatario=form.destinatario.data,
             remetente=form.remetente.data,
             cidade=form.cidade.data,
@@ -115,7 +116,7 @@ def editar_carta(id):
 
     if form.validate_on_submit():
         carta.titulo = form.titulo.data
-        carta.corpo = form.corpo.data
+        carta.corpo = sanitizar_html(form.corpo.data)
         carta.destinatario = form.destinatario.data
         carta.remetente = form.remetente.data
         carta.cidade = form.cidade.data

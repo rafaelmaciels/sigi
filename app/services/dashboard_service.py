@@ -3,6 +3,8 @@ from sqlalchemy import func
 from app.extensions import db
 from app.models import Member, Evento, Financeiro
 
+from utils.dates import get_current_datetime
+
 class DashboardService:
     """
     Serviço corporativo para cálculos, agregações estatísticas e indicadores do Dashboard.
@@ -14,8 +16,61 @@ class DashboardService:
     }
 
     @classmethod
+    def _dias_para_proximo_aniversario(cls, birth_date, ref_date) -> int:
+        """
+        Calcula os dias restantes até o próximo aniversário a partir de ref_date
+        dentro do ciclo anual contínuo (0 se for hoje, dias restantes este ano,
+        ou ciclo do próximo ano para aniversários já ocorridos neste ano).
+        """
+        if not birth_date:
+            return 9999
+        if isinstance(birth_date, datetime):
+            birth_date = birth_date.date()
+
+        try:
+            bday_this_year = birth_date.replace(year=ref_date.year)
+        except ValueError:
+            # Trata 29 de fevereiro em anos não-bissextos
+            bday_this_year = birth_date.replace(year=ref_date.year, day=28)
+
+        if bday_this_year >= ref_date:
+            return (bday_this_year - ref_date).days
+        else:
+            try:
+                bday_next_year = birth_date.replace(year=ref_date.year + 1)
+            except ValueError:
+                bday_next_year = birth_date.replace(year=ref_date.year + 1, day=28)
+            return (bday_next_year - ref_date).days
+
+    @classmethod
+    def get_proximos_aniversariantes(cls, limit: int = 5, ref_date=None) -> list:
+        """
+        Retorna os aniversariantes mais próximos da data de referência em ordem cronológica
+        cíclica (próximos deste ano -> início do próximo ano -> já passados por último).
+        """
+        if ref_date is None:
+            ref_date = get_current_datetime().date()
+        elif isinstance(ref_date, datetime):
+            ref_date = ref_date.date()
+
+        membros = (
+            Member.query
+            .filter(Member.data_nascimento.isnot(None))
+            .filter(Member.data_saida.is_(None))
+            .all()
+        )
+
+        return sorted(
+            membros,
+            key=lambda m: (
+                cls._dias_para_proximo_aniversario(m.data_nascimento, ref_date),
+                m.nome.lower() if m.nome else ""
+            )
+        )[:limit]
+
+    @classmethod
     def get_dashboard_metrics(cls, is_admin: bool = False) -> dict:
-        agora = datetime.now()
+        agora = get_current_datetime()
         mes_atual = agora.month
         ano_atual = agora.year
         mes_nome = cls.MESES_PT.get(mes_atual, "Mês Atual")
@@ -27,14 +82,8 @@ class DashboardService:
         total_eventos = Evento.query.count()
         total_visitantes = Member.query.filter_by(visitante=True).count()
 
-        # 2. Próximos aniversariantes (visível operacionalmente)
-        proximos_aniversariantes = (
-            Member.query
-            .filter(func.extract('month', Member.data_nascimento) == mes_atual)
-            .order_by(func.extract('day', Member.data_nascimento))
-            .limit(5)
-            .all()
-        )
+        # 2. Próximos aniversariantes (visível operacionalmente e ordenado pelo ciclo anual)
+        proximos_aniversariantes = cls.get_proximos_aniversariantes(limit=5, ref_date=agora.date())
 
         # 3. Métricas protegidas e restritas (Apenas para Administrador)
         if not is_admin:
@@ -112,14 +161,6 @@ class DashboardService:
         financeiro_saidas = [float(r.total) for r in saidas_query]
         has_financeiro_data = bool(financeiro_mensal or financeiro_saidas)
 
-        # 4. Próximos aniversariantes
-        proximos_aniversariantes = (
-            Member.query
-            .filter(func.extract('month', Member.data_nascimento) == mes_atual)
-            .order_by(func.extract('day', Member.data_nascimento))
-            .limit(5)
-            .all()
-        )
 
         # 5. Crescimento e movimentação anual
         crescimento_query = (

@@ -213,8 +213,8 @@
           </span>
         </div>
 
-        <div class="certificate-body-text">
-          {{ certificado.corpo }}
+        <div class="certificate-body-text sigi-rich-content">
+          {{ (certificado.corpo or '') | safe }}
         </div>
 
         <div class="text-muted small mb-5">
