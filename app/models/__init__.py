@@ -6,7 +6,13 @@ from .patrimonio import Patrimonio
 from .log import Log
 from .documento import Ata, Certificado, Carta
 from .igreja import Igreja  
+from .ebd import EbdConfig, EbdPeriodo, EbdClasse, EbdProfessor, EbdMatricula, EbdAula, EbdFrequencia
 
-# Agora você pode importar assim:
-# from app.models import User, Permission, UserPermission,
-# Member, PublicLink, Evento, Financeiro, Patrimonio, Log, Ata, Certificado, Carta, Igreja
+# Exportação unificada dos modelos do SiGI
+__all__ = [
+    "User", "Permission", "UserPermission",
+    "Member", "PublicLink", "Evento", "Financeiro",
+    "Patrimonio", "Log", "Ata", "Certificado", "Carta", "Igreja",
+    "EbdConfig", "EbdPeriodo", "EbdClasse", "EbdProfessor",
+    "EbdMatricula", "EbdAula", "EbdFrequencia"
+]

@@ -307,17 +307,24 @@ body {
 }
 
 /* ==========================================================================
-   Tables & Data Grid
+   Tables & Data Grid (Desktop 100% Fit & Mobile Touch Scroll)
    ========================================================================== */
 .table-responsive {
-  border: 1px solid var(--sigi-border);
-  border-radius: var(--sigi-radius-lg);
+  width: 100%;
   background: var(--sigi-surface);
-  box-shadow: var(--sigi-shadow-sm);
-  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.card .table-responsive,
+.card-body .table-responsive {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
 }
 
 .table {
+  width: 100%;
   margin-bottom: 0;
   color: var(--sigi-text-main);
   border-color: var(--sigi-border);
@@ -330,9 +337,8 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
-  padding: 0.85rem 1.2rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--sigi-border);
-  white-space: nowrap;
 }
 
 .table tbody tr {
@@ -344,10 +350,87 @@ body {
 }
 
 .table tbody td {
-  padding: 0.95rem 1.2rem;
+  padding: 0.85rem 1rem;
   vertical-align: middle;
   border-bottom: 1px solid var(--sigi-border);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+}
+
+.table td.text-end,
+.table th.text-end {
+  white-space: nowrap !important;
+  width: 1%;
+}
+
+/* 🖥️ Desktop (>= 992px): Encaixe 100% perfeito na tela, SEM rolagem lateral */
+@media (min-width: 992px) {
+  .table-responsive {
+    overflow-x: visible !important;
+    border: 1px solid var(--sigi-border);
+    border-radius: var(--sigi-radius-lg);
+    box-shadow: var(--sigi-shadow-sm);
+  }
+  .card .table-responsive,
+  .card-body .table-responsive {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .table {
+    min-width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto;
+  }
+  .table tbody td {
+    white-space: normal;
+    word-break: normal;
+  }
+  .table th.nowrap,
+  .table td.nowrap,
+  .table .badge,
+  .table td.text-end,
+  .table th.text-end {
+    white-space: nowrap !important;
+  }
+}
+
+/* 📱 Mobile & Tablet (< 992px): Rolagem lateral touch suave para caber todas as colunas */
+@media (max-width: 991.98px) {
+  .table-responsive {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--sigi-border);
+    border-radius: var(--sigi-radius-lg);
+    box-shadow: var(--sigi-shadow-sm);
+  }
+  .card .table-responsive,
+  .card-body .table-responsive {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .table {
+    min-width: 680px;
+  }
+  .table thead th,
+  .table tbody td {
+    white-space: nowrap;
+  }
+}
+
+/* Barra de rolagem sutil para mobile */
+.table-responsive::-webkit-scrollbar {
+  height: 5px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 /* ==========================================================================
@@ -491,6 +574,126 @@ body {
   border-top: 1px solid var(--sigi-border);
   padding: 1rem 1.5rem;
   background: var(--sigi-surface-subtle);
+}
+
+/* ==========================================================================
+   Standardized Page Layout Components
+   ========================================================================== */
+.sigi-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--sigi-border);
+}
+
+.sigi-page-header h2 {
+  font-weight: 700;
+  font-size: 1.65rem;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.25rem 0;
+  color: var(--sigi-text-main);
+  display: flex;
+  align-items: center;
+}
+
+.sigi-page-header p {
+  color: var(--sigi-text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Tabs & Navigation Components
+   ========================================================================== */
+.sigi-nav-tabs, .nav-tabs {
+  border-bottom: 1px solid var(--sigi-border) !important;
+  gap: 0.35rem;
+  padding-bottom: 0.25rem;
+}
+
+.sigi-nav-tabs .nav-link, .nav-tabs .nav-link {
+  border: 1px solid transparent !important;
+  border-radius: var(--sigi-radius-md) !important;
+  color: var(--sigi-text-secondary) !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.55rem 1rem !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  transition: var(--sigi-transition-fast);
+}
+
+.sigi-nav-tabs .nav-link:hover, .nav-tabs .nav-link:hover {
+  color: var(--sigi-primary) !important;
+  background: var(--sigi-surface-subtle) !important;
+}
+
+.sigi-nav-tabs .nav-link.active, .nav-tabs .nav-link.active {
+  color: var(--sigi-primary) !important;
+  background: var(--sigi-primary-light) !important;
+  font-weight: 600 !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+}
+
+/* ==========================================================================
+   Form Section Title & Card Enhancements
+   ========================================================================== */
+.sigi-form-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--sigi-text-main);
+  margin-top: 1.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--sigi-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sigi-form-section-title:first-child {
+  margin-top: 0;
+}
+
+/* ==========================================================================
+   Action Buttons & Icon Buttons
+   ========================================================================== */
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sigi-radius-md);
+  font-size: 0.88rem;
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+  margin-bottom: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.breadcrumb-item a {
+  color: var(--sigi-text-muted);
+  text-decoration: none;
+  transition: var(--sigi-transition-fast);
+}
+
+.breadcrumb-item a:hover {
+  color: var(--sigi-primary);
+}
+
+.breadcrumb-item.active {
+  color: var(--sigi-text-secondary);
+  font-weight: 500;
 }
 
 /* ==========================================================================

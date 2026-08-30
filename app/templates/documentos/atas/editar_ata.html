@@ -1,157 +1,113 @@
 {% extends "base.html" %}
-{% block title %}Editar Ata{% endblock %}
+{% block title %}Editar Ata — SiGI{% endblock %}
+{% block nav_documentos_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid px-lg-5">
 
-  <!-- Cabeçalho -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="text-primary">
-      <i class="bi bi-pencil-square me-2"></i> Editar Ata
-    </h2>
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-pencil-square text-primary me-2"></i> Editar Ata de Reunião
+      </h2>
+      <p class="text-muted mb-0">Atualização dos registros, decisões e informações da ata.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('documentos.atas.ver_ata', id=ata.id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-eye me-1"></i> Visualizar Ata
+      </a>
+      <a href="{{ url_for('documentos.atas.listar_atas') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Livro de Atas
+      </a>
+    </div>
   </div>
 
-  <!-- Formulário -->
-  <form method="POST" action="{{ url_for('documentos.atas.editar_ata', id=ata.id) }}">
-    {{ form.hidden_tag() }}
+  <!-- Form Card -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('documentos.atas.editar_ata', id=ata.id) }}">
+        {{ form.hidden_tag() }}
 
-    <div class="row g-3">
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <i class="bi bi-journal-text me-1"></i> Título da Ata
-          </div>
-          <div class="card-body">
+        <!-- Dados Gerais -->
+        <div class="sigi-form-section-title">
+          <i class="bi bi-info-circle text-primary"></i> Informações Gerais da Reunião
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Título da Ata</label>
             {{ form.titulo(class="form-control") }}
           </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <i class="bi bi-calendar-event me-1"></i> Data da Reunião
-          </div>
-          <div class="card-body">
+          <div class="col-md-3">
+            <label class="form-label">Data da Reunião</label>
             {{ form.data_reuniao(class="form-control", type="date") }}
           </div>
-        </div>
-      </div>
-
-      <!-- Novo campo: Tipo -->
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-info text-white">
-            <i class="bi bi-tags me-1"></i> Tipo da Ata
-          </div>
-          <div class="card-body">
+          <div class="col-md-3">
+            <label class="form-label">Tipo da Ata</label>
             {{ form.tipo(class="form-select") }}
           </div>
-        </div>
-      </div>
-
-      <!-- Novo campo: Situação -->
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-info text-white">
-            <i class="bi bi-flag me-1"></i> Situação
+          <div class="col-md-6">
+            <label class="form-label">Local</label>
+            {{ form.local(class="form-control") }}
           </div>
-          <div class="card-body">
+          <div class="col-md-6">
+            <label class="form-label">Situação do Documento</label>
             {{ form.situacao(class="form-select") }}
           </div>
         </div>
-      </div>
 
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-info text-white">
-            <i class="bi bi-geo-alt me-1"></i> Local
-          </div>
-          <div class="card-body">
-            {{ form.local(class="form-control") }}
-          </div>
+        <!-- Mesa Diretora e Participantes -->
+        <div class="sigi-form-section-title">
+          <i class="bi bi-people text-primary"></i> Mesa Diretora & Participantes
         </div>
-      </div>
 
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-info text-white">
-            <i class="bi bi-person-badge me-1"></i> Presidente
-          </div>
-          <div class="card-body">
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Presidente da Sessão</label>
             {{ form.presidente(class="form-control") }}
           </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-info text-white">
-            <i class="bi bi-person-lines-fill me-1"></i> Secretário
-          </div>
-          <div class="card-body">
+          <div class="col-md-6">
+            <label class="form-label">Secretário(a)</label>
             {{ form.secretario(class="form-control") }}
           </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-header bg-info text-white">
-            <i class="bi bi-people-fill me-1"></i> Participantes
-          </div>
-          <div class="card-body">
+          <div class="col-12">
+            <label class="form-label">Participantes Presentes</label>
             {{ form.participantes(class="form-control", rows="3") }}
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Campos de texto maiores -->
-    <div class="row g-3 mt-3">
-      <div class="col-md-12">
-        <div class="card shadow-sm">
-          <div class="card-header bg-warning text-dark">
-            <i class="bi bi-list-check me-1"></i> Pauta
-          </div>
-          <div class="card-body">
+        <!-- Conteúdo da Ata -->
+        <div class="sigi-form-section-title">
+          <i class="bi bi-file-earmark-text text-primary"></i> Pauta, Deliberações e Observações
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12">
+            <label class="form-label">Pauta da Reunião</label>
             {{ form.pauta(class="form-control", rows="4") }}
           </div>
-        </div>
-      </div>
-
-      <div class="col-md-12">
-        <div class="card shadow-sm">
-          <div class="card-header bg-success text-white">
-            <i class="bi bi-check2-circle me-1"></i> Deliberações
-          </div>
-          <div class="card-body">
+          <div class="col-12">
+            <label class="form-label">Deliberações & Decisões</label>
             {{ form.deliberacoes(class="form-control", rows="4") }}
           </div>
-        </div>
-      </div>
-
-      <div class="col-md-12">
-        <div class="card shadow-sm">
-          <div class="card-header bg-secondary text-white">
-            <i class="bi bi-pencil-square me-1"></i> Observações
-          </div>
-          <div class="card-body">
+          <div class="col-12">
+            <label class="form-label">Observações Complementares</label>
             {{ form.observacoes(class="form-control", rows="3") }}
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Botões -->
-    <div class="mt-4 d-flex justify-content-start gap-2">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-save me-1"></i> Atualizar
-      </button>
-      <a href="{{ url_for('documentos.atas.listar_atas') }}" class="btn btn-secondary">
-        <i class="bi bi-x-circle me-1"></i> Cancelar
-      </a>
+        <!-- Botões -->
+        <div class="d-flex gap-2 pt-3 border-top">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check2-circle me-1"></i> Salvar Alterações
+          </button>
+          <a href="{{ url_for('documentos.atas.listar_atas') }}" class="btn btn-outline-secondary">
+            Cancelar
+          </a>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

@@ -79,6 +79,13 @@ def permissoes_page():
         "patrimonios_edit": ("patrimonios", "edit"),
         "patrimonios_delete": ("patrimonios", "delete"),
 
+        # Escola Dominical (EBD)
+        "ebd_view": ("ebd", "view"),
+        "ebd_create": ("ebd", "create"),
+        "ebd_edit": ("ebd", "edit"),
+        "ebd_delete": ("ebd", "delete"),
+        "ebd_frequencia": ("ebd", "frequencia"),
+
         # Perfil
         "perfil_view": ("perfil", "view"),
         "perfil_password": ("perfil", "password"),

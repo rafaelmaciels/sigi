@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Nova Aula — EBD SiGI{% endblock %}
+{% block nav_ebd_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-calendar-plus text-primary me-2"></i> Nova Aula / Encontro da EBD
+      </h2>
+      <p class="text-muted mb-0">Registre os dados do encontro para proceder com a chamada.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('ebd.listar_aulas') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Voltar às Aulas
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header fw-bold bg-white">
+          <i class="bi bi-journal-plus text-primary me-1"></i> Dados da Lição e Encontro
+        </div>
+        <div class="card-body p-4">
+          <form method="post">
+            {{ form.hidden_tag() }}
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                {{ form.classe_id.label(class="form-label") }}
+                {{ form.classe_id(class="form-select") }}
+                {% if form.classe_id.errors %}
+                  <div class="text-danger small">{{ form.classe_id.errors[0] }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.professor_id.label(class="form-label") }}
+                {{ form.professor_id(class="form-select") }}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                {{ form.data_aula.label(class="form-label") }}
+                {{ form.data_aula(class="form-control", type="date") }}
+                {% if form.data_aula.errors %}
+                  <div class="text-danger small">{{ form.data_aula.errors[0] }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-3">
+                {{ form.numero_licao.label(class="form-label") }}
+                {{ form.numero_licao(class="form-control", placeholder="Ex: Lição 09") }}
+              </div>
+              <div class="col-md-3">
+                {{ form.status.label(class="form-label") }}
+                {{ form.status(class="form-select") }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              {{ form.tema.label(class="form-label") }}
+              {{ form.tema(class="form-control", placeholder="Ex: A Fidelidade de Deus em Tempos Difíceis") }}
+              {% if form.tema.errors %}
+                <div class="text-danger small">{{ form.tema.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.resumo_conteudo.label(class="form-label") }}
+              {{ form.resumo_conteudo(class="form-control", rows=3, placeholder="Textos bíblicos e tópicos abordados...") }}
+            </div>
+
+            <div class="mb-4">
+              {{ form.observacoes.label(class="form-label") }}
+              {{ form.observacoes(class="form-control", rows=2, placeholder="Observações gerais da aula...") }}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ url_for('ebd.listar_aulas') }}" class="btn btn-outline-secondary">Cancelar</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i> Salvar e Abrir Chamada
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

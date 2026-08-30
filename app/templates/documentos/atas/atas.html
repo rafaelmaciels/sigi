@@ -1,113 +1,145 @@
 {% extends "base.html" %}
-{% block title %}Atas - SiGI{% endblock %}
+{% block title %}Livro de Atas — SiGI{% endblock %}
+{% block nav_documentos_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid px-lg-5">
 
-  <!-- Cabeçalho com botão Nova Ata -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h2><i class="bi bi-journal-text text-primary me-2"></i> Atas</h2>
-    {% if has_permission("atas", "create") %}
-      <a href="{{ url_for('documentos.atas.nova_ata') }}" class="btn btn-success">
-        <i class="bi bi-plus-circle me-1"></i> Nova Ata
-      </a>
-    {% endif %}
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-journal-text text-primary me-2"></i> Livro de Atas
+      </h2>
+      <p class="text-muted mb-0">Registro oficial de assembleias, reuniões ministeriais e decisões eclesiásticas.</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if has_permission("atas", "create") %}
+        <a href="{{ url_for('documentos.atas.nova_ata') }}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Nova Ata
+        </a>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Mensagem de topo -->
-  <p class="text-muted mb-3">
-    <i class="bi bi-info-circle me-1"></i> Aqui estão todas as atas cadastradas em sua igreja
-  </p>
-
-  <!-- Campo de busca -->
-  <form class="d-flex align-items-center mb-3 gap-2" style="max-width: 600px;" method="get" action="{{ url_for('documentos.atas.buscar_atas') }}">
-    <input name="q" id="searchInput" type="text" class="form-control"
-           placeholder="Buscar por título, presidente ou secretário" value="{{ termo if termo }}">
-    <button class="btn btn-primary d-flex align-items-center" type="submit">
-      <i class="bi bi-search me-1"></i>
-      <span>Buscar</span>
-    </button>
-  </form>
-
-  <!-- Tabela de atas -->
-  <div class="table-responsive shadow-sm">
-    <table class="table table-striped table-hover align-middle">
-      <thead class="table-primary">
-        <tr>
-          <th scope="col">Título</th>
-          <th scope="col">Presidente</th>
-          <th scope="col">Secretário</th>
-          <th scope="col">Tipo</th>
-          <th scope="col">Data</th>
-          <th scope="col">Situação</th>
-          {% if has_permission("atas", "edit") or has_permission("atas", "delete") %}
-            <th scope="col" class="text-center">Ações</th>
+  <!-- Barra de Busca -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+      <form class="row g-2 align-items-center" method="get" action="{{ url_for('documentos.atas.buscar_atas') }}">
+        <div class="col-md-6 col-lg-5">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted">
+              <i class="bi bi-search"></i>
+            </span>
+            <input name="q" id="searchInput" type="text" class="form-control border-start-0 ps-0" 
+                   placeholder="Buscar por título, presidente ou secretário..." value="{{ termo if termo }}">
+          </div>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary" type="submit">Buscar</button>
+          {% if termo %}
+            <a href="{{ url_for('documentos.atas.listar_atas') }}" class="btn btn-outline-secondary">Limpar</a>
           {% endif %}
-        </tr>
-      </thead>
-      <tbody>
-        {% if atas.items %}
-          {% for ata in atas.items %}
-          <tr>
-            <td>{{ ata.titulo }}</td>
-            <td>{{ ata.presidente or ata.criado_por or '-' }}</td>
-            <td>{{ ata.secretario if ata.secretario else '-' }}</td>
-            <td>{{ ata.tipo if ata.tipo else '-' }}</td>
-            <td>{{ ata.data_emissao.strftime('%d/%m/%Y') if ata.data_emissao else '-' }}</td>
-            <td>
-              {% if ata.situacao %}
-                {% if ata.situacao|lower == 'enviado' %}
-                  <span class="badge bg-warning text-dark">Enviado</span>
-                {% elif ata.situacao|lower == 'entregue' %}
-                  <span class="badge bg-success">Entregue</span>
-                {% elif ata.situacao|lower == 'aprovado' %}
-                  <span class="badge bg-primary">Aprovado</span>
-                {% else %}
-                  <span class="badge bg-secondary">{{ ata.situacao }}</span>
-                {% endif %}
-              {% else %}
-                <span class="badge bg-secondary">-</span>
-              {% endif %}
-            </td>
-            {% if has_permission("atas", "edit") or has_permission("atas", "delete") %}
-              <td class="text-center">
-                {% if has_permission("atas", "view") %}
-                  <a href="{{ url_for('documentos.atas.ver_ata', id=ata.id) }}" class="btn btn-sm btn-success">
-                    <i class="bi bi-eye"></i>
-                  </a>
-                {% endif %}
-                {% if has_permission("atas", "edit") %}
-                  <a href="{{ url_for('documentos.atas.editar_ata', id=ata.id) }}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-pencil-square"></i>
-                  </a>
-                {% endif %}
-                {% if has_permission("atas", "delete") %}
-                  <!-- Botão que abre modal -->
-                  <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ ata.id }}">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                {% endif %}
-              </td>
-            {% endif %}
-          </tr>
-          {% endfor %}
-        {% else %}
-          <tr>
-            <td colspan="7" class="text-center text-muted">Nenhuma ata cadastrada até o momento.</td>
-          </tr>
-        {% endif %}
-      </tbody>
-    </table>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <!-- Contador de registros de atas -->
-  {% if atas.items %}
-    <p class="mt-2 text-muted">
-       {{ atas.items|length }} atas nesta página
-    </p>
-  {% endif %}
+  <!-- Tabela de Atas -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-bold">
+        <i class="bi bi-list-check text-primary me-1"></i> Registros de Atas ({{ atas.total if atas.total is defined else atas.items|length }} encontradas)
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive border-0">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th scope="col">Título</th>
+              <th scope="col">Presidente</th>
+              <th scope="col">Secretário</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Data</th>
+              <th scope="col">Situação</th>
+              {% if has_permission("atas", "edit") or has_permission("atas", "delete") or has_permission("atas", "view") %}
+                <th scope="col" class="text-end">Ações</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% if atas.items %}
+              {% for ata in atas.items %}
+              <tr>
+                <td class="fw-semibold text-dark">{{ ata.titulo }}</td>
+                <td>{{ ata.presidente or ata.criado_por or '-' }}</td>
+                <td class="text-secondary small">{{ ata.secretario if ata.secretario else '-' }}</td>
+                <td><span class="badge bg-primary">{{ ata.tipo if ata.tipo else '-' }}</span></td>
+                <td class="text-muted small">{{ ata.data_emissao.strftime('%d/%m/%Y') if ata.data_emissao else '-' }}</td>
+                <td>
+                  {% if ata.situacao %}
+                    {% if ata.situacao|lower == 'enviado' %}
+                      <span class="badge bg-warning">Enviado</span>
+                    {% elif ata.situacao|lower == 'entregue' %}
+                      <span class="badge bg-success">Entregue</span>
+                    {% elif ata.situacao|lower == 'aprovado' %}
+                      <span class="badge bg-primary">Aprovado</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ ata.situacao }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="badge bg-secondary">-</span>
+                  {% endif %}
+                </td>
+                {% if has_permission("atas", "edit") or has_permission("atas", "delete") or has_permission("atas", "view") %}
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1">
+                      {% if has_permission("atas", "view") %}
+                        <a href="{{ url_for('documentos.atas.ver_ata', id=ata.id) }}" class="btn btn-sm btn-outline-primary btn-icon" title="Visualizar Ata">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                      {% endif %}
+                      {% if has_permission("atas", "edit") %}
+                        <a href="{{ url_for('documentos.atas.editar_ata', id=ata.id) }}" class="btn btn-sm btn-outline-secondary btn-icon" title="Editar Ata">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                      {% endif %}
+                      {% if has_permission("atas", "delete") %}
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-icon" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ ata.id }}" title="Excluir Ata">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="p-0">
+                  <div class="sigi-empty-state">
+                    <div class="sigi-empty-icon">
+                      <i class="bi bi-journal-x"></i>
+                    </div>
+                    <div class="sigi-empty-title">Nenhuma ata cadastrada</div>
+                    <div class="sigi-empty-text">Ainda não há atas registradas ou correspondentes aos filtros aplicados.</div>
+                    {% if has_permission("atas", "create") %}
+                      <a href="{{ url_for('documentos.atas.nova_ata') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Criar Primeira Ata
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-  <!-- 🔹 Inclusão da paginação -->
+  <!-- Paginação -->
   {% set pagination = atas %}
   {% include "pagination/pagination.html" %}
 </div>
@@ -116,17 +148,18 @@
 {% block modals %}
   {% for ata in atas.items %}
     {% if has_permission("atas", "delete") %}
-      <!-- 🔹 Modal de confirmação de exclusão -->
       <div class="modal fade" id="confirmDelete{{ ata.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ ata.id }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
-            <div class="modal-header bg-gradient-base">
-              <h5 class="modal-title" id="confirmDeleteLabel{{ ata.id }}">Confirmar Exclusão</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            <div class="modal-header">
+              <h5 class="modal-title fw-bold text-danger" id="confirmDeleteLabel{{ ata.id }}">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Confirmar Exclusão
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
-              Tem certeza que deseja excluir a ata <strong>{{ ata.titulo }}</strong>?  
-              Esta ação não poderá ser desfeita.
+              Tem certeza que deseja excluir a ata <strong>{{ ata.titulo }}</strong>?<br>
+              <span class="text-muted small">Esta operação removerá o documento e não poderá ser desfeita.</span>
             </div>
             <div class="modal-footer">
               <form method="POST" action="{{ url_for('documentos.atas.excluir_ata', id=ata.id) }}" style="display:inline;">
@@ -135,9 +168,7 @@
                   <i class="bi bi-trash me-1"></i> Excluir
                 </button>
               </form>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle me-1"></i> Cancelar
-              </button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
           </div>
         </div>

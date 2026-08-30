@@ -3,24 +3,31 @@
 {% block nav_financeiro_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4" style="max-width: 900px;">
+<div class="container-fluid px-lg-5">
+
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
     <div>
-      <h2 class="fw-bold mb-1"><i class="bi bi-pencil-square text-primary me-2"></i> Editar Receita / Entrada</h2>
-      <p class="text-muted mb-0">Atualização de dados cadastrais eclesiásticos do lançamento financeiro.</p>
+      <h2 class="fw-bold mb-1"><i class="bi bi-pencil-square text-success me-2"></i> Editar Receita / Entrada</h2>
+      <p class="text-muted mb-0">Atualização de dados eclesiásticos do lançamento financeiro.</p>
     </div>
-    <a href="{{ url_for('financeiro.entradas') }}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Voltar
-    </a>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('financeiro.entradas') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Lista de Entradas
+      </a>
+    </div>
   </div>
 
-  <div class="card shadow-sm border-0">
+  <div class="card shadow-sm border-0 mb-4">
     <div class="card-body p-4">
       <form method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
-        <div class="row g-3">
+        <div class="sigi-form-section-title">
+          <i class="bi bi-info-circle text-primary"></i> Dados da Receita
+        </div>
+
+        <div class="row g-3 mb-4">
           <!-- Categoria -->
           <div class="col-md-6">
             {{ form.tipo_receita.label(class="form-label") }}
@@ -37,7 +44,7 @@
           <div class="col-md-4">
             {{ form.valor.label(class="form-label") }}
             <div class="input-group">
-              <span class="input-group-text">R$</span>
+              <span class="input-group-text bg-light text-muted">R$</span>
               {{ form.valor(class="form-control") }}
             </div>
           </div>
@@ -100,11 +107,13 @@
           </div>
         </div>
 
-        <div class="mt-4 d-flex gap-2">
+        <div class="d-flex gap-2 pt-3 border-top">
           <button type="submit" class="btn btn-primary px-4">
-            <i class="bi bi-check2-circle"></i> Salvar Alterações
+            <i class="bi bi-check2-circle me-1"></i> Salvar Alterações
           </button>
-          <a href="{{ url_for('financeiro.entradas') }}" class="btn btn-outline-secondary">Cancelar</a>
+          <a href="{{ url_for('financeiro.entradas') }}" class="btn btn-outline-secondary">
+            Cancelar
+          </a>
         </div>
       </form>
     </div>

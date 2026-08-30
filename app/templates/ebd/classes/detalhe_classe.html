@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}{{ classe.nome }} — EBD SiGI{% endblock %}
+{% block nav_ebd_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <!-- Header da Classe -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="fw-bold mb-0 text-dark">{{ classe.nome }}</h2>
+        <span class="badge {% if classe.status == 'ativa' %}bg-success{% else %}bg-secondary{% endif %}">
+          {{ classe.status | capitalize }}
+        </span>
+      </div>
+      <p class="text-muted mb-0">
+        Período: <strong>{{ classe.periodo.nome }}</strong> &bull; Sala: <strong>{{ classe.sala or 'A definir' }}</strong> &bull; Faixa Etária: <strong>{{ classe.faixa_etaria or '-' }}</strong>
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if has_permission("ebd", "create") %}
+        <a href="{{ url_for('ebd.nova_aula', classe_id=classe.id) }}" class="btn btn-primary">
+          <i class="bi bi-calendar-plus me-1"></i> Nova Aula / Chamada
+        </a>
+        <a href="{{ url_for('ebd.nova_matricula', classe_id=classe.id) }}" class="btn btn-outline-primary">
+          <i class="bi bi-person-plus me-1"></i> Matricular Aluno
+        </a>
+      {% endif %}
+      {% if has_permission("ebd", "edit") %}
+        <a href="{{ url_for('ebd.editar_classe', id=classe.id) }}" class="btn btn-outline-secondary" title="Editar Classe">
+          <i class="bi bi-pencil"></i>
+        </a>
+      {% endif %}
+      <a href="{{ url_for('ebd.listar_classes') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Voltar às Classes
+      </a>
+    </div>
+  </div>
+
+  <!-- Cards de Resumo da Classe -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <span class="text-muted small d-block text-uppercase fw-semibold">Alunos Ativos</span>
+        <h3 class="fw-bold mb-0 text-primary">{{ matriculas|length }}</h3>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <span class="text-muted small d-block text-uppercase fw-semibold">Professores</span>
+        <h3 class="fw-bold mb-0 text-dark">{{ professores|length }}</h3>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <span class="text-muted small d-block text-uppercase fw-semibold">Aulas Realizadas</span>
+        <h3 class="fw-bold mb-0 text-dark">{{ aulas|length }}</h3>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <span class="text-muted small d-block text-uppercase fw-semibold">Taxa de Presença</span>
+        <h3 class="fw-bold mb-0 {% if taxa_frequencia >= 75 %}text-success{% elif taxa_frequencia >= 60 %}text-warning{% else %}text-danger{% endif %}">
+          {{ taxa_frequencia }}%
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    
+    <!-- Coluna da Esquerda: Professores e Aulas -->
+    <div class="col-lg-5">
+      
+      <!-- Professores da Classe -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-bold text-dark">
+            <i class="bi bi-person-badge text-primary me-1"></i> Corpo Docente da Classe
+          </span>
+          {% if has_permission("ebd", "create") %}
+            <a href="{{ url_for('ebd.vincular_professor', classe_id=classe.id) }}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-plus me-1"></i> Vincular
+            </a>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          {% if professores %}
+            <ul class="list-group list-group-flush">
+              {% for p in professores %}
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <div>
+                  <strong class="text-dark d-block">{{ p.membro.nome }}</strong>
+                  <span class="badge {% if p.cargo == 'principal' %}bg-primary{% elif p.cargo == 'auxiliar' %}bg-info{% else %}bg-secondary{% endif %} me-1">
+                    {{ p.cargo | capitalize }}
+                  </span>
+                  <span class="text-muted small">Desde: {{ p.data_inicio.strftime('%d/%m/%Y') if p.data_inicio else '-' }}</span>
+                </div>
+                {% if has_permission("ebd", "delete") %}
+                  <form method="POST" action="{{ url_for('ebd.desvincular_professor', id=p.id) }}" onsubmit="return confirm('Deseja desvincular este professor da classe?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Desvincular Professor">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </form>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="text-center py-3 text-muted small">Nenhum professor vinculado a esta classe.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Aulas da Classe -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-bold text-dark">
+            <i class="bi bi-journal-check text-success me-1"></i> Aulas e Chamadas ({{ aulas|length }})
+          </span>
+          {% if has_permission("ebd", "create") %}
+            <a href="{{ url_for('ebd.nova_aula', classe_id=classe.id) }}" class="btn btn-sm btn-primary">Nova Aula</a>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          {% if aulas %}
+            <div class="list-group list-group-flush">
+              {% for a in aulas[:6] %}
+              <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <div>
+                  <div class="fw-bold text-dark">{{ a.tema }}</div>
+                  <div class="text-muted small">
+                    {{ a.data_aula.strftime('%d/%m/%Y') }} &bull; {{ a.numero_licao or 'Lição' }} &bull; 
+                    <span class="text-success fw-semibold">{{ a.total_presentes }} presentes</span>, 
+                    <span class="text-danger">{{ a.total_faltas }} faltas</span>
+                  </div>
+                </div>
+                <div class="d-flex gap-1">
+                  <a href="{{ url_for('ebd.realizar_chamada', id=a.id) }}" class="btn btn-sm btn-outline-primary" title="Abrir Chamada">
+                    <i class="bi bi-clipboard-check me-1"></i> Chamada
+                  </a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-3 text-muted small">Nenhuma aula registrada ainda.</div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Coluna da Direita: Alunos Matriculados -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-bold text-dark">
+            <i class="bi bi-people text-primary me-1"></i> Alunos Matriculados ({{ matriculas|length }})
+          </span>
+          {% if has_permission("ebd", "create") %}
+            <a href="{{ url_for('ebd.nova_matricula', classe_id=classe.id) }}" class="btn btn-sm btn-primary">
+              <i class="bi bi-person-plus me-1"></i> Matricular
+            </a>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive border-0">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Aluno</th>
+                  <th>Contato</th>
+                  <th>Data Matrícula</th>
+                  <th class="text-end">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if matriculas %}
+                  {% for m in matriculas %}
+                  <tr>
+                    <td>
+                      <div class="fw-semibold text-dark">{{ m.membro.nome }}</div>
+                      {% if m.membro.telefone %}
+                        <span class="text-muted small">{{ m.membro.telefone }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ m.membro.email or '-' }}</td>
+                    <td class="text-muted small">{{ m.data_matricula.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{{ url_for('ebd.historico_aluno', membro_id=m.membro.id) }}" class="btn btn-sm btn-outline-primary btn-icon" title="Ver Histórico de Presença">
+                          <i class="bi bi-person-lines-fill"></i>
+                        </a>
+                        {% if has_permission("ebd", "edit") %}
+                          <a href="{{ url_for('ebd.transferir_matricula', id=m.id) }}" class="btn btn-sm btn-outline-secondary btn-icon" title="Transferir de Classe">
+                            <i class="bi bi-arrow-left-right"></i>
+                          </a>
+                        {% endif %}
+                        {% if has_permission("ebd", "delete") %}
+                          <form method="POST" action="{{ url_for('ebd.cancelar_matricula', id=m.id) }}" style="display:inline;" onsubmit="return confirm('Deseja desligar este aluno da classe?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Desligar Aluno">
+                              <i class="bi bi-x-circle"></i>
+                            </button>
+                          </form>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                      Nenhum aluno matriculado nesta classe.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

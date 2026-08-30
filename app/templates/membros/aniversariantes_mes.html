@@ -1,119 +1,126 @@
 {% extends "base.html" %}
-{% block title %}Aniversariantes - SiGI{% endblock %}
+{% block title %}Aniversariantes do Mês — SiGI{% endblock %}
+{% block nav_eventos_active %}active{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid px-lg-5">
 
-  <!-- Cabeçalho -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold">
-      <i class="bi bi-gift-fill me-2"></i> 
-      Aniversariantes de {{ mes_atual }}
-      {% if aniversariantes.items %}
-        <span class="badge bg-primary ms-2">
-          {{ aniversariantes.total }} no total 🎉
-        </span>
-      {% endif %}
-    </h2>
-    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-outline-primary">
-      <i class="bi bi-arrow-left me-1"></i> Voltar ao Dashboard
-    </a>
-  </div>
-
-  <!-- 🔹 Filtros -->
-  <form class="row g-2 mb-3 align-items-end" method="get" action="{{ url_for('member.aniversariantes_mes') }}">
-    <!-- Mês -->
-    <div class="col-md-3">
-      <label for="mes" class="form-label">Mês</label>
-      <select name="mes" id="mes" class="form-select">
-        
-        {% for m in meses %}
-          <option value="{{ loop.index }}" {% if loop.index == mes_selecionado %}selected{% endif %}>
-            {{ m }}
-          </option>
-        {% endfor %}
-      </select>
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-gift text-warning me-2"></i> Aniversariantes de {{ mes_atual }}
+        {% if aniversariantes.items %}
+          <span class="badge bg-primary ms-2 fs-6">
+            {{ aniversariantes.total }} aniversariante{{ 's' if aniversariantes.total > 1 else '' }} 🎉
+          </span>
+        {% endif %}
+      </h2>
+      <p class="text-muted mb-0">Celebrações e datas especiais dos membros e congregados.</p>
     </div>
-
-    <!-- Função -->
-    <div class="col-md-3">
-      <label for="funcao" class="form-label">Função</label>
-      <select name="funcao" id="funcao" class="form-select">
-        <option value="">Todas</option>
-        {% for f in funcoes %}
-          <option value="{{ f }}" {% if funcao_selecionada == f %}selected{% endif %}>{{ f }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Intervalo de dias -->
-    <div class="col-md-2">
-      <label for="dia_inicio" class="form-label">Dia início</label>
-      <select name="dia_inicio" id="dia_inicio" class="form-select">
-        <option value="">Todos</option>
-        {% for d in range(1, 32) %}
-          <option value="{{ d }}" {% if d == dia_inicio %}selected{% endif %}>{{ d }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-2">
-      <label for="dia_fim" class="form-label">Dia fim</label>
-      <select name="dia_fim" id="dia_fim" class="form-select">
-        <option value="">Todos</option>
-        {% for d in range(1, 32) %}
-          <option value="{{ d }}" {% if d == dia_fim %}selected{% endif %}>{{ d }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Botão de filtro -->
-    <div class="col-md-2 d-flex justify-content-between">
-      <button type="submit" class="btn btn-primary w-100 me-2">
-        <i class="bi bi-filter me-1"></i> Filtrar
-      </button>
-      <!-- Botão de exportar PDF -->
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Dashboard
+      </a>
       <a href="{{ url_for('member.exportar_aniversariantes_pdf', mes=mes_selecionado, funcao=funcao_selecionada, dia_inicio=dia_inicio, dia_fim=dia_fim) }}" 
-         class="btn btn-danger w-100" target="_blank">
-        <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+         class="btn btn-danger" target="_blank">
+        <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
       </a>
     </div>
-  </form>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <form class="row g-3 align-items-end" method="get" action="{{ url_for('member.aniversariantes_mes') }}">
+        <!-- Mês -->
+        <div class="col-md-3">
+          <label for="mes" class="form-label">Mês</label>
+          <select name="mes" id="mes" class="form-select">
+            {% for m in meses %}
+              <option value="{{ loop.index }}" {% if loop.index == mes_selecionado %}selected{% endif %}>
+                {{ m }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Função -->
+        <div class="col-md-3">
+          <label for="funcao" class="form-label">Função Ministerial</label>
+          <select name="funcao" id="funcao" class="form-select">
+            <option value="">Todas as Funções</option>
+            {% for f in funcoes %}
+              <option value="{{ f }}" {% if funcao_selecionada == f %}selected{% endif %}>{{ f }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Intervalo de dias -->
+        <div class="col-md-2">
+          <label for="dia_inicio" class="form-label">Dia Inicial</label>
+          <select name="dia_inicio" id="dia_inicio" class="form-select">
+            <option value="">Todos</option>
+            {% for d in range(1, 32) %}
+              <option value="{{ d }}" {% if d == dia_inicio %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="dia_fim" class="form-label">Dia Final</label>
+          <select name="dia_fim" id="dia_fim" class="form-select">
+            <option value="">Todos</option>
+            {% for d in range(1, 32) %}
+              <option value="{{ d }}" {% if d == dia_fim %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Botão de filtro -->
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i> Filtrar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   {% if aniversariantes.items %}
-    <div class="row">
+    <div class="row g-4 mb-4">
       {% for aniversariante in aniversariantes.items %}
         {% set idade = current_year - aniversariante.data_nascimento.year %}
-        <div class="col-md-4 col-lg-3 mb-4">
-          <div class="card shadow-sm h-100 border-0">
-
-            <!-- Foto com efeito de zoom -->
-            {% if aniversariante.foto %}
-              <div class="card-img-container">
+        <div class="col-sm-6 col-md-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 position-relative overflow-hidden">
+            <!-- Foto com efeito -->
+            <div class="card-img-container position-relative bg-light">
+              {% if aniversariante.foto %}
                 <img src="{{ url_for('static', filename=aniversariante.foto) }}" 
-                     class="card-img-top" alt="Foto de {{ aniversariante.nome }}">
+                     alt="Foto de {{ aniversariante.nome }}">
+              {% else %}
+                <div class="d-flex justify-content-center align-items-center h-100 bg-primary bg-opacity-10 text-primary">
+                  <i class="bi bi-person-fill" style="font-size: 3.5rem;"></i>
+                </div>
+              {% endif %}
+              <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-success shadow-sm">
+                  🎂 {{ aniversariante.data_nascimento.strftime('%d/%m') }}
+                </span>
               </div>
-            {% else %}
-              <div class="d-flex justify-content-center align-items-center bg-light" style="height:200px;">
-                <i class="bi bi-person-circle text-secondary" style="font-size:4rem;"></i>
-              </div>
-            {% endif %}
+            </div>
 
             <!-- Conteúdo -->
-            <div class="card-body text-center">
-              <h5 class="card-title mb-1">{{ aniversariante.nome }}</h5>
-              <span class="badge bg-success">
-                🎂 {{ aniversariante.data_nascimento.strftime('%d/%m') }}
-              </span>
-              <div class="mt-2">
+            <div class="card-body text-center p-3">
+              <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ aniversariante.nome }}">{{ aniversariante.nome }}</h6>
+              <div class="small text-secondary mb-2">{{ aniversariante.funcao or 'Membro' }}</div>
+              <div>
                 {% if idade < 18 %}
-                  <span class="badge bg-success">Vai completar {{ idade }} anos 🧒</span>
+                  <span class="badge bg-info">Vai completar {{ idade }} anos 🧒</span>
                 {% elif idade < 60 %}
                   <span class="badge bg-primary">Vai completar {{ idade }} anos 👨</span>
                 {% else %}
-                  <span class="badge bg-warning text-dark">Vai completar {{ idade }} anos 👴</span>
+                  <span class="badge bg-warning">Vai completar {{ idade }} anos 👴</span>
                 {% endif %}
-              </div>
-              <div class="mt-2">
-                <span class="badge bg-info">{{ aniversariante.funcao }}</span>
               </div>
             </div>
           </div>
@@ -121,9 +128,9 @@
       {% endfor %}
     </div>
 
-    <!-- 🔹 Paginação (só aparece se houver mais de uma página) -->
+    <!-- Paginação -->
     {% if aniversariantes.pages > 1 %}
-      <nav aria-label="Page navigation" class="mt-4">
+      <nav aria-label="Navegação de páginas" class="mt-4">
         <ul class="pagination justify-content-center">
           {% if aniversariantes.has_prev %}
             <li class="page-item">
@@ -156,29 +163,36 @@
       </nav>
     {% endif %}
   {% else %}
-    <div class="alert alert-info text-center shadow-sm mt-4">
-      <i class="bi bi-info-circle me-1"></i> Nenhum aniversariante neste período
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-0">
+        <div class="sigi-empty-state">
+          <div class="sigi-empty-icon">
+            <i class="bi bi-gift"></i>
+          </div>
+          <div class="sigi-empty-title">Nenhum aniversariante encontrado</div>
+          <div class="sigi-empty-text">Não há membros aniversariantes no período ou filtros selecionados.</div>
+        </div>
+      </div>
     </div>
   {% endif %}
 </div>
 
-<!-- 🔹 CSS extra para efeito de zoom -->
 <style>
   .card-img-container {
     overflow: hidden;
-    height: 200px;
-    border-top-left-radius: .5rem;
-    border-top-right-radius: .5rem;
+    height: 180px;
+    border-top-left-radius: var(--sigi-radius-lg);
+    border-top-right-radius: var(--sigi-radius-lg);
   }
   .card-img-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: top;
-    transition: transform 0.4s ease;
+    transition: transform 0.3s ease;
   }
-  .card-img-container img:hover {
-    transform: scale(1.1); /* 🔹 efeito de zoom elegante */
+  .card:hover .card-img-container img {
+    transform: scale(1.06);
   }
 </style>
 {% endblock %}

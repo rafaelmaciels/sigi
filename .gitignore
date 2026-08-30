@@ -28,8 +28,20 @@ ENV/
 
 # Variáveis de ambiente e segredos
 .env
+.env.local
+.env.production
 *.pem
 *.key
+
+# Backups gerados pelo sistema
+backups/
+*.zip
+*.tar.gz
+*.sql
+
+# Logs de runtime
+logs/
+*.log
 
 # IDEs e Editores
 .vscode/

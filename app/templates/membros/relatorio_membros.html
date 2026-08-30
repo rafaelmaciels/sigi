@@ -1,110 +1,153 @@
 {% extends "base.html" %}
-{% block title %}Relatório de Membros - SiGI{% endblock %}
+{% block title %}Relatório Estatístico de Membros — SiGI{% endblock %}
+{% block nav_membros_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2><i class="bi bi-bar-chart-line text-primary me-2"></i> Relatório de Membros</h2>
+<div class="container-fluid px-lg-5">
 
-  <!-- Filtros -->
-  <div class="card shadow-sm mt-3">
-    <div class="card-body">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-bar-chart-line text-primary me-2"></i> Relatório Estatístico de Membros
+      </h2>
+      <p class="text-muted mb-0">Demografia, distribuição ministerial, faixas etárias e situação eclesiástica.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('member.listar_membros') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Lista de Membros
+      </a>
+      <button type="button" class="btn btn-danger"
+              onclick="window.open('{{ url_for('member.relatorio_membros_pdf',
+                                               sexo=request.args.get('sexo'),
+                                               status=request.args.get('status'),
+                                               estado_civil=request.args.get('estado_civil'),
+                                               funcao=request.args.get('funcao')) }}','_blank')">
+        <i class="bi bi-file-earmark-pdf me-1"></i> Exportar Relatório (PDF)
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
       <form method="GET" action="{{ url_for('member.relatorio_membros') }}" class="row g-3">
         <div class="col-md-3">
           <label for="sexo" class="form-label">Sexo</label>
           <select id="sexo" name="sexo" class="form-select">
             <option value="">Todos</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Feminino">Feminino</option>
+            <option value="Masculino" {% if request.args.get('sexo') == 'Masculino' %}selected{% endif %}>Masculino</option>
+            <option value="Feminino" {% if request.args.get('sexo') == 'Feminino' %}selected{% endif %}>Feminino</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label for="status" class="form-label">Situação</label>
+          <label for="status" class="form-label">Situação Eclesiástica</label>
           <select id="status" name="status" class="form-select">
             <option value="">Todas</option>
-            <option value="Ativo">Ativo</option>
-            <option value="Inativo">Inativo</option>
+            <option value="Ativo" {% if request.args.get('status') == 'Ativo' %}selected{% endif %}>Ativo</option>
+            <option value="Inativo" {% if request.args.get('status') == 'Inativo' %}selected{% endif %}>Inativo</option>
           </select>
         </div>
         <div class="col-md-3">
           <label for="estado_civil" class="form-label">Estado Civil</label>
           <select id="estado_civil" name="estado_civil" class="form-select">
             <option value="">Todos</option>
-            <option value="Solteiro">Solteiro</option>
-            <option value="Casado">Casado</option>
-            <option value="Divorciado">Divorciado</option>
-            <option value="Viúvo">Viúvo</option>
+            <option value="Solteiro" {% if request.args.get('estado_civil') == 'Solteiro' %}selected{% endif %}>Solteiro</option>
+            <option value="Casado" {% if request.args.get('estado_civil') == 'Casado' %}selected{% endif %}>Casado</option>
+            <option value="Divorciado" {% if request.args.get('estado_civil') == 'Divorciado' %}selected{% endif %}>Divorciado</option>
+            <option value="Viúvo" {% if request.args.get('estado_civil') == 'Viúvo' %}selected{% endif %}>Viúvo</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label for="funcao" class="form-label">Tipo</label>
+          <label for="funcao" class="form-label">Função Ministerial</label>
           <select id="funcao" name="funcao" class="form-select">
             <option value="">Todos</option>
-            <option value="Membro">Membro</option>
-            <option value="Diácono">Diácono</option>
-            <option value="Presbítero">Presbítero</option>
-            <option value="Pastor">Pastor</option>
+            <option value="Membro" {% if request.args.get('funcao') == 'Membro' %}selected{% endif %}>Membro</option>
+            <option value="Diácono" {% if request.args.get('funcao') == 'Diácono' %}selected{% endif %}>Diácono</option>
+            <option value="Presbítero" {% if request.args.get('funcao') == 'Presbítero' %}selected{% endif %}>Presbítero</option>
+            <option value="Pastor" {% if request.args.get('funcao') == 'Pastor' %}selected{% endif %}>Pastor</option>
           </select>
         </div>
-        <div class="col-12 d-flex justify-content-end mt-3">
-          <button type="submit" class="btn btn-primary me-2">
-            <i class="bi bi-funnel me-1"></i> Filtrar
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-funnel me-1"></i> Filtrar Estatísticas
           </button>
-	  <button type="button" class="btn btn-danger"
-	 	  onclick="window.open('{{ url_for('member.relatorio_membros_pdf',
-		                                   sexo=request.args.get('sexo'),
-		                                   status=request.args.get('status'),
-		                                   estado_civil=request.args.get('estado_civil'),
-		                                   funcao=request.args.get('funcao')) }}','_blank')">
-	    <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
-	  </button>
+          <a href="{{ url_for('member.relatorio_membros') }}" class="btn btn-outline-secondary">
+            Limpar Filtros
+          </a>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Gráficos (sem CSS externo; containers com altura fixa) -->
-  <div class="row mt-4">
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Distribuição por Sexo</h5>
-          <div style="height:220px;"><canvas id="graficoSexo"></canvas></div>
+  <!-- Grade de Gráficos -->
+  <div class="row g-4 mb-4">
+    <!-- Distribuição por Sexo -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-gender-ambiguous text-primary me-2"></i> Distribuição por Sexo
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center p-3">
+          <div style="width: 100%; height: 240px;">
+            <canvas id="graficoSexo"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Distribuição por Faixa Etária</h5>
-          <div style="height:220px;"><canvas id="graficoIdade"></canvas></div>
+    <!-- Distribuição por Faixa Etária -->
+    <div class="col-md-6 col-lg-8">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-bar-chart-steps text-success me-2"></i> Distribuição por Faixa Etária
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center p-3">
+          <div style="width: 100%; height: 240px;">
+            <canvas id="graficoIdade"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Distribuição por Situação</h5>
-          <div style="height:220px;"><canvas id="graficoStatus"></canvas></div>
+    <!-- Distribuição por Situação -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-check-circle text-info me-2"></i> Distribuição por Situação
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center p-3">
+          <div style="width: 100%; height: 240px;">
+            <canvas id="graficoStatus"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Distribuição por Estado Civil</h5>
-          <div style="height:220px;"><canvas id="graficoEstadoCivil"></canvas></div>
+    <!-- Distribuição por Estado Civil -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-heart text-danger me-2"></i> Distribuição por Estado Civil
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center p-3">
+          <div style="width: 100%; height: 240px;">
+            <canvas id="graficoEstadoCivil"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Distribuição por Tipo</h5>
-          <div style="height:220px;"><canvas id="graficoFuncao"></canvas></div>
+    <!-- Distribuição por Função -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-person-badge text-warning me-2"></i> Distribuição por Função
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center p-3">
+          <div style="width: 100%; height: 240px;">
+            <canvas id="graficoFuncao"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -113,10 +156,6 @@
 
 <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
 <script>
-function exportarPDF() {
-  alert("Exportar para PDF ainda não implementado.");
-}
-
 // Dados vindos da rota
 const distSexo = {{ dist_sexo|tojson }};
 const distStatus = {{ dist_status|tojson }};
@@ -124,52 +163,49 @@ const distEstadoCivil = {{ dist_estado_civil|tojson }};
 const distFuncao = {{ dist_funcao|tojson }};
 const distIdade = {{ dist_idade|tojson }};
 
-// Utilitário: cores
-const cores = ['#36A2EB','#FF6384','#6f42c1','#20c997','#fd7e14','#dc3545','#17a2b8','#4CAF50'];
+// Utilitário: cores modernas do Design System
+const cores = ['#2563eb', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#0ea5e9', '#64748b'];
 
-// Pizza menor (sexo)
+// Pizza (sexo)
 new Chart(document.getElementById('graficoSexo'), {
   type: 'pie',
   data: {
     labels: distSexo.map(item => item[0] || 'Não informado'),
-    datasets: [{ data: distSexo.map(item => item[1]), backgroundColor: cores.slice(0,2) }]
+    datasets: [{ data: distSexo.map(item => item[1]), backgroundColor: ['#3b82f6', '#ec4899'] }]
   },
   options: {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 1, // quadrado, menor
+    maintainAspectRatio: false,
     plugins: { legend: { position: 'bottom' } }
   }
 });
 
-// Barra (idade) — sem forçar proporção no CSS, controlado aqui
+// Barra (idade)
 new Chart(document.getElementById('graficoIdade'), {
   type: 'bar',
   data: {
     labels: Object.keys(distIdade),
-    datasets: [{ label: 'Membros', data: Object.values(distIdade), backgroundColor: '#4CAF50' }]
+    datasets: [{ label: 'Membros', data: Object.values(distIdade), backgroundColor: '#10b981', borderRadius: 6 }]
   },
   options: {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 2, // mais largo que alto (evita crescer verticalmente)
+    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
   }
 });
 
-// Doughnut menor (situação)
+// Doughnut (situação)
 new Chart(document.getElementById('graficoStatus'), {
   type: 'doughnut',
   data: {
     labels: distStatus.map(item => item[0] || 'Não informado'),
-    datasets: [{ data: distStatus.map(item => item[1]), backgroundColor: ['#007bff','#ffc107','#dc3545','#20c997'] }]
+    datasets: [{ data: distStatus.map(item => item[1]), backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#0ea5e9'] }]
   },
   options: {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 1,
-    cutout: '60%', // buraco interno menor
+    maintainAspectRatio: false,
+    cutout: '65%',
     plugins: { legend: { position: 'bottom' } }
   }
 });
@@ -179,28 +215,26 @@ new Chart(document.getElementById('graficoEstadoCivil'), {
   type: 'bar',
   data: {
     labels: distEstadoCivil.map(item => item[0] || 'Não informado'),
-    datasets: [{ label: 'Membros', data: distEstadoCivil.map(item => item[1]), backgroundColor: '#17a2b8' }]
+    datasets: [{ label: 'Membros', data: distEstadoCivil.map(item => item[1]), backgroundColor: '#0ea5e9', borderRadius: 6 }]
   },
   options: {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 2,
+    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
   }
 });
 
-// Pizza menor (tipo)
+// Pizza (função)
 new Chart(document.getElementById('graficoFuncao'), {
   type: 'pie',
   data: {
     labels: distFuncao.map(item => item[0] || 'Não informado'),
-    datasets: [{ data: distFuncao.map(item => item[1]), backgroundColor: cores.slice(2,6) }]
+    datasets: [{ data: distFuncao.map(item => item[1]), backgroundColor: cores.slice(2,7) }]
   },
   options: {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 1,
+    maintainAspectRatio: false,
     plugins: { legend: { position: 'bottom' } }
   }
 });

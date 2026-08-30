@@ -1,108 +1,145 @@
 {% extends "base.html" %}
-{% block title %}Cadastro de Membro - SiGI{% endblock %}
+{% block title %}Cadastro de Membro — SiGI{% endblock %}
+{% block nav_membros_active %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2><i class="bi bi-person-plus text-primary me-2"></i> Cadastro de Membro</h2>
-  <div class="card shadow-sm mt-3">
-    <div class="card-body">
+<div class="container-fluid px-lg-5">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-person-plus text-primary me-2"></i> Cadastro de Novo Membro
+      </h2>
+      <p class="text-muted mb-0">Preencha as informações pessoais, dados de contato e dados ministeriais.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('member.listar_membros') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Lista de Membros
+      </a>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
       <form method="POST" action="{{ url_for('member.cadastro_membro') }}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
         <!-- Abas -->
-        <ul class="nav nav-tabs" id="cadastroTabs" role="tablist">
+        <ul class="nav nav-tabs sigi-nav-tabs mb-4" id="cadastroTabs" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#dados" type="button" role="tab">Dados Pessoais</button>
+            <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#dados" type="button" role="tab">
+              <i class="bi bi-person me-1"></i> Dados Pessoais
+            </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="endereco-tab" data-bs-toggle="tab" data-bs-target="#endereco" type="button" role="tab">Endereço</button>
+            <button class="nav-link" id="endereco-tab" data-bs-toggle="tab" data-bs-target="#endereco" type="button" role="tab">
+              <i class="bi bi-geo-alt me-1"></i> Endereço
+            </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="eclesiastico-tab" data-bs-toggle="tab" data-bs-target="#eclesiastico" type="button" role="tab">Eclesiástico</button>
+            <button class="nav-link" id="eclesiastico-tab" data-bs-toggle="tab" data-bs-target="#eclesiastico" type="button" role="tab">
+              <i class="bi bi-award me-1"></i> Eclesiástico
+            </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="obs-tab" data-bs-toggle="tab" data-bs-target="#obs" type="button" role="tab">Observações</button>
+            <button class="nav-link" id="obs-tab" data-bs-toggle="tab" data-bs-target="#obs" type="button" role="tab">
+              <i class="bi bi-chat-left-text me-1"></i> Observações
+            </button>
           </li>
         </ul>
 
-        <div class="tab-content mt-3" id="cadastroTabsContent">
+        <div class="tab-content" id="cadastroTabsContent">
           <!-- Dados Pessoais -->
           <div class="tab-pane fade show active" id="dados" role="tabpanel">
-	    <div class="mb-3">
-	      {{ form.foto.label(class="form-label") }}
-	      {{ form.foto(class="form-control", accept="image/*") }}
-	      <small class="form-text text-muted">Somente imagens JPG ou PNG são permitidas.</small>
-	    </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="sigi-form-section-title">
+                  <i class="bi bi-image text-primary"></i> Foto de Perfil
+                </div>
+                <div class="row align-items-center g-3">
+                  <div class="col-md-6">
+                    {{ form.foto.label(class="form-label") }}
+                    {{ form.foto(class="form-control", accept="image/*") }}
+                    <div class="form-text">Formatos permitidos: JPG ou PNG (máx. 5MB).</div>
+                  </div>
+                </div>
+              </div>
 
-            <div class="row">
-              <div class="col-md-6 mb-3">
+              <div class="col-12">
+                <div class="sigi-form-section-title">
+                  <i class="bi bi-card-text text-primary"></i> Identificação Básica
+                </div>
+              </div>
+
+              <div class="col-md-6">
                 {{ form.nome.label(class="form-label") }}
                 {{ form.nome(class="form-control", placeholder="Digite o nome completo") }}
               </div>
-              <div class="col-md-3 mb-3">
+              <div class="col-md-3">
                 {{ form.data_nascimento.label(class="form-label") }}
                 {{ form.data_nascimento(class="form-control") }}
               </div>
-              <div class="col-md-3 mb-3">
+              <div class="col-md-3">
                 {{ form.sexo.label(class="form-label") }}
                 {{ form.sexo(class="form-select") }}
               </div>
-            </div>
 
-            <!-- Estado Civil ocupa toda a linha -->
-            <div class="row">
-              <div class="col-md-12 mb-3">
+              <!-- Estado Civil -->
+              <div class="col-md-12">
                 {{ form.estado_civil.label(class="form-label") }}
                 {{ form.estado_civil(class="form-select", id="estadoCivil") }}
               </div>
-            </div>
 
-            <!-- Linha com Cônjuge, Telefone e Email -->
-            <div class="row">
-              <div class="col-md-4 mb-3" id="conjugeField" style="display:none;">
+              <!-- Linha com Cônjuge, Telefone e Email -->
+              <div class="col-md-4" id="conjugeField" style="display:none;">
                 {{ form.conjuge.label(class="form-label") }}
                 {{ form.conjuge(class="form-control", placeholder="Nome do cônjuge") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.telefone.label(class="form-label") }}
                 {{ form.telefone(class="form-control", id="telefone", placeholder="(DDD) 99999-9999") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.email.label(class="form-label") }}
                 {{ form.email(class="form-control", placeholder="Digite o e-mail") }}
               </div>
-            </div>
-            <!-- RG, CPF, Nacionalidade e Naturalidade -->
-            <div class="row">
-              <div class="col-md-3 mb-3">
+
+              <div class="col-12">
+                <div class="sigi-form-section-title">
+                  <i class="bi bi-file-earmark-person text-primary"></i> Documentos & Origem
+                </div>
+              </div>
+
+              <!-- RG, CPF, Nacionalidade e Naturalidade -->
+              <div class="col-md-3">
                 {{ form.rg.label(class="form-label") }}
                 {{ form.rg(class="form-control", id="rg", placeholder="Digite o RG") }}
               </div>
-              <div class="col-md-3 mb-3">
+              <div class="col-md-3">
                 {{ form.cpf.label(class="form-label") }}
                 {{ form.cpf(class="form-control", id="cpf", placeholder="Digite o CPF") }}
               </div>
-              <div class="col-md-3 mb-3">
+              <div class="col-md-3">
                 {{ form.nacionalidade.label(class="form-label") }}
                 {{ form.nacionalidade(class="form-control", placeholder="Digite a nacionalidade") }}
               </div>
-              <div class="col-md-3 mb-3">
+              <div class="col-md-3">
                 {{ form.naturalidade.label(class="form-label") }}
                 {{ form.naturalidade(class="form-control", placeholder="Digite a naturalidade") }}
               </div>
-            </div>
 
-            <!-- Filiação, Pai e Mãe -->
-            <div class="row">
-              <div class="col-md-4 mb-3">
+              <!-- Filiação, Pai e Mãe -->
+              <div class="col-md-4">
                 {{ form.filiacao.label(class="form-label") }}
                 {{ form.filiacao(class="form-control", placeholder="Digite a filiação") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.pai.label(class="form-label") }}
                 {{ form.pai(class="form-control", placeholder="Nome do pai") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.mae.label(class="form-label") }}
                 {{ form.mae(class="form-control", placeholder="Nome da mãe") }}
               </div>
@@ -111,76 +148,87 @@
 
           <!-- Endereço -->
           <div class="tab-pane fade" id="endereco" role="tabpanel">
-            <div class="mb-3">
-              {{ form.endereco.label(class="form-label") }}
-              {{ form.endereco(class="form-control", placeholder="Rua, número, cidade, estado") }}
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="sigi-form-section-title">
+                  <i class="bi bi-geo-alt text-primary"></i> Localização Residencial
+                </div>
+              </div>
+              <div class="col-12">
+                {{ form.endereco.label(class="form-label") }}
+                {{ form.endereco(class="form-control", placeholder="Rua, número, complemento") }}
+              </div>
+              <div class="col-md-6">
                 {{ form.bairro.label(class="form-label") }}
                 {{ form.bairro(class="form-control", placeholder="Digite o bairro") }}
               </div>
-              <div class="col-md-6 mb-3">
+              <div class="col-md-6">
                 {{ form.cep.label(class="form-label") }}
                 {{ form.cep(class="form-control", id="cep", placeholder="Digite o CEP") }}
               </div>
             </div>
           </div>
+
           <!-- Eclesiástico -->
           <div class="tab-pane fade" id="eclesiastico" role="tabpanel">
-          
-            <div class="row">
-              <div class="col-md-4 mb-3">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="sigi-form-section-title">
+                  <i class="bi bi-award text-primary"></i> Vida Cristã & Ministério
+                </div>
+              </div>
+
+              <div class="col-md-4">
                 {{ form.batizado.label(class="form-label") }}
                 {{ form.batizado(class="form-select") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.dizimista.label(class="form-label") }}
                 {{ form.dizimista(class="form-select") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.data_batismo.label(class="form-label") }}
                 {{ form.data_batismo(class="form-control") }}
               </div>
-            </div>
 
-            <div class="row">
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.funcao.label(class="form-label") }}
                 {{ form.funcao(class="form-select") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.data_cadastro.label(class="form-label") }}
                 {{ form.data_cadastro(class="form-control") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.status.label(class="form-label") }}
                 {{ form.status(class="form-select") }}
               </div>
-            </div>
 
-            <!-- Novos campos -->
-            <div class="row">
-              <div class="col-md-4 mb-3">
+              <!-- Datas adicionais -->
+              <div class="col-md-6">
                 {{ form.data_conversao.label(class="form-label") }}
                 {{ form.data_conversao(class="form-control") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-6">
                 {{ form.data_saida.label(class="form-label") }}
                 {{ form.data_saida(class="form-control") }}
               </div>
-            </div>
 
-            <div class="row">
-              <div class="col-md-4 mb-3">
+              <div class="col-12">
+                <div class="sigi-form-section-title">
+                  <i class="bi bi-card-checklist text-primary"></i> Registro Ministerial & Carteira
+                </div>
+              </div>
+
+              <div class="col-md-4">
                 {{ form.numero_carteira.label(class="form-label") }}
                 {{ form.numero_carteira(class="form-control", placeholder="Número da carteira") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.igreja_local.label(class="form-label") }}
                 {{ form.igreja_local(class="form-control", placeholder="Digite a igreja local") }}
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4">
                 {{ form.validade.label(class="form-label") }}
                 {{ form.validade(class="form-control") }}
               </div>
@@ -189,20 +237,25 @@
 
           <!-- Observações -->
           <div class="tab-pane fade" id="obs" role="tabpanel">
-            <div class="mb-3 mt-3">
-              {{ form.observacoes.label(class="form-label") }}
-              {{ form.observacoes(class="form-control", rows="3", placeholder="Informações adicionais...") }}
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="sigi-form-section-title">
+                  <i class="bi bi-chat-left-text text-primary"></i> Informações Adicionais
+                </div>
+                {{ form.observacoes.label(class="form-label") }}
+                {{ form.observacoes(class="form-control", rows="4", placeholder="Anotações pastorais, observações e histórico do membro...") }}
+              </div>
             </div>
           </div>
         </div> <!-- fim das abas -->
 
         <!-- Botões -->
-        <div class="mt-3">
-          <button type="submit" class="btn btn-success">
-            <i class="bi bi-save me-1"></i> Salvar
+        <div class="d-flex gap-2 mt-4 pt-3 border-top">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check2-circle me-1"></i> Salvar Membro
           </button>
-          <a href="{{ url_for('member.listar_membros') }}" class="btn btn-secondary">
-            <i class="bi bi-x-circle me-1"></i> Cancelar
+          <a href="{{ url_for('member.listar_membros') }}" class="btn btn-outline-secondary">
+            Cancelar
           </a>
         </div>
       </form>
