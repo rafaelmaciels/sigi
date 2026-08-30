@@ -94,7 +94,14 @@
               <!-- Membro Opcional -->
               <div class="col-md-4">
                 {{ form.membro_id.label(class="form-label") }}
-                {{ form.membro_id(class="form-select") }}
+                <input type="hidden" name="membro_id" id="membro_id" value="{{ form.membro_id.data or '' }}">
+                <input type="text" class="form-control" id="membro_busca" 
+                       placeholder="Buscar membro contribuinte..."
+                       data-sigi-autocomplete
+                       data-url="{{ url_for('api.buscar_membros') }}"
+                       data-hidden-input="#membro_id"
+                       data-mode="lookup"
+                       value="{% if form.membro_id.data %}{% for val, lbl in form.membro_id.choices if val == form.membro_id.data %}{{ lbl }}{% endfor %}{% endif %}">
               </div>
 
               <!-- Valor -->

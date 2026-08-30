@@ -33,7 +33,15 @@
         <div class="row g-3 mb-4">
           <div class="col-md-6">
             {{ form.membro_id.label(class="form-label") }}
-            {{ form.membro_id(class="form-select") }}
+            <input type="hidden" name="membro_id" id="membro_id" value="{{ form.membro_id.data or '' }}">
+            <input type="text" class="form-control" id="membro_busca" 
+                   placeholder="Digite o nome para buscar o professor..."
+                   data-sigi-autocomplete
+                   data-url="{{ url_for('api.buscar_membros', status='Ativo') }}"
+                   data-hidden-input="#membro_id"
+                   data-mode="lookup"
+                   value="{% if form.membro_id.data %}{% for val, lbl in form.membro_id.choices if val == form.membro_id.data %}{{ lbl }}{% endfor %}{% endif %}">
+            <div class="form-text text-muted small"><i class="bi bi-info-circle me-1"></i> Digite as primeiras letras do nome para selecionar o professor.</div>
             {% if form.membro_id.errors %}
               <div class="text-danger small mt-1">{{ form.membro_id.errors[0] }}</div>
             {% endif %}
