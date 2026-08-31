@@ -183,20 +183,22 @@
     }
 
     async function consultar(cepNumerico) {
-      if (cepNumerico.length !== 8) return;
-      if (cepNumerico === lastConsultedCep) return;
+      if (!cepNumerico || cepNumerico.length !== 8) return;
 
-      // Verifica cache
+      // Se for o mesmo CEP já carregado com sucesso, não repete
+      if (cepNumerico === lastConsultedCep && statusIcon.querySelector('.bi-check-circle-fill')) {
+        return;
+      }
+
+      // Verifica cache em memória
       if (cepCache.has(cepNumerico)) {
         const dadosCached = cepCache.get(cepNumerico);
         if (dadosCached.success) {
           lastConsultedCep = cepNumerico;
           preencherCampos(dadosCached);
           setStatus('success', `${dadosCached.cidade}/${dadosCached.estado}`);
-        } else {
-          setStatus('error', dadosCached.erro || 'CEP não encontrado.');
+          return;
         }
-        return;
       }
 
       if (abortCtrl) {
@@ -210,7 +212,7 @@
         let data = null;
         let success = false;
 
-        // 1. Consulta direta ao ViaCEP no navegador (rápida, sem restrições de proxy de servidor)
+        // 1. Tenta consulta direta no ViaCEP via navegador do cliente
         try {
           const directResp = await fetch(`https://viacep.com.br/ws/${cepNumerico}/json/`, {
             signal: abortCtrl.signal,
@@ -220,7 +222,7 @@
           if (directResp.ok) {
             const viacepData = await directResp.json();
             if (viacepData.erro) {
-              data = { success: false, erro: 'CEP não encontrado.' };
+              data = { success: false, erro: 'CEP não encontrado. Verifique o número digitado.' };
             } else {
               data = {
                 success: true,
@@ -237,18 +239,24 @@
           }
         } catch (directErr) {
           if (directErr.name === 'AbortError') return;
-          console.log('Tentando rota alternativa de CEP no servidor...');
         }
 
-        // 2. Se a chamada direta falhou por rede, tenta o endpoint proxy do backend
-        if (!data) {
-          const resp = await fetch(`/api/cep/${cepNumerico}`, {
-            signal: abortCtrl.signal,
-            headers: { 'Accept': 'application/json' }
-          });
-          data = await resp.json();
-          if (resp.ok && data.success) {
-            success = true;
+        // 2. Se a chamada direta falhar, tenta o endpoint proxy local do backend
+        if (!data || !success) {
+          try {
+            const resp = await fetch(`/api/cep/${cepNumerico}`, {
+              signal: abortCtrl.signal,
+              headers: { 'Accept': 'application/json' }
+            });
+            const backendData = await resp.json();
+            if (resp.ok && backendData.success) {
+              data = backendData;
+              success = true;
+            } else if (!data) {
+              data = backendData;
+            }
+          } catch (backendErr) {
+            if (backendErr.name === 'AbortError') return;
           }
         }
 
@@ -261,41 +269,59 @@
           preencherCampos(data);
           setStatus('success', `${data.cidade}/${data.estado}`);
         } else {
+          lastConsultedCep = '';
           setStatus('error', (data && data.erro) ? data.erro : 'CEP não encontrado.');
         }
       } catch (err) {
         if (err.name === 'AbortError') return;
-        console.warn('Erro ao consultar ViaCEP:', err);
-        setStatus('error', 'Não foi possível consultar o CEP. Você pode preencher o endereço manualmente.');
+        lastConsultedCep = '';
+        console.warn('[SiGI CEP] Erro:', err);
+        setStatus('error', 'Não foi possível consultar o CEP. Preencha o endereço manualmente.');
       }
     }
 
-    // Eventos de digitação e formatação
-    inputEl.addEventListener('input', function (e) {
-      const rawValue = e.target.value;
+    function processarInput() {
+      const rawValue = inputEl.value;
       const formatted = formatarCep(rawValue);
-      
+
       if (formatted !== rawValue) {
-        e.target.value = formatted;
+        inputEl.value = formatted;
       }
 
       const digitsOnly = formatted.replace(/\D/g, '');
       if (digitsOnly.length === 8) {
         consultar(digitsOnly);
-      } else {
-        if (digitsOnly.length === 0) {
-          lastConsultedCep = '';
-          setStatus('default');
-        } else if (digitsOnly.length < 8 && lastConsultedCep) {
-          setStatus('default');
-        }
+      } else if (digitsOnly.length === 0) {
+        lastConsultedCep = '';
+        setStatus('default');
+      }
+    }
+
+    // Eventos de digitação, alteração e colagem
+    inputEl.addEventListener('input', processarInput);
+    inputEl.addEventListener('change', processarInput);
+    inputEl.addEventListener('keyup', function (e) {
+      if (e.key === 'Enter') {
+        const digitsOnly = inputEl.value.replace(/\D/g, '');
+        if (digitsOnly.length === 8) consultar(digitsOnly);
       }
     });
 
-    inputEl.addEventListener('blur', function (e) {
-      const digitsOnly = e.target.value.replace(/\D/g, '');
+    inputEl.addEventListener('blur', function () {
+      const digitsOnly = inputEl.value.replace(/\D/g, '');
       if (digitsOnly.length > 0 && digitsOnly.length < 8) {
         setStatus('error', 'CEP incompleto. Digite os 8 dígitos.');
+      }
+    });
+
+    // Se o campo já estiver carregado com 8 dígitos e sem endereço, pode consultar ao focar/clicar no ícone
+    statusIcon.style.cursor = 'pointer';
+    statusIcon.style.pointerEvents = 'auto';
+    statusIcon.addEventListener('click', function () {
+      const digitsOnly = inputEl.value.replace(/\D/g, '');
+      if (digitsOnly.length === 8) {
+        lastConsultedCep = ''; // força reconsulta
+        consultar(digitsOnly);
       }
     });
   }
