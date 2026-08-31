@@ -939,3 +939,27 @@ footer a:hover {
   font-size: 0.88rem;
 }
 
+/* ==========================================================================
+   📍 SiGI — Componente Universal de CEP (ViaCEP)
+   ========================================================================== */
+.sigi-cep-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.sigi-cep-wrapper input {
+  padding-right: 2.5rem;
+}
+
+.sigi-cep-status {
+  font-size: 1.1rem;
+  line-height: 1;
+  z-index: 4;
+}
+
+.sigi-cep-feedback {
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+

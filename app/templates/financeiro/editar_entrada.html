@@ -109,8 +109,21 @@
 
           <!-- Observações -->
           <div class="col-12">
-            {{ form.observacoes.label(class="form-label") }}
-            {{ form.observacoes(class="form-control", rows="2") }}
+            <label class="form-label fw-semibold">Observações / Detalhes</label>
+            <input type="hidden" name="observacoes" id="observacoes_input" value="{{ form.observacoes.data or entrada.observacoes or '' }}">
+            <div class="sigi-editor-wrapper" id="observacoesEditorWrapper">
+              <div id="observacoesEditorContainer">{{ (form.observacoes.data or entrada.observacoes or '') | safe }}</div>
+              <div class="sigi-editor-footer">
+                <span id="observacoesCharCount">0 caracteres</span>
+                <span id="observacoesWordCount">0 palavras</span>
+              </div>
+            </div>
+            <div class="form-text small text-muted mt-1">
+              <i class="bi bi-info-circle me-1"></i> Detalhes adicionais, justificativas ou notas sobre a receita.
+            </div>
+            {% if form.observacoes.errors %}
+              <div class="text-danger small mt-1">{{ form.observacoes.errors[0] }}</div>
+            {% endif %}
           </div>
         </div>
 
@@ -126,4 +139,19 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  initSigiEditor({
+    editorId: 'observacoesEditorContainer',
+    inputId: 'observacoes_input',
+    charCountId: 'observacoesCharCount',
+    wordCountId: 'observacoesWordCount',
+    placeholder: 'Detalhes adicionais, histórico ou notas sobre a receita...',
+    minHeight: 140
+  });
+});
+</script>
 {% endblock %}

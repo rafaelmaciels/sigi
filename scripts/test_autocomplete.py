@@ -142,5 +142,27 @@ class TestAutocompleteSystem(unittest.TestCase):
             self.assertIsInstance(json.loads(resp_ev.get_data(as_text=True)), list)
             print("[OK] Endpoints de patrimonios e eventos respondendo com 200 OK.")
 
+    def test_busca_financeiro_entradas_e_saidas(self):
+        """Testa endpoints de autocomplete de receitas e despesas financeiras"""
+        with self.app.app_context():
+            self.login()
+            resp_ent = self.client.get("/api/busca/entradas?q=Diz")
+            self.assertEqual(resp_ent.status_code, 200)
+            self.assertIsInstance(json.loads(resp_ent.get_data(as_text=True)), list)
+
+            # Testar busca de membro pelo nome em entradas (ex: Pris)
+            resp_membro_ent = self.client.get("/api/busca/entradas?q=Pris")
+            self.assertEqual(resp_membro_ent.status_code, 200)
+            dados = json.loads(resp_membro_ent.get_data(as_text=True))
+            self.assertIsInstance(dados, list)
+            if dados:
+                # O label deve ser o nome da pessoa e a inicial 'P'
+                self.assertTrue(any(d["label"].startswith("Pris") and d["inicial"] == "P" for d in dados))
+
+            resp_sai = self.client.get("/api/busca/saidas?q=Con")
+            self.assertEqual(resp_sai.status_code, 200)
+            self.assertIsInstance(json.loads(resp_sai.get_data(as_text=True)), list)
+            print("[OK] Endpoints de busca de entradas e saidas com identificação de membro respondendo com 200 OK.")
+
 if __name__ == "__main__":
     unittest.main()

@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import or_
 
 from app.extensions import db
-from app.models import Member, User
+from app.models import Member, User, Financeiro
 from app.models.patrimonio import Patrimonio
 from app.models.evento import Evento
 from app.models.documento import Ata, Certificado, Carta
@@ -195,5 +195,170 @@ def buscar_eventos():
             "data": data_str,
             "status": ev.status or "Confirmado",
         })
+
+    return jsonify(resultados)
+
+
+# ---------------------------------------------------------------------------
+# 💰 Busca de Entradas (Receitas Financeiras)
+# ---------------------------------------------------------------------------
+@api_bp.route("/busca/entradas", methods=["GET"])
+@login_required
+def buscar_entradas():
+    termo = request.args.get("q", "").strip()
+    limite = min(request.args.get("limit", 10, type=int), 50)
+
+    if not termo or len(termo) < 2:
+        return jsonify([])
+
+    termo_norm = remover_acentos(termo)
+    prefixo_2 = termo_norm[:2]
+
+    # Busca registros que comecem com o termo na descrição, conta, categoria ou no nome do membro
+    entradas = Financeiro.query.outerjoin(Member).filter(
+        Financeiro.tipo == "Entrada",
+        or_(
+            Member.nome.ilike(f"{termo}%"),
+            Member.nome.ilike(f"{prefixo_2}%"),
+            Financeiro.descricao.ilike(f"{termo}%"),
+            Financeiro.descricao.ilike(f"{prefixo_2}%"),
+            Financeiro.categoria.ilike(f"{termo}%"),
+            Financeiro.conta.ilike(f"{termo}%"),
+            Financeiro.forma_pagamento.ilike(f"{termo}%"),
+        )
+    ).order_by(Financeiro.data.desc(), Financeiro.id.desc()).limit(limite * 3).all()
+
+    resultados = []
+    vistos = set()
+
+    for item in entradas:
+        data_str = item.data.strftime("%d/%m/%Y") if item.data else ""
+        
+        # 1. Se a busca deu match no nome do membro vinculado
+        membro_match = False
+        if item.membro:
+            nome_membro_norm = remover_acentos(item.membro.nome)
+            if nome_membro_norm.startswith(termo_norm) or any(p.startswith(termo_norm) for p in nome_membro_norm.split()):
+                membro_match = True
+
+        if membro_match and item.membro:
+            label = item.membro.nome
+            chave = f"membro_{item.membro.id}"
+            if chave in vistos:
+                continue
+            vistos.add(chave)
+
+            foto_url = None
+            if item.membro.foto:
+                filename = item.membro.foto if item.membro.foto.startswith("uploads/") else f"uploads/{item.membro.foto}"
+                foto_url = url_for("static", filename=filename)
+
+            resultados.append({
+                "id": item.id,
+                "value": label,
+                "label": label,
+                "subtext": f"{item.categoria} • {item.conta} • {data_str}",
+                "categoria": item.categoria or "Receita",
+                "foto": foto_url,
+                "inicial": item.membro.nome[0].upper(),
+                "status": f"R$ {item.valor:.2f}",
+            })
+        else:
+            # 2. Se a busca deu match na descrição, conta ou categoria
+            desc_norm = remover_acentos(item.descricao or "")
+            cat_norm = remover_acentos(item.categoria or "")
+            conta_norm = remover_acentos(item.conta or "")
+
+            if (desc_norm.startswith(termo_norm) or cat_norm.startswith(termo_norm) or conta_norm.startswith(termo_norm) or termo_norm in desc_norm):
+                label = item.descricao if desc_norm.startswith(termo_norm) else (item.categoria if cat_norm.startswith(termo_norm) else (item.descricao or item.categoria))
+                chave = f"desc_{label}"
+                if chave in vistos:
+                    continue
+                vistos.add(chave)
+
+                membro_info = f" • {item.membro.nome}" if item.membro else ""
+                resultados.append({
+                    "id": item.id,
+                    "value": label,
+                    "label": label,
+                    "subtext": f"{item.categoria} • {item.conta} • {data_str}{membro_info}",
+                    "categoria": item.categoria or "Receita",
+                    "foto": None,
+                    "inicial": label[0].upper() if label else "R",
+                    "status": f"R$ {item.valor:.2f}",
+                })
+
+        if len(resultados) >= limite:
+            break
+
+    return jsonify(resultados)
+
+
+# ---------------------------------------------------------------------------
+# 💸 Busca de Saídas (Despesas Financeiras)
+# ---------------------------------------------------------------------------
+@api_bp.route("/busca/saidas", methods=["GET"])
+@login_required
+def buscar_saidas():
+    termo = request.args.get("q", "").strip()
+    limite = min(request.args.get("limit", 10, type=int), 50)
+
+    if not termo or len(termo) < 2:
+        return jsonify([])
+
+    termo_norm = remover_acentos(termo)
+    prefixo_2 = termo_norm[:2]
+
+    saidas = Financeiro.query.filter(
+        Financeiro.tipo == "Saída",
+        or_(
+            Financeiro.descricao.ilike(f"{termo}%"),
+            Financeiro.descricao.ilike(f"{prefixo_2}%"),
+            Financeiro.categoria.ilike(f"{termo}%"),
+            Financeiro.departamento.ilike(f"{termo}%"),
+            Financeiro.conta.ilike(f"{termo}%"),
+            Financeiro.cnpj_fornecedor.ilike(f"{termo}%"),
+        )
+    ).order_by(Financeiro.data.desc(), Financeiro.id.desc()).limit(limite * 3).all()
+
+    resultados = []
+    vistos = set()
+
+    for item in saidas:
+        data_str = item.data.strftime("%d/%m/%Y") if item.data else ""
+        desc_norm = remover_acentos(item.descricao or "")
+        cat_norm = remover_acentos(item.categoria or "")
+        forn_norm = remover_acentos(item.cnpj_fornecedor or "")
+        dep_norm = remover_acentos(item.departamento or "")
+
+        # Se deu match no favorecido/fornecedor
+        if forn_norm and (forn_norm.startswith(termo_norm) or termo_norm in forn_norm):
+            label = item.cnpj_fornecedor
+            chave = f"forn_{label}"
+        elif desc_norm.startswith(termo_norm) or termo_norm in desc_norm:
+            label = item.descricao
+            chave = f"desc_{label}"
+        else:
+            label = item.categoria or item.departamento
+            chave = f"cat_{label}"
+
+        if chave in vistos:
+            continue
+        vistos.add(chave)
+
+        forn_str = f" • {item.cnpj_fornecedor}" if item.cnpj_fornecedor and label != item.cnpj_fornecedor else ""
+        resultados.append({
+            "id": item.id,
+            "value": label,
+            "label": label,
+            "subtext": f"{item.categoria} • {item.departamento} • {data_str}{forn_str}",
+            "categoria": item.categoria or "Despesa",
+            "foto": None,
+            "inicial": label[0].upper() if label else "D",
+            "status": f"R$ {item.valor:.2f}",
+        })
+
+        if len(resultados) >= limite:
+            break
 
     return jsonify(resultados)
