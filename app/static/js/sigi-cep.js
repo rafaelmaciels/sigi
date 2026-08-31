@@ -207,20 +207,61 @@
       setStatus('loading');
 
       try {
-        const resp = await fetch(`/api/cep/${cepNumerico}`, {
-          signal: abortCtrl.signal,
-          headers: { 'Accept': 'application/json' }
-        });
+        let data = null;
+        let success = false;
 
-        const data = await resp.json();
-        cepCache.set(cepNumerico, data);
+        // 1. Consulta direta ao ViaCEP no navegador (rápida, sem restrições de proxy de servidor)
+        try {
+          const directResp = await fetch(`https://viacep.com.br/ws/${cepNumerico}/json/`, {
+            signal: abortCtrl.signal,
+            mode: 'cors'
+          });
 
-        if (resp.ok && data.success) {
+          if (directResp.ok) {
+            const viacepData = await directResp.json();
+            if (viacepData.erro) {
+              data = { success: false, erro: 'CEP não encontrado.' };
+            } else {
+              data = {
+                success: true,
+                cep: viacepData.cep || '',
+                logradouro: viacepData.logradouro || '',
+                complemento: viacepData.complemento || '',
+                bairro: viacepData.bairro || '',
+                cidade: viacepData.localidade || '',
+                estado: viacepData.uf || '',
+                uf: viacepData.uf || ''
+              };
+              success = true;
+            }
+          }
+        } catch (directErr) {
+          if (directErr.name === 'AbortError') return;
+          console.log('Tentando rota alternativa de CEP no servidor...');
+        }
+
+        // 2. Se a chamada direta falhou por rede, tenta o endpoint proxy do backend
+        if (!data) {
+          const resp = await fetch(`/api/cep/${cepNumerico}`, {
+            signal: abortCtrl.signal,
+            headers: { 'Accept': 'application/json' }
+          });
+          data = await resp.json();
+          if (resp.ok && data.success) {
+            success = true;
+          }
+        }
+
+        if (data) {
+          cepCache.set(cepNumerico, data);
+        }
+
+        if (success && data && data.success) {
           lastConsultedCep = cepNumerico;
           preencherCampos(data);
           setStatus('success', `${data.cidade}/${data.estado}`);
         } else {
-          setStatus('error', data.erro || 'CEP não encontrado.');
+          setStatus('error', (data && data.erro) ? data.erro : 'CEP não encontrado.');
         }
       } catch (err) {
         if (err.name === 'AbortError') return;
