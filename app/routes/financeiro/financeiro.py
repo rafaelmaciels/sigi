@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, Response, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, Response, current_app, jsonify
 from datetime import datetime, date
 from collections import defaultdict
 import csv, io, os
@@ -43,7 +43,7 @@ def _parse_filter_date(s):
 
 
 # -----------------------------
-# 📊 Painel Geral Financeiro
+# 📊 Painel Geral Financeiro & Relatório Geral de Entradas e Saídas
 # -----------------------------
 @financeiro_bp.route('/')
 @login_required
@@ -116,6 +116,43 @@ def financeiro():
     # 5. Últimos 5 lançamentos gerais
     ultimos_lancamentos = Financeiro.query.order_by(Financeiro.data.desc(), Financeiro.id.desc()).limit(5).all()
 
+    # 6. Período do Relatório Geral de Entradas e Saídas
+    inicio_str = request.args.get('inicio', '').strip()
+    fim_str = request.args.get('fim', '').strip()
+
+    dt_inicio = _parse_filter_date(inicio_str) if inicio_str else None
+    dt_fim = _parse_filter_date(fim_str) if fim_str else None
+
+    # Se não fornecido, padrão é o início do mês atual até hoje / fim do mês
+    if not dt_inicio or not dt_fim:
+        dt_inicio = date(ano_atual, mes_atual, 1)
+        dt_fim = hoje
+
+    periodo_invalido = False
+    if dt_inicio > dt_fim:
+        periodo_invalido = True
+        flash("A data inicial não pode ser posterior à data final.", "warning")
+        entradas_periodo = []
+        saidas_periodo = []
+    else:
+        entradas_periodo = Financeiro.query.filter(
+            Financeiro.tipo == "Entrada",
+            Financeiro.data >= dt_inicio,
+            Financeiro.data <= dt_fim
+        ).order_by(Financeiro.data.desc(), Financeiro.id.desc()).all()
+
+        saidas_periodo = Financeiro.query.filter(
+            Financeiro.tipo == "Saída",
+            Financeiro.data >= dt_inicio,
+            Financeiro.data <= dt_fim
+        ).order_by(Financeiro.data.desc(), Financeiro.id.desc()).all()
+
+    rel_total_entradas = sum(e.valor for e in entradas_periodo)
+    rel_total_saidas = sum(s.valor for s in saidas_periodo)
+    rel_saldo_periodo = rel_total_entradas - rel_total_saidas
+    rel_qtd_entradas = len(entradas_periodo)
+    rel_qtd_saidas = len(saidas_periodo)
+
     return render_template(
         'financeiro/financeiro.html',
         total_entradas_mes=float(entradas_mes),
@@ -126,8 +163,108 @@ def financeiro():
         labels=labels,
         entradas_data=entradas_data,
         saidas_data=saidas_data,
-        ultimos_lancamentos=ultimos_lancamentos
+        ultimos_lancamentos=ultimos_lancamentos,
+        # Variáveis do Relatório Geral de Entradas e Saídas
+        rel_data_inicio=dt_inicio.strftime('%Y-%m-%d'),
+        rel_data_fim=dt_fim.strftime('%Y-%m-%d'),
+        rel_total_entradas=rel_total_entradas,
+        rel_total_saidas=rel_total_saidas,
+        rel_saldo_periodo=rel_saldo_periodo,
+        rel_qtd_entradas=rel_qtd_entradas,
+        rel_qtd_saidas=rel_qtd_saidas,
+        rel_entradas=entradas_periodo,
+        rel_saidas=saidas_periodo,
+        rel_periodo_invalido=periodo_invalido
     )
+
+
+# -----------------------------
+# 📡 API: Dados do Relatório Geral de Entradas e Saídas por Período
+# -----------------------------
+@financeiro_bp.route('/api/relatorio-periodo', methods=['GET'])
+@login_required
+@permission_required("financeiro", "view")
+def api_relatorio_periodo():
+    inicio_str = request.args.get('inicio', '').strip()
+    fim_str = request.args.get('fim', '').strip()
+
+    dt_inicio = _parse_filter_date(inicio_str)
+    dt_fim = _parse_filter_date(fim_str)
+
+    if not dt_inicio or not dt_fim:
+        return jsonify({
+            "success": False,
+            "error": "Informe uma data inicial e uma data final válidas."
+        }), 400
+
+    if dt_inicio > dt_fim:
+        return jsonify({
+            "success": False,
+            "error": "A data inicial não pode ser posterior à data final."
+        }), 400
+
+    entradas_query = Financeiro.query.filter(
+        Financeiro.tipo == "Entrada",
+        Financeiro.data >= dt_inicio,
+        Financeiro.data <= dt_fim
+    ).order_by(Financeiro.data.desc(), Financeiro.id.desc()).all()
+
+    saidas_query = Financeiro.query.filter(
+        Financeiro.tipo == "Saída",
+        Financeiro.data >= dt_inicio,
+        Financeiro.data <= dt_fim
+    ).order_by(Financeiro.data.desc(), Financeiro.id.desc()).all()
+
+    total_entradas = sum(e.valor for e in entradas_query)
+    total_saidas = sum(s.valor for s in saidas_query)
+    saldo_periodo = total_entradas - total_saidas
+
+    entradas_json = []
+    for e in entradas_query:
+        entradas_json.append({
+            "id": e.id,
+            "data": e.data.strftime('%d/%m/%Y') if e.data else "",
+            "data_iso": e.data.strftime('%Y-%m-%d') if e.data else "",
+            "descricao": e.descricao or "",
+            "categoria": e.categoria,
+            "membro": e.membro.nome if e.membro else (e.cpf_membro or "Não especificado"),
+            "conta": e.conta,
+            "departamento": e.departamento,
+            "forma_pagamento": e.forma_pagamento,
+            "valor": e.valor,
+            "comprovante": e.comprovante or ""
+        })
+
+    saidas_json = []
+    for s in saidas_query:
+        saidas_json.append({
+            "id": s.id,
+            "data": s.data.strftime('%d/%m/%Y') if s.data else "",
+            "data_iso": s.data.strftime('%Y-%m-%d') if s.data else "",
+            "descricao": s.descricao or "",
+            "categoria": s.categoria,
+            "fornecedor": s.cnpj_fornecedor or s.descricao or "Não informado",
+            "conta": s.conta,
+            "departamento": s.departamento,
+            "forma_pagamento": s.forma_pagamento,
+            "valor": s.valor,
+            "comprovante": s.comprovante or ""
+        })
+
+    return jsonify({
+        "success": True,
+        "inicio": dt_inicio.strftime('%Y-%m-%d'),
+        "fim": dt_fim.strftime('%Y-%m-%d'),
+        "resumo": {
+            "total_entradas": total_entradas,
+            "total_saidas": total_saidas,
+            "saldo": saldo_periodo,
+            "qtd_entradas": len(entradas_json),
+            "qtd_saidas": len(saidas_json)
+        },
+        "entradas": entradas_json,
+        "saidas": saidas_json
+    })
 
 
 # -----------------------------

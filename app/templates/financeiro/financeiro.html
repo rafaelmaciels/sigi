@@ -2,6 +2,10 @@
 {% block title %}Painel Financeiro — SiGI{% endblock %}
 {% block nav_financeiro_active %}active{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-lg-5">
 
@@ -176,7 +180,244 @@
     </div>
   </div>
 
-  <!-- Terceira Linha: Últimos Lançamentos Realizados -->
+  <!-- Terceira Linha: Relatório Geral de Entradas e Saídas por Período -->
+  <div class="card shadow-sm mb-4" id="secao-relatorio-geral">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-ruled text-primary me-2"></i> Relatório Geral de Entradas e Saídas</h5>
+        <small class="text-muted">Selecione um intervalo de datas para consultar o resumo e os lançamentos detalhados.</small>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <a href="{{ url_for('financeiro.relatorios') }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-funnel"></i> Filtros Avançados
+        </a>
+      </div>
+    </div>
+    <div class="card-body p-4">
+      
+      <!-- Seletor de Período -->
+      <form id="formFiltroPeriodo" method="GET" action="{{ url_for('financeiro.financeiro') }}" class="row g-3 align-items-end mb-4 p-3 bg-light rounded-3 border">
+        <div class="col-sm-6 col-md-4 col-lg-3">
+          <label for="rel_inicio" class="form-label fw-semibold small text-secondary">
+            <i class="bi bi-calendar-event me-1 text-primary"></i> Data Inicial
+          </label>
+          <input type="date" class="form-control shadow-none" id="rel_inicio" name="inicio" value="{{ rel_data_inicio }}" required>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-3">
+          <label for="rel_fim" class="form-label fw-semibold small text-secondary">
+            <i class="bi bi-calendar-check me-1 text-primary"></i> Data Final
+          </label>
+          <input type="date" class="form-control shadow-none" id="rel_fim" name="fim" value="{{ rel_data_fim }}" required>
+        </div>
+        <div class="col-12 col-md-4 col-lg-6 d-flex gap-2 flex-wrap">
+          <button type="submit" class="btn btn-primary px-3" id="btnFiltrarRelatorio">
+            <i class="bi bi-search me-1"></i> Filtrar Período
+          </button>
+          <button type="button" class="btn btn-outline-secondary px-3" id="btnMesAtual">
+            <i class="bi bi-calendar3 me-1"></i> Mês Atual
+          </button>
+        </div>
+      </form>
+
+      <!-- Mensagens de Alerta / Validação -->
+      <div id="rel_alert_container" class="{% if not rel_periodo_invalido %}d-none{% endif %} mb-3">
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <span id="rel_alert_text">A data inicial não pode ser posterior à data final.</span>
+          <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert"></button>
+        </div>
+      </div>
+
+      <!-- Estado de Carregamento (Loading) -->
+      <div id="rel_loading_spinner" class="d-none text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem;">
+          <span class="visually-hidden">Carregando...</span>
+        </div>
+        <div class="text-muted fw-semibold">Consultando dados financeiros do período...</div>
+      </div>
+
+      <!-- Conteúdo do Relatório -->
+      <div id="rel_conteudo_resultado">
+        
+        <!-- Cards de Resumo Financeiro -->
+        <div class="row g-3 mb-4">
+          <!-- Total de Entradas -->
+          <div class="col-sm-6 col-xl-3">
+            <div class="card dashboard-card card-success h-100 p-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="dashboard-icon bg-success bg-opacity-10 text-success mb-0">
+                  <i class="bi bi-arrow-down-left fs-4"></i>
+                </div>
+                <div>
+                  <h6>Total de Entradas</h6>
+                  <h4 class="text-success mb-0 fw-bold" id="rel_total_entradas_text">{{ rel_total_entradas | currency }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total de Saídas -->
+          <div class="col-sm-6 col-xl-3">
+            <div class="card dashboard-card card-danger h-100 p-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="dashboard-icon bg-danger bg-opacity-10 text-danger mb-0">
+                  <i class="bi bi-arrow-up-right fs-4"></i>
+                </div>
+                <div>
+                  <h6>Total de Saídas</h6>
+                  <h4 class="text-danger mb-0 fw-bold" id="rel_total_saidas_text">{{ rel_total_saidas | currency }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saldo do Período -->
+          <div class="col-sm-6 col-xl-3">
+            <div class="card dashboard-card {% if rel_saldo_periodo >= 0 %}card-primary{% else %}card-danger{% endif %} h-100 p-3" id="rel_card_saldo">
+              <div class="d-flex align-items-center gap-3">
+                <div class="dashboard-icon bg-primary bg-opacity-10 text-primary mb-0" id="rel_icon_saldo">
+                  <i class="bi bi-wallet2 fs-4"></i>
+                </div>
+                <div>
+                  <h6>Saldo do Período</h6>
+                  <h4 class="{% if rel_saldo_periodo >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0 fw-bold" id="rel_saldo_text">
+                    {{ rel_saldo_periodo | currency }}
+                  </h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantidades de Movimentações -->
+          <div class="col-sm-6 col-xl-3">
+            <div class="card dashboard-card card-info h-100 p-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="dashboard-icon bg-info bg-opacity-10 text-info mb-0">
+                  <i class="bi bi-receipt fs-4"></i>
+                </div>
+                <div>
+                  <h6>Lançamentos</h6>
+                  <div class="fw-bold fs-6 text-dark mt-1">
+                    <span class="text-success" id="rel_qtd_entradas_text">{{ rel_qtd_entradas }}</span> entradas &bull; 
+                    <span class="text-danger" id="rel_qtd_saidas_text">{{ rel_qtd_saidas }}</span> saídas
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Abas de Detalhamento: Entradas e Saídas -->
+        <ul class="nav nav-pills mb-3 gap-2" id="relTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold" id="tab-entradas-btn" data-bs-toggle="pill" data-bs-target="#tab-entradas" type="button" role="tab" aria-controls="tab-entradas" aria-selected="true">
+              <i class="bi bi-arrow-down-circle text-success me-1"></i> Entradas 
+              <span class="badge bg-success ms-1" id="badge_qtd_entradas">{{ rel_qtd_entradas }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="tab-saidas-btn" data-bs-toggle="pill" data-bs-target="#tab-saidas" type="button" role="tab" aria-controls="tab-saidas" aria-selected="false">
+              <i class="bi bi-arrow-up-circle text-danger me-1"></i> Saídas 
+              <span class="badge bg-danger ms-1" id="badge_qtd_saidas">{{ rel_qtd_saidas }}</span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="relTabsContent">
+          
+          <!-- Aba Entradas -->
+          <div class="tab-pane fade show active" id="tab-entradas" role="tabpanel" aria-labelledby="tab-entradas-btn">
+            <div class="table-responsive border rounded-3 bg-white">
+              <table class="table table-hover align-middle mb-0" id="tabela_entradas">
+                <thead class="table-light">
+                  <tr>
+                    <th style="min-width: 100px;">Data</th>
+                    <th style="min-width: 150px;">Categoria</th>
+                    <th style="min-width: 180px;">Membro / Contribuinte</th>
+                    <th style="min-width: 150px;">Conta / Fundo</th>
+                    <th style="min-width: 130px;">Forma Pagto</th>
+                    <th style="min-width: 180px;">Descrição / Ref.</th>
+                    <th class="text-end" style="min-width: 120px;">Valor</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody_entradas">
+                  {% for e in rel_entradas %}
+                  <tr>
+                    <td class="text-muted small fw-medium">{{ e.data.strftime('%d/%m/%Y') if e.data else '-' }}</td>
+                    <td><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ e.categoria }}</span></td>
+                    <td class="fw-semibold text-dark">{{ e.membro.nome if e.membro else (e.cpf_membro or 'Não especificado') }}</td>
+                    <td class="small text-secondary">{{ e.conta }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ e.forma_pagamento }}</span></td>
+                    <td class="text-muted small">{{ e.descricao or '-' }}</td>
+                    <td class="text-end fw-bold text-success">+ {{ e.valor | currency }}</td>
+                  </tr>
+                  {% else %}
+                  <tr id="tr_empty_entradas">
+                    <td colspan="7" class="text-center text-muted py-4">
+                      <div class="sigi-empty-state py-3">
+                        <i class="bi bi-inbox text-muted fs-3 mb-2 d-block"></i>
+                        <span class="fw-medium">Nenhuma movimentação de entrada encontrada para o período selecionado.</span>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Aba Saídas -->
+          <div class="tab-pane fade" id="tab-saidas" role="tabpanel" aria-labelledby="tab-saidas-btn">
+            <div class="table-responsive border rounded-3 bg-white">
+              <table class="table table-hover align-middle mb-0" id="tabela_saidas">
+                <thead class="table-light">
+                  <tr>
+                    <th style="min-width: 100px;">Data</th>
+                    <th style="min-width: 150px;">Categoria</th>
+                    <th style="min-width: 180px;">Fornecedor / Favorecido</th>
+                    <th style="min-width: 150px;">Departamento / Fundo</th>
+                    <th style="min-width: 130px;">Forma Pagto</th>
+                    <th style="min-width: 180px;">Descrição</th>
+                    <th class="text-end" style="min-width: 120px;">Valor</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody_saidas">
+                  {% for s in rel_saidas %}
+                  <tr>
+                    <td class="text-muted small fw-medium">{{ s.data.strftime('%d/%m/%Y') if s.data else '-' }}</td>
+                    <td><span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">{{ s.categoria }}</span></td>
+                    <td class="fw-semibold text-dark">{{ s.cnpj_fornecedor or s.descricao or 'Não informado' }}</td>
+                    <td>
+                      <div class="small fw-medium text-dark">{{ s.departamento }}</div>
+                      <div class="small text-muted">{{ s.conta }}</div>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ s.forma_pagamento }}</span></td>
+                    <td class="text-muted small">{{ s.descricao or '-' }}</td>
+                    <td class="text-end fw-bold text-danger">- {{ s.valor | currency }}</td>
+                  </tr>
+                  {% else %}
+                  <tr id="tr_empty_saidas">
+                    <td colspan="7" class="text-center text-muted py-4">
+                      <div class="sigi-empty-state py-3">
+                        <i class="bi bi-inbox text-muted fs-3 mb-2 d-block"></i>
+                        <span class="fw-medium">Nenhuma movimentação de saída encontrada para o período selecionado.</span>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Quarta Linha: Últimos Lançamentos Realizados -->
   <div class="card shadow-sm mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
       <span class="fw-bold"><i class="bi bi-clock-history text-secondary me-2"></i> Lançamentos Recentes</span>
@@ -277,6 +518,171 @@
         x: { grid: { display: false } },
         y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
       }
+    }
+  });
+
+  // Lógica do Relatório Geral de Entradas e Saídas
+  document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("formFiltroPeriodo");
+    const inputInicio = document.getElementById("rel_inicio");
+    const inputFim = document.getElementById("rel_fim");
+    const btnMesAtual = document.getElementById("btnMesAtual");
+    const alertContainer = document.getElementById("rel_alert_container");
+    const alertText = document.getElementById("rel_alert_text");
+    const loadingSpinner = document.getElementById("rel_loading_spinner");
+    const conteudoResultado = document.getElementById("rel_conteudo_resultado");
+
+    function formatarMoeda(val) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+    }
+
+    function mostrarAlerta(msg) {
+      if (alertText && alertContainer) {
+        alertText.textContent = msg;
+        alertContainer.classList.remove("d-none");
+      }
+    }
+
+    function ocultarAlerta() {
+      if (alertContainer) {
+        alertContainer.classList.add("d-none");
+      }
+    }
+
+    function buscarRelatorio(inicio, fim) {
+      if (!inicio || !fim) {
+        mostrarAlerta("Por favor, preencha a data inicial e a data final.");
+        return;
+      }
+
+      if (inicio > fim) {
+        mostrarAlerta("A data inicial não pode ser posterior à data final.");
+        return;
+      }
+
+      ocultarAlerta();
+      loadingSpinner.classList.remove("d-none");
+      conteudoResultado.style.opacity = "0.4";
+
+      fetch(`{{ url_for('financeiro.api_relatorio_periodo') }}?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`)
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => { throw new Error(data.error || "Erro ao consultar dados."); });
+          }
+          return response.json();
+        })
+        .then(data => {
+          loadingSpinner.classList.add("d-none");
+          conteudoResultado.style.opacity = "1";
+
+          if (!data.success) {
+            mostrarAlerta(data.error || "Não foi possível carregar o relatório financeiro. Tente novamente.");
+            return;
+          }
+
+          // Atualiza Resumo
+          const resumo = data.resumo;
+          document.getElementById("rel_total_entradas_text").textContent = formatarMoeda(resumo.total_entradas);
+          document.getElementById("rel_total_saidas_text").textContent = formatarMoeda(resumo.total_saidas);
+          
+          const saldoEl = document.getElementById("rel_saldo_text");
+          saldoEl.textContent = formatarMoeda(resumo.saldo);
+          if (resumo.saldo >= 0) {
+            saldoEl.className = "text-primary mb-0 fw-bold";
+          } else {
+            saldoEl.className = "text-danger mb-0 fw-bold";
+          }
+
+          document.getElementById("rel_qtd_entradas_text").textContent = resumo.qtd_entradas;
+          document.getElementById("rel_qtd_saidas_text").textContent = resumo.qtd_saidas;
+          document.getElementById("badge_qtd_entradas").textContent = resumo.qtd_entradas;
+          document.getElementById("badge_qtd_saidas").textContent = resumo.qtd_saidas;
+
+          // Renderiza Entradas
+          const tbodyEntradas = document.getElementById("tbody_entradas");
+          if (data.entradas.length === 0) {
+            tbodyEntradas.innerHTML = `
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                  <div class="sigi-empty-state py-3">
+                    <i class="bi bi-inbox text-muted fs-3 mb-2 d-block"></i>
+                    <span class="fw-medium">Nenhuma movimentação de entrada encontrada para o período selecionado.</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          } else {
+            tbodyEntradas.innerHTML = data.entradas.map(e => `
+              <tr>
+                <td class="text-muted small fw-medium">${e.data || '-'}</td>
+                <td><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">${e.categoria}</span></td>
+                <td class="fw-semibold text-dark">${e.membro}</td>
+                <td class="small text-secondary">${e.conta}</td>
+                <td><span class="badge bg-light text-dark border">${e.forma_pagamento}</span></td>
+                <td class="text-muted small">${e.descricao || '-'}</td>
+                <td class="text-end fw-bold text-success">+ ${formatarMoeda(e.valor)}</td>
+              </tr>
+            `).join("");
+          }
+
+          // Renderiza Saídas
+          const tbodySaidas = document.getElementById("tbody_saidas");
+          if (data.saidas.length === 0) {
+            tbodySaidas.innerHTML = `
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                  <div class="sigi-empty-state py-3">
+                    <i class="bi bi-inbox text-muted fs-3 mb-2 d-block"></i>
+                    <span class="fw-medium">Nenhuma movimentação de saída encontrada para o período selecionado.</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          } else {
+            tbodySaidas.innerHTML = data.saidas.map(s => `
+              <tr>
+                <td class="text-muted small fw-medium">${s.data || '-'}</td>
+                <td><span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">${s.categoria}</span></td>
+                <td class="fw-semibold text-dark">${s.fornecedor}</td>
+                <td>
+                  <div class="small fw-medium text-dark">${s.departamento}</div>
+                  <div class="small text-muted">${s.conta}</div>
+                </td>
+                <td><span class="badge bg-light text-dark border">${s.forma_pagamento}</span></td>
+                <td class="text-muted small">${s.descricao || '-'}</td>
+                <td class="text-end fw-bold text-danger">- ${formatarMoeda(s.valor)}</td>
+              </tr>
+            `).join("");
+          }
+        })
+        .catch(err => {
+          loadingSpinner.classList.add("d-none");
+          conteudoResultado.style.opacity = "1";
+          mostrarAlerta("Não foi possível carregar o relatório financeiro. Tente novamente.");
+        });
+    }
+
+    if (form) {
+      form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        buscarRelatorio(inputInicio.value, inputFim.value);
+      });
+    }
+
+    if (btnMesAtual) {
+      btnMesAtual.addEventListener("click", function() {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        
+        const primeiroDia = `${ano}-${mes}-01`;
+        const diaAtual = `${ano}-${mes}-${dia}`;
+        
+        inputInicio.value = primeiroDia;
+        inputFim.value = diaAtual;
+        buscarRelatorio(primeiroDia, diaAtual);
+      });
     }
   });
 </script>

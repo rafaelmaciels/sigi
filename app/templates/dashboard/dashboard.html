@@ -360,15 +360,16 @@
     </div>
   </div>
 
-  <!-- Histórico Financeiro dos Últimos 6 Meses -->
-  <div class="row g-4">
-    <div class="col-12">
+  <!-- Histórico Financeiro dos Últimos 6 Meses & Escala de Obreiros -->
+  <div class="row g-4 mb-4">
+    <!-- Gráfico de Histórico Financeiro -->
+    <div class="col-lg-6">
       <div class="card shadow-sm h-100">
         <div class="card-header">
           <i class="bi bi-bar-chart text-success me-2"></i> <strong>Histórico Financeiro (Últimos 6 Meses)</strong>
         </div>
         <div class="card-body">
-          <div class="chart-container">
+          <div class="chart-container" style="min-height: 280px;">
             {% if has_financeiro_data %}
               <canvas id="financeiroChart"></canvas>
             {% else %}
@@ -380,6 +381,30 @@
                 <div class="sigi-empty-text">Registre entradas e saídas para gerar o histórico comparativo.</div>
               </div>
             {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Escala de Obreiros -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <i class="bi bi-person-lines-fill text-primary me-2"></i>
+            <strong>Escala de Obreiros</strong>
+          </div>
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+            Em Breve
+          </span>
+        </div>
+        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center p-4">
+          <div class="sigi-empty-state py-3">
+            <div class="sigi-empty-icon mb-2" style="width:52px;height:52px;font-size:1.4rem;">
+              <i class="bi bi-calendar-range text-primary"></i>
+            </div>
+            <div class="sigi-empty-title fs-6">Escala de Obreiros & Voluntários</div>
+            <div class="sigi-empty-text small text-muted mb-0">Módulo em preparação para organização de cultos, recepção, louvor e departamentos.</div>
           </div>
         </div>
       </div>
@@ -442,7 +467,7 @@
     });
   }
 
-  // 2. Gráfico de Barras - Histórico Financeiro
+  // 2. Gráfico de Barras Horizontais - Histórico Financeiro
   {% if has_financeiro_data %}
   const ctxFinanceiro = document.getElementById('financeiroChart');
   if (ctxFinanceiro) {
@@ -466,14 +491,39 @@
         ]
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top' }
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.x !== null && context.parsed.x !== undefined) {
+                  label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.x);
+                }
+                return label;
+              }
+            }
+          }
         },
         scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+          x: {
+            beginAtZero: true,
+            grid: { color: '#f1f5f9' },
+            ticks: {
+              callback: function(value) {
+                return 'R$ ' + Number(value).toLocaleString('pt-BR');
+              }
+            }
+          },
+          y: {
+            grid: { display: false }
+          }
         }
       }
     });
