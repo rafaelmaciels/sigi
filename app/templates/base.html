@@ -94,6 +94,37 @@
             </li>
             {% endif %}
 
+            <!-- Escalas de Obreiros & Voluntários -->
+            {% if has_permission('escalas', 'view') %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle {% block nav_escalas_active %}{% endblock %}" href="#" id="navEscalas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-clipboard-check"></i> Escalas
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navEscalas">
+                <li>
+                  <a class="dropdown-item fw-semibold text-primary" href="{{ url_for('escala.listar_escalas') }}">
+                    <i class="bi bi-calendar-check me-1"></i> Painel de Escalas
+                  </a>
+                </li>
+                {% if has_permission('escalas', 'create') %}
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('escala.nova_escala') }}">
+                    <i class="bi bi-plus-circle text-success"></i> Nova Escala
+                  </a>
+                </li>
+                {% endif %}
+                {% if has_permission('escalas', 'gerenciar') %}
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('escala.listar_equipes') }}">
+                    <i class="bi bi-people text-info"></i> Equipes & Funções
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </li>
+            {% endif %}
+
             <!-- Escola Dominical (EBD) -->
             {% if has_permission('ebd', 'view') %}
             <li class="nav-item dropdown">

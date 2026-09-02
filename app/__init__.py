@@ -69,6 +69,7 @@ def create_app(config_class=None):
     from app.routes.perfil.perfil import perfil_bp
     from app.routes.documentos import documentos_bp
     from app.routes.ebd import ebd_bp
+    from app.routes.escala import escala_bp
     from app.routes.api import api_bp
 
     app.register_blueprint(auth_bp)
@@ -81,6 +82,7 @@ def create_app(config_class=None):
     app.register_blueprint(perfil_bp)
     app.register_blueprint(documentos_bp)
     app.register_blueprint(ebd_bp)
+    app.register_blueprint(escala_bp)
     app.register_blueprint(api_bp)
     
     # -----------------------------

@@ -38,6 +38,8 @@ def dashboard():
         total_dizimistas=metrics["total_dizimistas"],
         total_eventos=metrics["total_eventos"],
         total_visitantes=metrics["total_visitantes"],
+        total_escalas=metrics.get("total_escalas", 0),
+        proximas_escalas=metrics.get("proximas_escalas", []),
         meses_labels=metrics["meses_labels"],
         financeiro_mensal=metrics["financeiro_mensal"],
         financeiro_saidas=metrics["financeiro_saidas"],

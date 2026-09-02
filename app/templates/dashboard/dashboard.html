@@ -389,23 +389,56 @@
     <!-- Escala de Obreiros -->
     <div class="col-lg-6">
       <div class="card shadow-sm h-100">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
           <div>
-            <i class="bi bi-person-lines-fill text-primary me-2"></i>
+            <i class="bi bi-clipboard-check text-primary me-2"></i>
             <strong>Escala de Obreiros</strong>
           </div>
-          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
-            Em Breve
-          </span>
+          {% if has_permission('escalas', 'view') %}
+            <a href="{{ url_for('escala.listar_escalas') }}" class="btn btn-sm btn-outline-primary">
+              Ver Painel Completo <i class="bi bi-chevron-right"></i>
+            </a>
+          {% endif %}
         </div>
-        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center p-4">
-          <div class="sigi-empty-state py-3">
-            <div class="sigi-empty-icon mb-2" style="width:52px;height:52px;font-size:1.4rem;">
-              <i class="bi bi-calendar-range text-primary"></i>
+        <div class="card-body p-3">
+          {% if proximas_escalas %}
+            <div class="d-flex flex-column gap-3">
+              {% for esc in proximas_escalas %}
+                <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <span class="badge {{ esc.status_badge_class }}">{{ esc.status_display }}</span>
+                      <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ esc.hora_inicio }}</small>
+                      <small class="text-primary fw-semibold"><i class="bi bi-calendar3 me-1"></i>{{ esc.data.strftime('%d/%m/%Y') }}</small>
+                    </div>
+                    <h6 class="fw-bold mb-1 text-dark">{{ esc.titulo }}</h6>
+                    <div class="small text-muted">
+                      <i class="bi bi-people me-1"></i>{{ esc.total_escalados }} voluntário(s) &bull; <span class="text-success fw-medium">{{ esc.total_confirmados }} confirmados</span>
+                      {% if esc.local %}&bull; <i class="bi bi-geo-alt me-1"></i>{{ esc.local }}{% endif %}
+                    </div>
+                  </div>
+                  {% if has_permission('escalas', 'view') %}
+                    <a href="{{ url_for('escala.ver_escala', id=esc.id) }}" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                      Abrir Escala
+                    </a>
+                  {% endif %}
+                </div>
+              {% endfor %}
             </div>
-            <div class="sigi-empty-title fs-6">Escala de Obreiros & Voluntários</div>
-            <div class="sigi-empty-text small text-muted mb-0">Módulo em preparação para organização de cultos, recepção, louvor e departamentos.</div>
-          </div>
+          {% else %}
+            <div class="sigi-empty-state py-4 text-center">
+              <div class="sigi-empty-icon mb-2" style="width:52px;height:52px;font-size:1.4rem;">
+                <i class="bi bi-calendar-check text-muted"></i>
+              </div>
+              <div class="sigi-empty-title fs-6">Nenhuma escala futura programada</div>
+              <div class="sigi-empty-text small text-muted mb-3">Organize e publique escalas de voluntários para os próximos cultos e eventos.</div>
+              {% if has_permission('escalas', 'create') %}
+                <a href="{{ url_for('escala.nova_escala') }}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-circle me-1"></i> Criar Nova Escala
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>

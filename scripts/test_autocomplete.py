@@ -164,5 +164,19 @@ class TestAutocompleteSystem(unittest.TestCase):
             self.assertIsInstance(json.loads(resp_sai.get_data(as_text=True)), list)
             print("[OK] Endpoints de busca de entradas e saidas com identificação de membro respondendo com 200 OK.")
 
+    def test_busca_escalas(self):
+        """Testa endpoint de autocomplete de escalas de obreiros"""
+        with self.app.app_context():
+            self.login()
+            resp = self.client.get("/api/busca/escalas?q=Culto")
+            self.assertEqual(resp.status_code, 200)
+            dados = json.loads(resp.get_data(as_text=True))
+            self.assertIsInstance(dados, list)
+            if dados:
+                self.assertIn("label", dados[0])
+                self.assertIn("subtext", dados[0])
+                self.assertIn("status", dados[0])
+            print("[OK] Endpoint /api/busca/escalas respondendo com 200 OK e dados válidos.")
+
 if __name__ == "__main__":
     unittest.main()

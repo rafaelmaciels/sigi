@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import func
 from app.extensions import db
-from app.models import Member, Evento, Financeiro
+from app.models import Member, Evento, Financeiro, Escala
 
 from utils.dates import get_current_datetime
 
@@ -85,6 +85,14 @@ class DashboardService:
         total_dizimistas = Member.query.filter_by(dizimista=True).filter(Member.data_saida.is_(None), (Member.status.is_(None)) | (Member.status == "Ativo")).count() if is_admin else 0
         total_eventos = Evento.query.count()
         total_visitantes = Member.query.filter_by(visitante=True).count()
+        total_escalas = Escala.query.filter(Escala.status != "cancelada").count()
+        proximas_escalas = (
+            Escala.query
+            .filter(Escala.data >= agora.date(), Escala.status != "cancelada")
+            .order_by(Escala.data.asc(), Escala.hora_inicio.asc())
+            .limit(4)
+            .all()
+        )
 
         # 2. Próximos aniversariantes (visível operacionalmente e ordenado pelo ciclo anual)
         proximos_aniversariantes = cls.get_proximos_aniversariantes(limit=5, ref_date=agora.date())
@@ -100,6 +108,8 @@ class DashboardService:
                 "total_dizimistas": 0,
                 "total_eventos": total_eventos,
                 "total_visitantes": total_visitantes,
+                "total_escalas": total_escalas,
+                "proximas_escalas": proximas_escalas,
                 "entradas_mes": 0.0,
                 "saidas_mes": 0.0,
                 "meses_labels": [],
@@ -274,6 +284,8 @@ class DashboardService:
             "total_dizimistas": total_dizimistas,
             "total_eventos": total_eventos,
             "total_visitantes": total_visitantes,
+            "total_escalas": total_escalas,
+            "proximas_escalas": proximas_escalas,
             "entradas_mes": entradas_mes,
             "saidas_mes": saidas_mes,
             "meses_labels": meses_labels,
