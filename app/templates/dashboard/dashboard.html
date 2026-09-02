@@ -504,7 +504,7 @@
           <span class="badge bg-light text-secondary border">{{ total_membros }} Ativos</span>
         </div>
         <div class="card-body d-flex flex-column justify-content-between">
-          <div class="chart-container" style="max-height: 180px; position: relative;">
+          <div class="chart-container" style="min-height: 200px; max-height: 220px; position: relative;">
             <canvas id="membrosChart"></canvas>
           </div>
           <div class="row g-2 mt-3 text-center">
@@ -598,7 +598,32 @@
   }
   {% endif %}
 
-  // 2. Gráfico de Linha - Crescimento Natural com Navegador de Ano
+  // 2. Gráfico de Rosca / Pizza - Distribuição por Batismo
+  const ctxMembros = document.getElementById('membrosChart');
+  if (ctxMembros) {
+    new Chart(ctxMembros, {
+      type: 'doughnut',
+      data: {
+        labels: ['Batizados', 'Não Batizados'],
+        datasets: [{
+          data: [{{ total_batizados }}, {{ [total_membros - total_batizados, 0] | max }}],
+          backgroundColor: ['#2563eb', '#94a3b8'],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        },
+        cutout: '65%'
+      }
+    });
+  }
+
+  // 3. Gráfico de Linha - Crescimento Natural com Navegador de Ano
   document.addEventListener("DOMContentLoaded", function() {
     const currentYearSpan = document.querySelector(".current-year");
     const btnMenos = document.querySelector(".year-menos");
