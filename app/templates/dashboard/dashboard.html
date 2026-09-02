@@ -341,7 +341,7 @@
         <div class="card-header d-flex justify-content-between align-items-center py-3">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-wallet2 text-primary fs-5"></i>
-            <strong class="text-dark">Fluxo Financeiro do Mês ({{ mes_nome }})</strong>
+            <strong class="text-dark">Fluxo do Mês ({{ mes_nome }})</strong>
           </div>
           <a href="{{ url_for('financeiro.financeiro') }}" class="btn btn-sm btn-outline-primary">
             Painel Geral <i class="bi bi-chevron-right"></i>
@@ -435,16 +435,16 @@
     </div>
   </div>
 
-  <!-- Linha 4: Crescimento Natural da Igreja & Estatísticas Estratégicas (Apenas Administrador) -->
+  <!-- Linha 4: Crescimento Natural & Distribuição por Batismo (Apenas Administrador) -->
   <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm">
+    <!-- Crescimento Natural -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm h-100">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-graph-up text-primary fs-5"></i>
             <strong class="text-dark">Crescimento Natural da Igreja</strong>
           </div>
-          <!-- Seletor de Ano Estilizado -->
           <div class="year-navigator-pill">
             <a href="#" class="year-menos" title="Ano anterior">
               <i class="bi bi-chevron-left"></i>
@@ -456,16 +456,13 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="row g-4 align-items-center">
-            <!-- Gráfico de Linha -->
-            <div class="col-lg-8">
-              <div class="chart-container">
+          <div class="row g-3 align-items-center">
+            <div class="col-md-7">
+              <div class="chart-container" style="min-height: 240px;">
                 <canvas id="crescimentoChart"></canvas>
               </div>
             </div>
-
-            <!-- Indicadores Laterais -->
-            <div class="col-lg-4">
+            <div class="col-md-5">
               <div class="p-3 bg-light rounded-3 border">
                 <div class="small text-muted text-uppercase fw-bold mb-3">Resumo da Movimentação Anual</div>
                 <div class="d-flex justify-content-between mb-2">
@@ -492,35 +489,41 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <!-- Faixa de Indicadores de Membresia e Discipulado Consolidada -->
-          <div class="row g-2 mt-4 pt-3 border-top text-center">
-            <div class="col-6 col-md-3">
-              <div class="p-2 rounded bg-success bg-opacity-10 border border-success border-opacity-25">
-                <div class="text-success small fw-semibold"><i class="bi bi-person-check me-1"></i>Ativos</div>
-                <div class="fs-5 fw-bold text-success">{{ total_membros }}</div>
-              </div>
-            </div>
-            <div class="col-6 col-md-3">
-              <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
-                <div class="text-secondary small fw-semibold"><i class="bi bi-arrow-left-right me-1"></i>Transferidos</div>
-                <div class="fs-5 fw-bold text-secondary">{{ total_transferidos }}</div>
-              </div>
-            </div>
-            <div class="col-6 col-md-3">
+    <!-- Distribuição por Batismo (Membros Ativos) -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-pie-chart text-success fs-5"></i>
+            <strong class="text-dark">Distribuição por Batismo</strong>
+          </div>
+          <span class="badge bg-light text-secondary border">{{ total_membros }} Ativos</span>
+        </div>
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div class="chart-container" style="max-height: 180px; position: relative;">
+            <canvas id="membrosChart"></canvas>
+          </div>
+          <div class="row g-2 mt-3 text-center">
+            <div class="col-6">
               <div class="p-2 rounded bg-primary bg-opacity-10 border border-primary border-opacity-25">
                 <div class="text-primary small fw-semibold"><i class="bi bi-check-circle me-1"></i>Batizados</div>
                 <div class="fs-5 fw-bold text-primary">{{ total_batizados }}</div>
               </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6">
               <div class="p-2 rounded bg-warning bg-opacity-10 border border-warning border-opacity-25">
-                <div class="text-warning small fw-semibold"><i class="bi bi-person-exclamation me-1"></i>Aptos p/ Batismo</div>
+                <div class="text-warning small fw-semibold"><i class="bi bi-person-exclamation me-1"></i>Não Batizados</div>
                 <div class="fs-5 fw-bold text-dark">{{ nao_batizados_ativos }}</div>
               </div>
             </div>
           </div>
-
+          <div class="text-muted small text-center mt-2">
+            Proporção de membros batizados em relação aos membros ativos.
+          </div>
         </div>
       </div>
     </div>
