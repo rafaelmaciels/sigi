@@ -55,6 +55,20 @@ html, body {
   margin-bottom: 2rem;
 }
 
+.login-logo-img {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 8px 18px rgba(37, 99, 235, 0.25));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
+}
+
+.login-logo-img:hover {
+  transform: scale(1.05);
+}
+
 .login-icon-badge {
   display: inline-flex;
   align-items: center;

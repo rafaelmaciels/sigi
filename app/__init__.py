@@ -24,10 +24,12 @@ def create_app(config_class=None):
     csrf.init_app(app)
 
     # -----------------------------
-    # 🔄 Auto-migração segura de colunas (compatibilidade de schema)
+    # 🔄 Auto-migração segura de colunas e criação de novas tabelas
     # -----------------------------
     with app.app_context():
         try:
+            from app import models  # Garante registro de todos os modelos
+            db.create_all()         # Cria tabelas novas automaticamente (ex: escalas, ebd, etc) sem afetar dados
             from sqlalchemy import text, inspect
             inspector = inspect(db.engine)
             if 'users' in inspector.get_table_names():
@@ -69,6 +71,8 @@ def create_app(config_class=None):
     from app.routes.perfil.perfil import perfil_bp
     from app.routes.documentos import documentos_bp
     from app.routes.ebd import ebd_bp
+    from app.routes.escala import escala_bp
+    from app.routes.api import api_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -80,6 +84,8 @@ def create_app(config_class=None):
     app.register_blueprint(perfil_bp)
     app.register_blueprint(documentos_bp)
     app.register_blueprint(ebd_bp)
+    app.register_blueprint(escala_bp)
+    app.register_blueprint(api_bp)
     
     # -----------------------------
     # 📅 Context processor para ano atual e timezone
@@ -138,6 +144,13 @@ def create_app(config_class=None):
     # -----------------------------
     # ⚠️ Handlers globais de erro
     # -----------------------------
+    from flask_wtf.csrf import CSRFError
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        flash("Sua sessão expirou ou o formulário ficou aberto por muito tempo. Por favor, tente novamente.", "warning")
+        return redirect(request.referrer or url_for("dashboard.dashboard"))
+
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template("errors/404.html"), 404
@@ -158,6 +171,5 @@ def create_app(config_class=None):
         max_mb = int(max_bytes / (1024 * 1024))
         flash(f"Arquivo muito grande. O limite é {max_mb} MB.", "danger")
         return redirect(request.referrer or url_for("dashboard.dashboard"))
-
 
     return app

@@ -29,10 +29,7 @@
       <div class="container-fluid px-lg-4">
         <!-- Brand / Logo -->
         <a class="sigi-brand" href="{{ url_for('dashboard.dashboard') }}">
-          <span class="sigi-brand-badge">
-            <i class="bi bi-cross"></i>
-          </span>
-          <span>SiGI</span>
+          <img src="{{ url_for('static', filename='img/sidebar.png') }}" alt="SiGI" class="sigi-brand-img">
         </a>
 
         <!-- Mobile Toggle Button -->
@@ -73,13 +70,14 @@
             </li>
             {% endif %}
 
-            <!-- Eventos & Aniversariantes -->
-            {% if has_permission('eventos', 'view') %}
+            <!-- Eventos & Escalas -->
+            {% if has_permission('eventos', 'view') or has_permission('escalas', 'view') %}
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navEventos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle {% block nav_eventos_active %}{% endblock %} {% block nav_escalas_active %}{% endblock %}" href="#" id="navEventos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-calendar3"></i> Eventos
               </a>
               <ul class="dropdown-menu" aria-labelledby="navEventos">
+                {% if has_permission('eventos', 'view') %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('event.listar_eventos') }}">
                     <i class="bi bi-calendar-event text-primary"></i> Calendário Geral
@@ -90,6 +88,32 @@
                     <i class="bi bi-gift text-warning"></i> Aniversariantes do Mês
                   </a>
                 </li>
+                {% endif %}
+
+                {% if has_permission('escalas', 'view') %}
+                {% if has_permission('eventos', 'view') %}
+                <li><hr class="dropdown-divider my-1"></li>
+                {% endif %}
+                <li>
+                  <a class="dropdown-item fw-semibold text-primary" href="{{ url_for('escala.listar_escalas') }}">
+                    <i class="bi bi-clipboard-check me-1"></i> Painel de Escalas
+                  </a>
+                </li>
+                {% if has_permission('escalas', 'create') %}
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('escala.nova_escala') }}">
+                    <i class="bi bi-plus-circle text-success"></i> Nova Escala
+                  </a>
+                </li>
+                {% endif %}
+                {% if has_permission('escalas', 'gerenciar') %}
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('escala.listar_equipes') }}">
+                    <i class="bi bi-people text-info"></i> Equipes & Funções
+                  </a>
+                </li>
+                {% endif %}
+                {% endif %}
               </ul>
             </li>
             {% endif %}
@@ -360,6 +384,8 @@
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <script src="{{ url_for('static', filename='js/sigi-editor.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sigi-autocomplete.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sigi-cep.js') }}?v=2.0"></script>
 
     <!-- Auto-dismiss de alertas -->
     <script>
