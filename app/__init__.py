@@ -37,6 +37,11 @@ def create_app(config_class=None):
                 if 'member_id' not in colunas:
                     db.session.execute(text("ALTER TABLE users ADD COLUMN member_id INTEGER REFERENCES members(id)"))
                     db.session.commit()
+            if 'members' in inspector.get_table_names():
+                colunas_m = [c['name'] for c in inspector.get_columns('members')]
+                if 'is_whatsapp' not in colunas_m:
+                    db.session.execute(text("ALTER TABLE members ADD COLUMN is_whatsapp BOOLEAN DEFAULT 0"))
+                    db.session.commit()
         except Exception:
             pass
 

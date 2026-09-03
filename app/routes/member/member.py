@@ -77,11 +77,11 @@ def listar_membros():
 
     # Filtro por status (padrão: Ativo)
     if status_filtro == "Ativo":
-        query = query.filter((Member.status.is_(None)) | (Member.status == "Ativo")).filter(Member.data_saida.is_(None))
+        query = query.filter((Member.status.is_(None)) | (Member.status == "Ativo"))
     elif status_filtro == "Transferido":
         query = query.filter(Member.status == "Transferido")
     elif status_filtro == "Inativo":
-        query = query.filter((Member.status == "Inativo") | (Member.data_saida.isnot(None)))
+        query = query.filter(Member.status == "Inativo")
     # Se for "Todos" ou vazio, não aplica filtro de status
 
     if termo:
@@ -127,11 +127,11 @@ def buscar_membros():
 
     # Filtro por status
     if status_filtro == "Ativo":
-        query = query.filter((Member.status.is_(None)) | (Member.status == "Ativo")).filter(Member.data_saida.is_(None))
+        query = query.filter((Member.status.is_(None)) | (Member.status == "Ativo"))
     elif status_filtro == "Transferido":
         query = query.filter(Member.status == "Transferido")
     elif status_filtro == "Inativo":
-        query = query.filter((Member.status == "Inativo") | (Member.data_saida.isnot(None)))
+        query = query.filter(Member.status == "Inativo")
 
     if termo:
         query = query.filter(
@@ -211,6 +211,7 @@ def cadastro_membro():
             estado_civil=form.estado_civil.data,
             conjuge=form.conjuge.data if form.estado_civil.data == "Casado" else None,
             telefone=form.telefone.data,
+            is_whatsapp=bool(form.is_whatsapp.data),
             email=form.email.data,
             endereco=form.endereco.data,
             bairro=form.bairro.data,
@@ -220,7 +221,7 @@ def cadastro_membro():
             data_batismo=form.data_batismo.data,
             funcao=form.funcao.data,
             observacoes=sanitizar_html(form.observacoes.data),
-            status=form.status.data,
+            status=form.status.data or "Ativo",
             nacionalidade=form.nacionalidade.data,
             naturalidade=form.naturalidade.data,
             rg=form.rg.data,
@@ -233,7 +234,7 @@ def cadastro_membro():
             validade=validade_final,
             data_cadastro=form.data_cadastro.data,
             data_conversao=form.data_conversao.data,
-            data_saida=form.data_saida.data
+            data_saida=None if (form.status.data or "Ativo") == "Ativo" else form.data_saida.data
         )
 
         # Upload da foto
@@ -277,6 +278,7 @@ def editar_membro(id):
     if request.method == "GET":
         form.batizado.data = membro.batizado
         form.dizimista.data = membro.dizimista
+        form.is_whatsapp.data = bool(membro.is_whatsapp)
         # Se membro ainda não possuir carteira ou validade, sugere preenchimento automático
         if not form.numero_carteira.data:
             form.numero_carteira.data = gerar_proximo_numero_carteira()
@@ -298,6 +300,7 @@ def editar_membro(id):
         membro.estado_civil = form.estado_civil.data
         membro.conjuge = form.conjuge.data if form.estado_civil.data == "Casado" else None
         membro.telefone = form.telefone.data
+        membro.is_whatsapp = bool(form.is_whatsapp.data)
         membro.email = form.email.data
         membro.endereco = form.endereco.data
         membro.bairro = form.bairro.data
@@ -320,8 +323,10 @@ def editar_membro(id):
         membro.validade = validade_final
         membro.data_cadastro = form.data_cadastro.data or membro.data_cadastro
         membro.data_conversao = form.data_conversao.data or membro.data_conversao
-        # membro.data_saida = form.data_saida.data or membro.data_saida
-        membro.data_saida = form.data_saida.data if form.data_saida.data else None
+        if membro.status == "Ativo":
+            membro.data_saida = None
+        else:
+            membro.data_saida = form.data_saida.data if form.data_saida.data else None
 
         # Upload da foto (somente se for um arquivo válido)
         foto_file = form.foto.data

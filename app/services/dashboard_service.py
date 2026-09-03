@@ -77,12 +77,12 @@ class DashboardService:
         mes_nome = cls.MESES_PT.get(mes_atual, "Mês Atual")
 
         # 1. Contagens gerais (apenas membros ativos da congregação são total_membros)
-        total_membros = Member.query.filter(Member.data_saida.is_(None), (Member.status.is_(None)) | (Member.status == "Ativo")).count()
+        total_membros = Member.query.filter((Member.status.is_(None)) | (Member.status == "Ativo")).count()
         total_transferidos = Member.query.filter(Member.status == "Transferido").count()
-        total_inativos = Member.query.filter((Member.status == "Inativo") | (Member.data_saida.isnot(None))).filter(Member.status != "Transferido").count()
+        total_inativos = Member.query.filter(Member.status == "Inativo").count()
         total_geral_membros = Member.query.count()
-        total_batizados = Member.query.filter_by(batizado=True).filter(Member.data_saida.is_(None), (Member.status.is_(None)) | (Member.status == "Ativo")).count() if is_admin else 0
-        total_dizimistas = Member.query.filter_by(dizimista=True).filter(Member.data_saida.is_(None), (Member.status.is_(None)) | (Member.status == "Ativo")).count() if is_admin else 0
+        total_batizados = Member.query.filter_by(batizado=True).filter((Member.status.is_(None)) | (Member.status == "Ativo")).count() if is_admin else 0
+        total_dizimistas = Member.query.filter_by(dizimista=True).filter((Member.status.is_(None)) | (Member.status == "Ativo")).count() if is_admin else 0
         total_eventos = Evento.query.count()
         total_visitantes = Member.query.filter_by(visitante=True).count()
         # Próximas escalas e voluntários (defensivo caso tabelas sejam novas no servidor)

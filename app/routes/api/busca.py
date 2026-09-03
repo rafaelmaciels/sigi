@@ -38,13 +38,9 @@ def buscar_membros():
 
     # Filtro de Status
     if status_filtro == "Ativo":
-        query = query.filter(
-            (Member.status.is_(None)) | (Member.status == "Ativo")
-        ).filter(Member.data_saida.is_(None))
+        query = query.filter((Member.status.is_(None)) | (Member.status == "Ativo"))
     elif status_filtro == "Inativo":
-        query = query.filter(
-            (Member.status == "Inativo") | (Member.data_saida.isnot(None))
-        )
+        query = query.filter(Member.status == "Inativo")
     elif status_filtro == "Transferido":
         query = query.filter(Member.status == "Transferido")
 
