@@ -151,12 +151,45 @@
                     {{ em.data_ingresso.strftime('%d/%m/%Y') if em.data_ingresso else '-' }}
                   </td>
                   <td class="text-end pe-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalEditarMembro{{ em.id }}" title="Editar Função do Voluntário">
+                      <i class="bi bi-pencil"></i>
+                    </button>
                     <form method="post" action="{{ url_for('escala.equipe_remover_membro', id=equipe.id, membro_id=em.membro_id) }}" onsubmit="return confirm('Remover {{ em.membro.nome }} desta equipe?');" class="d-inline">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <button type="submit" class="btn btn-sm btn-outline-danger" title="Remover da equipe">
                         <i class="bi bi-x-lg"></i>
                       </button>
                     </form>
+
+                    <!-- Modal: Editar Função do Voluntário -->
+                    <div class="modal fade text-start" id="modalEditarMembro{{ em.id }}" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                          <div class="modal-header bg-primary text-white">
+                            <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-1"></i> Editar Função de {{ em.membro.nome }}</h6>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                          </div>
+                          <form method="post" action="{{ url_for('escala.equipe_editar_membro', id=equipe.id, membro_id=em.membro_id) }}">
+                            <div class="modal-body p-3">
+                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                              <div class="mb-3">
+                                <label class="form-label fw-semibold">Função Principal na Equipe</label>
+                                <select name="funcao_padrao_id" class="form-select">
+                                  <option value="0" {% if not em.funcao_padrao_id %}selected{% endif %}>-- Nenhuma / Função Geral --</option>
+                                  {% for f in equipe.funcoes %}
+                                    <option value="{{ f.id }}" {% if em.funcao_padrao_id == f.id %}selected{% endif %}>{{ f.nome }}</option>
+                                  {% endfor %}
+                                </select>
+                              </div>
+                            </div>
+                            <div class="modal-footer bg-light p-2">
+                              <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                              <button type="submit" class="btn btn-sm btn-primary">Salvar Alteração</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
                   </td>
                 </tr>
                 {% else %}
@@ -228,8 +261,9 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Função Principal na Equipe</label>
             <select name="funcao_padrao_id" class="form-select">
-              {% for f in form_membro.funcao_padrao_id.choices %}
-                <option value="{{ f[0] }}">{{ f[1] }}</option>
+              <option value="0">-- Nenhuma / Função Geral --</option>
+              {% for f in equipe.funcoes %}
+                <option value="{{ f.id }}">{{ f.nome }}</option>
               {% endfor %}
             </select>
           </div>

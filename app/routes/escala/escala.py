@@ -646,8 +646,17 @@ def detalhes_equipe(id):
     membros_disponiveis = [m for m in membros_ativos if m.id not in membros_ja_na_equipe]
     form_membro.membro_id.choices = [(m.id, m.nome) for m in membros_disponiveis]
 
+    # Garante que qualquer função criada para a equipe esteja ativa
+    precisa_commit = False
+    for f in equipe.funcoes:
+        if not f.ativo:
+            f.ativo = True
+            precisa_commit = True
+    if precisa_commit:
+        db.session.commit()
+
     form_membro.funcao_padrao_id.choices = [(0, "-- Nenhuma / Função Geral --")] + [
-        (f.id, f.nome) for f in equipe.funcoes if f.ativo
+        (f.id, f.nome) for f in equipe.funcoes
     ]
 
     return render_template(
@@ -673,7 +682,7 @@ def equipe_adicionar_funcao(id):
             nome=form.nome.data.strip(),
             descricao=form.descricao.data.strip() if form.descricao.data else None,
             ordem=form.ordem.data or 0,
-            ativo=form.ativo.data
+            ativo=True
         )
         db.session.add(funcao)
         db.session.commit()
@@ -728,6 +737,27 @@ def equipe_adicionar_membro(id):
         membro = db.session.get(Member, membro_id)
         flash(f"{membro.nome} adicionado(a) à equipe {equipe.nome}!", "success")
 
+    return redirect(url_for("escala.detalhes_equipe", id=equipe.id))
+
+
+@escala_bp.route("/equipes/<int:id>/editar-membro/<int:membro_id>", methods=["POST"])
+@login_required
+@permission_required("escalas", "gerenciar")
+def equipe_editar_membro(id, membro_id):
+    equipe = Equipe.query.get_or_404(id)
+    vinculo = EquipeMembro.query.filter_by(equipe_id=equipe.id, membro_id=membro_id).first_or_404()
+    nova_funcao_id = request.form.get("funcao_padrao_id", type=int)
+
+    if nova_funcao_id == 0 or not nova_funcao_id:
+        vinculo.funcao_padrao_id = None
+    else:
+        funcao = EquipeFuncao.query.filter_by(id=nova_funcao_id, equipe_id=equipe.id).first()
+        if funcao:
+            vinculo.funcao_padrao_id = funcao.id
+
+    db.session.commit()
+    nome_membro = vinculo.membro.nome if vinculo.membro else "Voluntário"
+    flash(f"Função de {nome_membro} atualizada com sucesso!", "success")
     return redirect(url_for("escala.detalhes_equipe", id=equipe.id))
 
 
