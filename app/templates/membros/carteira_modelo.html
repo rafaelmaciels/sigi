@@ -563,7 +563,7 @@
       {% if todos_membros %}
       <div style="display:inline-flex; align-items:center; gap:6px;">
         <label for="selectMembroCarteira" style="font-size:12px; font-weight:600; color:#475569;">Membro:</label>
-        <select id="selectMembroCarteira" onchange="if(this.value) window.location.href='{{ url_for('member.carteira_membro') }}' + this.value" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; max-width:240px; background:#fff;">
+        <select id="selectMembroCarteira" onchange="if(this.value) window.location.href='/membros/carteira/' + this.value;" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; max-width:240px; background:#fff;">
           {% for m in todos_membros %}
             <option value="{{ m.id }}" {% if m.id == membro.id %}selected{% endif %}>
               {{ m.nome }} ({{ m.numero_carteira or 'S/N' }})
