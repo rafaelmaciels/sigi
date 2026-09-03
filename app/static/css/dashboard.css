@@ -283,3 +283,64 @@
   }
 }
 
+/* ==========================================================================
+   🌙 Dashboard Dark Mode Enhancements
+   ========================================================================== */
+[data-theme="dark"] .quick-actions-card {
+  background: var(--sigi-surface);
+  border-color: var(--sigi-border);
+}
+
+[data-theme="dark"] .quick-action-btn {
+  background: #0f172a;
+  border-color: var(--sigi-border);
+  color: var(--sigi-text-main);
+}
+
+[data-theme="dark"] .quick-action-btn:hover {
+  background: var(--sigi-surface-subtle);
+  border-color: var(--sigi-primary);
+  color: var(--sigi-primary);
+}
+
+[data-theme="dark"] .year-navigator-pill {
+  background: #0f172a;
+  border-color: var(--sigi-border);
+}
+
+[data-theme="dark"] .year-navigator-pill a {
+  color: var(--sigi-text-secondary);
+}
+
+[data-theme="dark"] .year-navigator-pill a:hover {
+  background: var(--sigi-surface-subtle);
+  color: var(--sigi-primary);
+}
+
+[data-theme="dark"] .dashboard-alert-banner.alert-warning-soft {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .dashboard-alert-banner.alert-info-soft {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.25);
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .anniversary-list .list-group-item {
+  background: transparent;
+  color: var(--sigi-text-main);
+  border-bottom-color: var(--sigi-border);
+}
+
+[data-theme="dark"] .anniversary-list .list-group-item:hover {
+  background-color: var(--sigi-surface-hover);
+}
+
+[data-theme="dark"] .escala-progress {
+  background-color: #334155;
+}
+
+
