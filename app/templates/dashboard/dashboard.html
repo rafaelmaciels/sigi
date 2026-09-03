@@ -535,11 +535,16 @@
 {% if current_user.is_admin %}
 <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
 <script>
+  const isDarkInitial = (typeof window.getTheme === 'function' ? window.getTheme() : 'light') === 'dark';
+  const getGridColor = (dark) => dark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9';
+  const getTextColor = (dark) => dark ? '#cbd5e1' : '#475569';
+
   // 1. Gráfico de Barras Horizontais - Histórico Financeiro
+  let chartFinanceiroInstance = null;
   {% if has_financeiro_data %}
   const ctxFinanceiro = document.getElementById('financeiroChart');
   if (ctxFinanceiro) {
-    new Chart(ctxFinanceiro, {
+    chartFinanceiroInstance = new Chart(ctxFinanceiro, {
       type: 'bar',
       data: {
         labels: {{ meses_labels|tojson }},
@@ -563,7 +568,10 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top' },
+          legend: {
+            position: 'top',
+            labels: { color: getTextColor(isDarkInitial) }
+          },
           tooltip: {
             callbacks: {
               label: function(context) {
@@ -582,15 +590,17 @@
         scales: {
           x: {
             beginAtZero: true,
-            grid: { color: '#f1f5f9' },
+            grid: { color: getGridColor(isDarkInitial) },
             ticks: {
+              color: getTextColor(isDarkInitial),
               callback: function(value) {
                 return 'R$ ' + Number(value).toLocaleString('pt-BR');
               }
             }
           },
           y: {
-            grid: { display: false }
+            grid: { display: false },
+            ticks: { color: getTextColor(isDarkInitial) }
           }
         }
       }
@@ -599,9 +609,10 @@
   {% endif %}
 
   // 2. Gráfico de Rosca / Pizza - Distribuição por Batismo
+  let chartMembrosInstance = null;
   const ctxMembros = document.getElementById('membrosChart');
   if (ctxMembros) {
-    new Chart(ctxMembros, {
+    chartMembrosInstance = new Chart(ctxMembros, {
       type: 'doughnut',
       data: {
         labels: ['Batizados', 'Não Batizados'],
@@ -616,7 +627,10 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom' }
+          legend: {
+            position: 'bottom',
+            labels: { color: getTextColor(isDarkInitial) }
+          }
         },
         cutout: '65%'
       }
@@ -624,6 +638,7 @@
   }
 
   // 3. Gráfico de Linha - Crescimento Natural com Navegador de Ano
+  let chartCrescimentoInstance = null;
   document.addEventListener("DOMContentLoaded", function() {
     const currentYearSpan = document.querySelector(".current-year");
     const btnMenos = document.querySelector(".year-menos");
@@ -640,7 +655,7 @@
     const ctx = document.getElementById('crescimentoChart');
     if (!ctx) return;
 
-    const chart = new Chart(ctx, {
+    chartCrescimentoInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
@@ -673,11 +688,21 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top' }
+          legend: {
+            position: 'top',
+            labels: { color: getTextColor(isDarkInitial) }
+          }
         },
         scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+          x: {
+            grid: { display: false },
+            ticks: { color: getTextColor(isDarkInitial) }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: getGridColor(isDarkInitial) },
+            ticks: { color: getTextColor(isDarkInitial) }
+          }
         }
       }
     });
@@ -698,9 +723,9 @@
     }
 
     function atualizarGrafico(ano) {
-      chart.data.datasets[0].data = dadosEntradasPorAno[ano] || [];
-      chart.data.datasets[1].data = dadosSaidasPorAno[ano] || [];
-      chart.update();
+      chartCrescimentoInstance.data.datasets[0].data = dadosEntradasPorAno[ano] || [];
+      chartCrescimentoInstance.data.datasets[1].data = dadosSaidasPorAno[ano] || [];
+      chartCrescimentoInstance.update();
       atualizarIndicadores(ano);
     }
 
@@ -725,6 +750,31 @@
         }
       });
     }
+
+    // Ouvinte em tempo real para alternância de tema no dashboard
+    window.addEventListener('sigi-theme-changed', function(e) {
+      const isDark = e.detail.isDark;
+      const textC = getTextColor(isDark);
+      const gridC = getGridColor(isDark);
+
+      [chartFinanceiroInstance, chartMembrosInstance, chartCrescimentoInstance].forEach(function(inst) {
+        if (!inst || !inst.options) return;
+        if (inst.options.plugins && inst.options.plugins.legend && inst.options.plugins.legend.labels) {
+          inst.options.plugins.legend.labels.color = textC;
+        }
+        if (inst.options.scales) {
+          if (inst.options.scales.x) {
+            if (inst.options.scales.x.ticks) inst.options.scales.x.ticks.color = textC;
+            if (inst.options.scales.x.grid && inst.options.scales.x.grid.display !== false) inst.options.scales.x.grid.color = gridC;
+          }
+          if (inst.options.scales.y) {
+            if (inst.options.scales.y.ticks) inst.options.scales.y.ticks.color = textC;
+            if (inst.options.scales.y.grid && inst.options.scales.y.grid.display !== false) inst.options.scales.y.grid.color = gridC;
+          }
+        }
+        inst.update();
+      });
+    });
   });
 </script>
 {% endif %}
