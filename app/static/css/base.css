@@ -107,13 +107,24 @@ body {
 
 .sigi-brand {
   color: var(--sigi-text-inverse) !important;
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: -0.03em;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
   text-decoration: none;
+  padding: 0;
+  transition: var(--sigi-transition-fast);
+}
+
+.sigi-brand-img {
+  height: 38px;
+  width: auto;
+  max-width: 145px;
+  object-fit: contain;
+  display: block;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.sigi-brand:hover .sigi-brand-img {
+  filter: brightness(1.1);
 }
 
 .sigi-brand-badge {
