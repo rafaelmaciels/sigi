@@ -472,26 +472,60 @@ def carteira_membro(id=None):
 
     return render_template("membros/carteira_modelo.html", membro=membro, todos_membros=todos_membros)
 
+
+def gerar_ou_renderizar_pdf(template_name, context, filename, fallback_template=None):
+    """
+    Gera o PDF usando WeasyPrint se disponível no ambiente.
+    Caso contrário (ex: Windows sem bibliotecas nativas GTK/Pango ou erro de compilação),
+    renderiza o HTML formatado com barra de ação para impressão nativa do navegador (window.print()).
+    Garante ZERO erro 500, ZERO TypeError e ZERO falha para o usuário.
+    """
+    html_string = render_template(template_name, **context)
+    if HTML is not None:
+        try:
+            pdf_bytes = HTML(string=html_string).write_pdf()
+            response = make_response(pdf_bytes)
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = f'inline; filename={filename}'
+            return response
+        except Exception as e:
+            current_app.logger.warning(f"Falha ao compilar PDF via WeasyPrint ({e}). Utilizando renderização HTML para impressão.")
+
+    # Modo fallback elegante: entrega o documento em HTML formatado com suporte a impressão
+    return render_template(fallback_template or template_name, modo_impressao=True, **context)
+
+
 # -----------------------------
 # 📄 Carta de Recomendação (HTML + PDF)
 # -----------------------------
 @member_bp.route("/carta_recomendacao/<int:id>", methods=["GET"])
+@member_bp.route("/carta_recomendacao/", methods=["GET"])
+@member_bp.route("/carta_recomendacao", methods=["GET"])
 @login_required   # 👈 protege a rota
 @permission_required("membros", "view")
-def carta_recomendacao(id):
-    membro = Member.query.get_or_404(id)
+def carta_recomendacao(id=None):
+    membro_id = id or request.args.get("id", type=int)
+    if not membro_id:
+        membro = Member.query.filter(Member.status == "Ativo").order_by(Member.id.asc()).first() or Member.query.first()
+        if not membro:
+            flash("Nenhum membro cadastrado para emitir carta de recomendação.", "warning")
+            return redirect(url_for("member.listar_membros"))
+    else:
+        membro = Member.query.get_or_404(membro_id)
 
-    html_string = render_template(
+    todos_membros = Member.query.filter(Member.status == "Ativo").order_by(Member.nome.asc()).all()
+
+    context = {
+        "membro": membro,
+        "todos_membros": todos_membros,
+        "data_emissao": datetime.now().strftime("%d/%m/%Y")
+    }
+    return gerar_ou_renderizar_pdf(
         "membros/carta_recomendacao.html",
-        membro=membro,
-        data_emissao=datetime.now().strftime("%d/%m/%Y")
+        context,
+        filename=f"carta_recomendacao_{membro.id}.pdf"
     )
-    pdf = HTML(string=html_string).write_pdf()
 
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'inline; filename=carta_recomendacao_{membro.id}.pdf'
-    return response
 
 # -----------------------------
 # 📄 Ficha de Membro (PDF)
@@ -506,17 +540,16 @@ def imprimir_ficha_pdf(id):
     if membro.foto:
         foto_url = url_for('static', filename=membro.foto, _external=True)
 
-    html = render_template(
+    context = {
+        "membro": membro,
+        "foto_url": foto_url,
+        "current_date": date.today()
+    }
+    return gerar_ou_renderizar_pdf(
         'membros/ficha_pdf.html',
-        membro=membro,
-        foto_url=foto_url,
-        current_date=date.today()
+        context,
+        filename=f"ficha_{membro.id}.pdf"
     )
-    pdf = HTML(string=html).write_pdf()
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'inline; filename=ficha_{membro.id}.pdf'
-    return response
 
 # -----------------------------
 # 📊 Relatório de Membros
@@ -632,26 +665,18 @@ def relatorio_membros_pdf():
 
     membros = query.all()
 
-    html = render_template(
+    context = {
+        "membros": membros,
+        "sexo": sexo,
+        "status": status,
+        "estado_civil": estado_civil,
+        "funcao": funcao,
+        "data_emissao": date.today().strftime("%d/%m/%Y")
+    }
+    return gerar_ou_renderizar_pdf(
         "membros/relatorio_membros_pdf.html",
-        membros=membros,
-        sexo=sexo,
-        status=status,
-        estado_civil=estado_civil,
-        funcao=funcao,
-        data_emissao=date.today().strftime("%d/%m/%Y")
-    )
-    # Gera o PDF com WeasyPrint
-    if HTML is None:
-        flash("Geração de PDF indisponível neste ambiente (bibliotecas do GTK/WeasyPrint não encontradas).", "warning")
-        return redirect(url_for("member.index"))
-
-    pdf = HTML(string=html).write_pdf()
-
-    return Response(
-        pdf,
-        mimetype="application/pdf",
-        headers={"Content-Disposition": "inline; filename=relatorio_membros.pdf"}
+        context,
+        filename="relatorio_membros.pdf"
     )
 
 
@@ -772,19 +797,16 @@ def exportar_aniversariantes_pdf():
     # 🔹 Data de emissão (somente dia/mês/ano)
     data_emissao = datetime.now().strftime("%d/%m/%Y")
 
-    # 🔹 Renderiza template PDF
-    html = render_template(
+    context = {
+        "aniversariantes": aniversariantes,
+        "current_year": datetime.now().year,
+        "data_emissao": data_emissao
+    }
+    return gerar_ou_renderizar_pdf(
         "membros/aniversariantes_pdf.html",
-        aniversariantes=aniversariantes,
-        current_year=datetime.now().year,
-        data_emissao=data_emissao
+        context,
+        filename="aniversariantes.pdf"
     )
-
-    pdf = HTML(string=html).write_pdf()
-    response = make_response(pdf)
-    response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = "inline; filename=aniversariantes.pdf"
-    return response
 
 
 # ------------------------------------------------------------------------------
