@@ -1,10 +1,11 @@
 import os
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+import re
 from collections import Counter
 
 from flask import (
     Blueprint, render_template, request, redirect, url_for,
-    flash, current_app, make_response, Response
+    flash, current_app, make_response, Response, jsonify
 )
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
@@ -26,6 +27,40 @@ from app.extensions import db
 
 
 member_bp = Blueprint('member', __name__, url_prefix="/membros")
+
+
+def gerar_proximo_numero_carteira() -> str:
+    """Gera o próximo número de carteirinha sequencial a partir de 00001 evitando qualquer duplicidade."""
+    membros = Member.query.filter(Member.numero_carteira.isnot(None)).all()
+    maior_num = 0
+    for m in membros:
+        if not m.numero_carteira:
+            continue
+        match = re.search(r'(\d+)', str(m.numero_carteira).strip())
+        if match:
+            try:
+                val = int(match.group(1))
+                if val > maior_num:
+                    maior_num = val
+            except ValueError:
+                pass
+
+    proximo = maior_num + 1 if maior_num >= 1 else 1
+    novo_numero = f"{proximo:05d}"
+
+    # Garante ausência total de duplicidades no banco de dados
+    while Member.query.filter_by(numero_carteira=novo_numero).first() is not None:
+        proximo += 1
+        novo_numero = f"{proximo:05d}"
+
+    return novo_numero
+
+
+def calcular_validade_carteira(data_base=None) -> date:
+    """Calcula a validade fixa em 365 dias a partir da data de criação/cadastro."""
+    if not data_base:
+        data_base = date.today()
+    return data_base + timedelta(days=365)
 
 # -----------------------------
 # 📋 Listagem e Busca de Membros com Paginação
@@ -137,6 +172,15 @@ def buscar_membros():
 @permission_required("membros", "create")
 def cadastro_membro():
     form = MemberForm()
+
+    # No GET, pré-preenche o próximo número de carteira sequencial e a validade fixa em 365 dias
+    if request.method == "GET":
+        if not form.numero_carteira.data:
+            form.numero_carteira.data = gerar_proximo_numero_carteira()
+        if not form.validade.data:
+            dt_base = form.data_cadastro.data or date.today()
+            form.validade.data = calcular_validade_carteira(dt_base)
+
     if request.method == "POST" and form.validate_on_submit():
         existente = None
         if form.cpf.data:
@@ -150,6 +194,15 @@ def cadastro_membro():
         if existente:
             flash("Já existe um membro cadastrado com esses dados!", "danger")
             return render_template("membros/cadastro_membro.html", form=form)
+
+        # Determina número da carteira automático
+        carteira_final = (form.numero_carteira.data or "").strip()
+        if not carteira_final:
+            carteira_final = gerar_proximo_numero_carteira()
+
+        # Validade fixa em 365 dias a partir da data de cadastro/criação
+        dt_base = form.data_cadastro.data or date.today()
+        validade_final = form.validade.data or calcular_validade_carteira(dt_base)
 
         membro = Member(
             nome=form.nome.data,
@@ -175,9 +228,9 @@ def cadastro_membro():
             pai=form.pai.data,
             mae=form.mae.data,
             filiacao=form.filiacao.data,
-            numero_carteira=form.numero_carteira.data,
+            numero_carteira=carteira_final,
             igreja_local=form.igreja_local.data,
-            validade=form.validade.data,
+            validade=validade_final,
             data_cadastro=form.data_cadastro.data,
             data_conversao=form.data_conversao.data,
             data_saida=form.data_saida.data
@@ -195,10 +248,10 @@ def cadastro_membro():
 
         db.session.add(membro)
         db.session.commit()
-        flash(f"Membro {membro.nome} cadastrado com sucesso!", "success")
+        flash(f"Membro {membro.nome} cadastrado com sucesso! Carteira Nº {membro.numero_carteira}", "success")
 
         # Registrar log com nome do membro
-        registrar_log(current_user.nome, f"Cadastro de Membro: {membro.nome}")
+        registrar_log(current_user.nome, f"Cadastro de Membro: {membro.nome} (Carteira: {membro.numero_carteira})")
 
         return redirect(url_for("member.listar_membros"))
 
@@ -224,8 +277,21 @@ def editar_membro(id):
     if request.method == "GET":
         form.batizado.data = membro.batizado
         form.dizimista.data = membro.dizimista
+        # Se membro ainda não possuir carteira ou validade, sugere preenchimento automático
+        if not form.numero_carteira.data:
+            form.numero_carteira.data = gerar_proximo_numero_carteira()
+        if not form.validade.data:
+            dt_base = membro.data_cadastro or date.today()
+            form.validade.data = calcular_validade_carteira(dt_base)
 
     if request.method == "POST" and form.validate_on_submit():
+        carteira_final = (form.numero_carteira.data or "").strip()
+        if not carteira_final:
+            carteira_final = membro.numero_carteira or gerar_proximo_numero_carteira()
+
+        dt_base = form.data_cadastro.data or membro.data_cadastro or date.today()
+        validade_final = form.validade.data or membro.validade or calcular_validade_carteira(dt_base)
+
         membro.nome = form.nome.data
         membro.data_nascimento = form.data_nascimento.data
         membro.sexo = form.sexo.data
@@ -249,9 +315,9 @@ def editar_membro(id):
         membro.pai = form.pai.data
         membro.mae = form.mae.data
         membro.filiacao = form.filiacao.data
-        membro.numero_carteira = form.numero_carteira.data
+        membro.numero_carteira = carteira_final
         membro.igreja_local = form.igreja_local.data
-        membro.validade = form.validade.data or membro.validade
+        membro.validade = validade_final
         membro.data_cadastro = form.data_cadastro.data or membro.data_cadastro
         membro.data_conversao = form.data_conversao.data or membro.data_conversao
         # membro.data_saida = form.data_saida.data or membro.data_saida
@@ -367,12 +433,43 @@ def aniversariantes_mes():
 # -----------------------------
 # 🪪 Carteira de Membro (HTML)
 # -----------------------------
+@member_bp.route("/carteira/", methods=["GET"])
+@member_bp.route("/carteira", methods=["GET"])
 @member_bp.route("/carteira/<int:id>", methods=["GET"])
 @login_required   # 👈 protege a rota
 @permission_required("membros", "view")
-def carteira_membro(id):
-    membro = Member.query.get_or_404(id)
-    return render_template("membros/carteira_modelo.html", membro=membro)
+def carteira_membro(id=None):
+    membro_id = id or request.args.get("id", type=int)
+
+    if not membro_id:
+        # Se nenhum ID for fornecido, seleciona o primeiro membro ativo
+        primeiro_membro = Member.query.filter(Member.status == "Ativo").order_by(Member.id.asc()).first()
+        if not primeiro_membro:
+            primeiro_membro = Member.query.order_by(Member.id.asc()).first()
+        if not primeiro_membro:
+            flash("Nenhum membro cadastrado para emitir carteira.", "warning")
+            return redirect(url_for("member.listar_membros"))
+        membro = primeiro_membro
+    else:
+        membro = Member.query.get_or_404(membro_id)
+
+    # Se o membro ainda não tiver número de carteirinha ou validade, gera e persiste automaticamente
+    alterou = False
+    if not membro.numero_carteira or not membro.numero_carteira.strip():
+        membro.numero_carteira = gerar_proximo_numero_carteira()
+        alterou = True
+
+    if not membro.validade:
+        dt_base = membro.data_cadastro or date.today()
+        membro.validade = calcular_validade_carteira(dt_base)
+        alterou = True
+
+    if alterou:
+        db.session.commit()
+
+    todos_membros = Member.query.filter(Member.status == "Ativo").order_by(Member.nome.asc()).all()
+
+    return render_template("membros/carteira_modelo.html", membro=membro, todos_membros=todos_membros)
 
 # -----------------------------
 # 📄 Carta de Recomendação (HTML + PDF)
