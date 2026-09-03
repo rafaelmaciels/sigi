@@ -436,6 +436,7 @@ def aniversariantes_mes():
 @member_bp.route("/carteira/", methods=["GET"])
 @member_bp.route("/carteira", methods=["GET"])
 @member_bp.route("/carteira/<int:id>", methods=["GET"])
+@member_bp.route("/carteira<int:id>", methods=["GET"])
 @login_required   # 👈 protege a rota
 @permission_required("membros", "view")
 def carteira_membro(id=None):
