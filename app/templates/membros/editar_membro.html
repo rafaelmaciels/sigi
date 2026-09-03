@@ -272,16 +272,28 @@
               </div>
 
               <div class="col-md-4">
-                {{ form.numero_carteira.label(class="form-label") }}
-                {{ form.numero_carteira(class="form-control", readonly=True, placeholder="Número da carteira") }}
+                <label class="form-label d-flex justify-content-between align-items-center mb-1" for="numero_carteira">
+                  <span>{{ form.numero_carteira.label.text }}</span>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:0.72rem;">
+                    <i class="bi bi-person-vcard me-1"></i>Oficial
+                  </span>
+                </label>
+                {{ form.numero_carteira(class="form-control font-monospace fw-semibold text-primary", readonly=True, placeholder="Número da carteira") }}
+                <div class="form-text small text-muted">Registro sequencial único do membro.</div>
               </div>
               <div class="col-md-4">
                 {{ form.igreja_local.label(class="form-label") }}
                 {{ form.igreja_local(class="form-control", readonly=True, placeholder="Digite a igreja local") }}
               </div>
               <div class="col-md-4">
-                {{ form.validade.label(class="form-label") }}
+                <label class="form-label d-flex justify-content-between align-items-center mb-1" for="validade">
+                  <span>{{ form.validade.label.text }}</span>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.72rem;">
+                    <i class="bi bi-calendar-check me-1"></i>365 Dias
+                  </span>
+                </label>
                 {{ form.validade(class="form-control", readonly=True) }}
+                <div class="form-text small text-muted">Validade fixa calculada em 365 dias.</div>
               </div>
             </div>
           </div>

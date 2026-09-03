@@ -59,6 +59,11 @@
                     <i class="bi bi-person-badge text-primary"></i> Membros & Visitantes
                   </a>
                 </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('member.carteira_membro') }}">
+                    <i class="bi bi-person-vcard text-success"></i> Carteiras de Membros
+                  </a>
+                </li>
                 {% if current_user.is_admin %}
                 <li>
                   <a class="dropdown-item" href="{{ url_for('member.relatorio_membros') }}">
