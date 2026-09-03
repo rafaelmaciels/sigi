@@ -17,7 +17,7 @@
     <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
 
     <!-- CSS Global (Design System Premium) -->
-    <link href="{{ url_for('static', filename='css/base.css') }}?v=3.2" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/base.css') }}?v=3.5" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/editor.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
@@ -28,8 +28,8 @@
     <nav class="navbar navbar-expand-lg fixed-top sigi-navbar">
       <div class="container-fluid px-lg-4">
         <!-- Brand / Logo -->
-        <a class="sigi-brand" href="{{ url_for('dashboard.dashboard') }}" style="display:inline-flex; align-items:center; max-height:38px; text-decoration:none;">
-          <img src="{{ url_for('static', filename='img/sidebar.png') }}?v=3.2" alt="SiGI" class="sigi-brand-img" height="36" style="height:36px !important; max-height:36px !important; width:auto !important; max-width:140px !important; object-fit:contain !important; display:block !important;">
+        <a class="sigi-brand navbar-brand" href="{{ url_for('dashboard.dashboard') }}" style="display:flex !important; align-items:center !important; flex-shrink:0 !important; height:38px !important; margin-right:1.25rem !important; text-decoration:none !important;">
+          <img src="{{ url_for('static', filename='img/sidebar.png') }}?v=3.5" alt="SiGI" class="sigi-brand-img" height="38" style="height:38px !important; max-height:38px !important; width:auto !important; min-width:85px !important; max-width:140px !important; object-fit:contain !important; display:inline-block !important;">
         </a>
 
         <!-- Mobile Toggle Button -->

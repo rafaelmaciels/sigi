@@ -107,23 +107,24 @@ body {
 
 .sigi-brand {
   color: var(--sigi-text-inverse) !important;
-  display: inline-flex !important;
+  display: flex !important;
   align-items: center !important;
-  max-height: 38px !important;
+  flex-shrink: 0 !important;
+  height: 38px !important;
+  margin-right: 1.25rem !important;
   text-decoration: none !important;
   padding: 0 !important;
-  margin: 0 !important;
-  overflow: hidden !important;
   transition: var(--sigi-transition-fast);
 }
 
 .sigi-brand-img {
-  height: 36px !important;
-  max-height: 36px !important;
+  height: 38px !important;
+  max-height: 38px !important;
   width: auto !important;
+  min-width: 85px !important;
   max-width: 140px !important;
   object-fit: contain !important;
-  display: block !important;
+  display: inline-block !important;
   margin: 0 !important;
   transition: filter 0.2s ease, transform 0.2s ease;
 }
