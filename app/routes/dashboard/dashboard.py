@@ -16,16 +16,19 @@ def dashboard():
     metrics = DashboardService.get_dashboard_metrics(is_admin=is_admin)
 
     # Checa eventos próximos para disparar notificação
-    agora = datetime.now()
-    em_dois_dias = agora + timedelta(days=2)
-    existe_evento = (
-        Evento.query
-        .filter(Evento.data_inicio <= em_dois_dias, Evento.data_fim >= agora)
-        .first()
-    )
-    if existe_evento and not session.get("evento_alert") and not session.get("evento_alert_dismissed"):
-        session["evento_alert"] = "⚠️ Há eventos próximos ou em andamento nos próximos 2 dias. Clique aqui para ver todos."
-        session["evento_alert_type"] = "warning"
+    try:
+        agora = datetime.now()
+        em_dois_dias = agora + timedelta(days=2)
+        existe_evento = (
+            Evento.query
+            .filter(Evento.data_inicio <= em_dois_dias, Evento.data_fim >= agora)
+            .first()
+        )
+        if existe_evento and not session.get("evento_alert") and not session.get("evento_alert_dismissed"):
+            session["evento_alert"] = "⚠️ Há eventos próximos ou em andamento nos próximos 2 dias. Clique aqui para ver todos."
+            session["evento_alert_type"] = "warning"
+    except Exception:
+        pass
 
     return render_template(
         'dashboard/dashboard.html',

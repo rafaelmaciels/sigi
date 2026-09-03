@@ -85,53 +85,62 @@ class DashboardService:
         total_dizimistas = Member.query.filter_by(dizimista=True).filter(Member.data_saida.is_(None), (Member.status.is_(None)) | (Member.status == "Ativo")).count() if is_admin else 0
         total_eventos = Evento.query.count()
         total_visitantes = Member.query.filter_by(visitante=True).count()
-        total_escalas = Escala.query.filter(Escala.status != "cancelada").count()
-        
-        # Próximas escalas ativas (mais próximas primeiro)
-        proximas_escalas = (
-            Escala.query
-            .filter(Escala.data >= agora.date(), Escala.status != "cancelada")
-            .order_by(Escala.data.asc(), Escala.hora_inicio.asc())
-            .limit(4)
-            .all()
-        )
-
-        # Voluntários pendentes de confirmação em escalas futuras
-        total_voluntarios_pendentes = (
-            db.session.query(func.count(EscalaItem.id))
-            .join(Escala, EscalaItem.escala_id == Escala.id)
-            .filter(
-                Escala.data >= agora.date(),
-                Escala.status != "cancelada",
-                EscalaItem.status == "pendente"
+        # Próximas escalas e voluntários (defensivo caso tabelas sejam novas no servidor)
+        try:
+            total_escalas = Escala.query.filter(Escala.status != "cancelada").count()
+            proximas_escalas = (
+                Escala.query
+                .filter(Escala.data >= agora.date(), Escala.status != "cancelada")
+                .order_by(Escala.data.asc(), Escala.hora_inicio.asc())
+                .limit(4)
+                .all()
             )
-            .scalar()
-        ) or 0
+            total_voluntarios_pendentes = (
+                db.session.query(func.count(EscalaItem.id))
+                .join(Escala, EscalaItem.escala_id == Escala.id)
+                .filter(
+                    Escala.data >= agora.date(),
+                    Escala.status != "cancelada",
+                    EscalaItem.status == "pendente"
+                )
+                .scalar()
+            ) or 0
+        except Exception:
+            total_escalas = 0
+            proximas_escalas = []
+            total_voluntarios_pendentes = 0
 
         # Novos membros cadastrados no mês corrente
-        membros_novos_mes = (
-            Member.query
-            .filter(
-                Member.data_cadastro.isnot(None),
-                func.extract('month', Member.data_cadastro) == mes_atual,
-                func.extract('year', Member.data_cadastro) == ano_atual
+        try:
+            membros_novos_mes = (
+                Member.query
+                .filter(
+                    Member.data_cadastro.isnot(None),
+                    func.extract('month', Member.data_cadastro) == mes_atual,
+                    func.extract('year', Member.data_cadastro) == ano_atual
+                )
+                .count()
             )
-            .count()
-        )
+        except Exception:
+            membros_novos_mes = 0
 
         # Eventos programados futuros reais
-        total_eventos_programados = (
-            Evento.query
-            .filter(Evento.data_fim >= agora, Evento.status != "cancelado")
-            .count()
-        )
-        proximos_eventos = (
-            Evento.query
-            .filter(Evento.data_fim >= agora, Evento.status != "cancelado")
-            .order_by(Evento.data_inicio.asc())
-            .limit(3)
-            .all()
-        )
+        try:
+            total_eventos_programados = (
+                Evento.query
+                .filter(Evento.data_fim >= agora, Evento.status != "cancelado")
+                .count()
+            )
+            proximos_eventos = (
+                Evento.query
+                .filter(Evento.data_fim >= agora, Evento.status != "cancelado")
+                .order_by(Evento.data_inicio.asc())
+                .limit(3)
+                .all()
+            )
+        except Exception:
+            total_eventos_programados = 0
+            proximos_eventos = []
 
         # 2. Próximos aniversariantes
         proximos_aniversariantes = cls.get_proximos_aniversariantes(limit=6, ref_date=agora.date())
@@ -211,140 +220,157 @@ class DashboardService:
         saldo_operacional = float(entradas_mes - saidas_mes)
 
         # 3. Histórico dos últimos 6 meses cronológicos reais
-        periodos_query = (
-            db.session.query(
-                func.extract('year', Financeiro.data).label("ano"),
-                func.extract('month', Financeiro.data).label("mes")
+        ano_col = func.extract('year', Financeiro.data)
+        mes_col = func.extract('month', Financeiro.data)
+        try:
+            periodos_query = (
+                db.session.query(
+                    ano_col.label("ano"),
+                    mes_col.label("mes")
+                )
+                .filter(Financeiro.data.isnot(None))
+                .group_by(ano_col, mes_col)
+                .order_by(ano_col.desc(), mes_col.desc())
+                .limit(6)
+                .all()
             )
-            .filter(Financeiro.data.isnot(None))
-            .group_by("ano", "mes")
-            .order_by(db.desc("ano"), db.desc("mes"))
-            .limit(6)
-            .all()
-        )
-        periodos = list(reversed(periodos_query))
-        meses_labels = [
-            f"{int(p.mes):02d}/{int(p.ano)}"
-            for p in periodos if p.ano and p.mes
-        ]
+            periodos = list(reversed(periodos_query))
+            meses_labels = [
+                f"{int(p.mes):02d}/{int(p.ano)}"
+                for p in periodos if p.ano and p.mes
+            ]
 
-        entradas_agrupadas = {
-            (int(r.ano), int(r.mes)): float(r.total)
-            for r in db.session.query(
-                func.extract('year', Financeiro.data).label("ano"),
-                func.extract('month', Financeiro.data).label("mes"),
-                func.sum(Financeiro.valor).label("total")
-            )
-            .filter(Financeiro.tipo == "Entrada")
-            .group_by("ano", "mes")
-            .all()
-            if r.ano and r.mes
-        }
+            entradas_agrupadas = {
+                (int(r.ano), int(r.mes)): float(r.total)
+                for r in db.session.query(
+                    ano_col.label("ano"),
+                    mes_col.label("mes"),
+                    func.sum(Financeiro.valor).label("total")
+                )
+                .filter(Financeiro.tipo == "Entrada", Financeiro.data.isnot(None))
+                .group_by(ano_col, mes_col)
+                .all()
+                if r.ano and r.mes
+            }
 
-        saidas_agrupadas = {
-            (int(r.ano), int(r.mes)): float(r.total)
-            for r in db.session.query(
-                func.extract('year', Financeiro.data).label("ano"),
-                func.extract('month', Financeiro.data).label("mes"),
-                func.sum(Financeiro.valor).label("total")
-            )
-            .filter(Financeiro.tipo == "Saída")
-            .group_by("ano", "mes")
-            .all()
-            if r.ano and r.mes
-        }
+            saidas_agrupadas = {
+                (int(r.ano), int(r.mes)): float(r.total)
+                for r in db.session.query(
+                    ano_col.label("ano"),
+                    mes_col.label("mes"),
+                    func.sum(Financeiro.valor).label("total")
+                )
+                .filter(Financeiro.tipo == "Saída", Financeiro.data.isnot(None))
+                .group_by(ano_col, mes_col)
+                .all()
+                if r.ano and r.mes
+            }
 
-        financeiro_mensal = [entradas_agrupadas.get((int(p.ano), int(p.mes)), 0.0) for p in periodos if p.ano and p.mes]
-        financeiro_saidas = [saidas_agrupadas.get((int(p.ano), int(p.mes)), 0.0) for p in periodos if p.ano and p.mes]
-        has_financeiro_data = bool(financeiro_mensal or financeiro_saidas)
-
+            financeiro_mensal = [entradas_agrupadas.get((int(p.ano), int(p.mes)), 0.0) for p in periodos if p.ano and p.mes]
+            financeiro_saidas = [saidas_agrupadas.get((int(p.ano), int(p.mes)), 0.0) for p in periodos if p.ano and p.mes]
+            has_financeiro_data = bool(financeiro_mensal or financeiro_saidas)
+        except Exception:
+            meses_labels = []
+            financeiro_mensal = []
+            financeiro_saidas = []
+            has_financeiro_data = False
 
         # 5. Crescimento e movimentação anual
-        crescimento_query = (
-            db.session.query(
-                func.extract('year', Member.data_cadastro).label("ano"),
-                func.extract('month', Member.data_cadastro).label("mes"),
-                func.count(Member.id).label("novos")
-            )
-            .filter(Member.data_cadastro.isnot(None))
-            .group_by("ano", "mes")
-            .order_by("ano", "mes")
-            .all()
-        )
-        crescimento_labels = [
-            f"{int(r.mes):02d}/{int(r.ano)}"
-            for r in crescimento_query if r.mes is not None and r.ano is not None
-        ]
-        crescimento_valores = [
-            int(r.novos)
-            for r in crescimento_query if r.mes is not None and r.ano is not None
-        ]
-
+        crescimento_labels = []
+        crescimento_valores = []
         crescimento_valores_por_ano = {}
-        for r in crescimento_query:
-            if r.ano and r.mes:
-                ano = int(r.ano)
-                mes = int(r.mes)
-                if ano not in crescimento_valores_por_ano:
-                    crescimento_valores_por_ano[ano] = [0] * 12
-                crescimento_valores_por_ano[ano][mes - 1] = int(r.novos)
-
         saidas_valores_por_ano = {}
-        saidas_membros_query = (
-            db.session.query(
-                func.extract('year', Member.data_saida).label("ano"),
-                func.extract('month', Member.data_saida).label("mes"),
-                func.count(Member.id).label("saidas")
-            )
-            .filter(Member.data_saida.isnot(None))
-            .group_by("ano", "mes")
-            .order_by("ano", "mes")
-            .all()
-        )
-        for r in saidas_membros_query:
-            if r.ano and r.mes:
-                ano = int(r.ano)
-                mes = int(r.mes)
-                if ano not in saidas_valores_por_ano:
-                    saidas_valores_por_ano[ano] = [0] * 12
-                saidas_valores_por_ano[ano][mes - 1] = int(r.saidas)
-
         indicadores_por_ano = {}
-        anos = db.session.query(func.extract('year', Member.data_cadastro)).distinct().all()
-        for (ano,) in anos:
-            if ano is None:
-                continue
-            ano = int(ano)
-            entradas_count = (
-                db.session.query(func.count(Member.id))
-                .filter(func.extract('year', Member.data_cadastro) == ano)
-                .scalar()
-            ) or 0
 
-            saidas_count = (
-                db.session.query(func.count(Member.id))
-                .filter(func.extract('year', Member.data_saida) == ano)
-                .scalar()
-            ) or 0
+        try:
+            m_ano_col = func.extract('year', Member.data_cadastro)
+            m_mes_col = func.extract('month', Member.data_cadastro)
+            crescimento_query = (
+                db.session.query(
+                    m_ano_col.label("ano"),
+                    m_mes_col.label("mes"),
+                    func.count(Member.id).label("novos")
+                )
+                .filter(Member.data_cadastro.isnot(None))
+                .group_by(m_ano_col, m_mes_col)
+                .order_by(m_ano_col.asc(), m_mes_col.asc())
+                .all()
+            )
+            crescimento_labels = [
+                f"{int(r.mes):02d}/{int(r.ano)}"
+                for r in crescimento_query if r.mes is not None and r.ano is not None
+            ]
+            crescimento_valores = [
+                int(r.novos)
+                for r in crescimento_query if r.mes is not None and r.ano is not None
+            ]
 
-            movimentacao = entradas_count - saidas_count
-            taxa = round((movimentacao / total_membros) * 100, 1) if total_membros > 0 else None
+            for r in crescimento_query:
+                if r.ano and r.mes:
+                    ano = int(r.ano)
+                    mes = int(r.mes)
+                    if ano not in crescimento_valores_por_ano:
+                        crescimento_valores_por_ano[ano] = [0] * 12
+                    crescimento_valores_por_ano[ano][mes - 1] = int(r.novos)
 
-            total_ano = (
-                db.session.query(func.count(Member.id))
-                .filter(func.extract('year', Member.data_cadastro) <= ano)
-                .filter((Member.data_saida.is_(None)) | (func.extract('year', Member.data_saida) > ano))
-                .filter((Member.status.is_(None)) | (Member.status == "Ativo"))
-                .scalar()
-            ) or 0
+            s_ano_col = func.extract('year', Member.data_saida)
+            s_mes_col = func.extract('month', Member.data_saida)
+            saidas_membros_query = (
+                db.session.query(
+                    s_ano_col.label("ano"),
+                    s_mes_col.label("mes"),
+                    func.count(Member.id).label("saidas")
+                )
+                .filter(Member.data_saida.isnot(None))
+                .group_by(s_ano_col, s_mes_col)
+                .order_by(s_ano_col.asc(), s_mes_col.asc())
+                .all()
+            )
+            for r in saidas_membros_query:
+                if r.ano and r.mes:
+                    ano = int(r.ano)
+                    mes = int(r.mes)
+                    if ano not in saidas_valores_por_ano:
+                        saidas_valores_por_ano[ano] = [0] * 12
+                    saidas_valores_por_ano[ano][mes - 1] = int(r.saidas)
 
-            indicadores_por_ano[ano] = {
-                "entradas": int(entradas_count),
-                "saidas": int(saidas_count),
-                "movimentacao": int(movimentacao),
-                "taxa": float(taxa) if taxa is not None else None,
-                "total_membros": int(total_ano)
-            }
+            anos = db.session.query(m_ano_col).distinct().all()
+            for (ano,) in anos:
+                if ano is None:
+                    continue
+                ano = int(ano)
+                entradas_count = (
+                    db.session.query(func.count(Member.id))
+                    .filter(func.extract('year', Member.data_cadastro) == ano)
+                    .scalar()
+                ) or 0
+
+                saidas_count = (
+                    db.session.query(func.count(Member.id))
+                    .filter(func.extract('year', Member.data_saida) == ano)
+                    .scalar()
+                ) or 0
+
+                movimentacao = entradas_count - saidas_count
+                taxa = round((movimentacao / total_membros) * 100, 1) if total_membros > 0 else None
+
+                total_ano = (
+                    db.session.query(func.count(Member.id))
+                    .filter(func.extract('year', Member.data_cadastro) <= ano)
+                    .filter((Member.data_saida.is_(None)) | (func.extract('year', Member.data_saida) > ano))
+                    .filter((Member.status.is_(None)) | (Member.status == "Ativo"))
+                    .scalar()
+                ) or 0
+
+                indicadores_por_ano[ano] = {
+                    "entradas": int(entradas_count),
+                    "saidas": int(saidas_count),
+                    "movimentacao": int(movimentacao),
+                    "taxa": float(taxa) if taxa is not None else None,
+                    "total_membros": int(total_ano)
+                }
+        except Exception:
+            pass
 
         taxa_crescimento = None
         tendencia = None

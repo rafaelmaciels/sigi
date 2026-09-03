@@ -24,10 +24,12 @@ def create_app(config_class=None):
     csrf.init_app(app)
 
     # -----------------------------
-    # 🔄 Auto-migração segura de colunas (compatibilidade de schema)
+    # 🔄 Auto-migração segura de colunas e criação de novas tabelas
     # -----------------------------
     with app.app_context():
         try:
+            from app import models  # Garante registro de todos os modelos
+            db.create_all()         # Cria tabelas novas automaticamente (ex: escalas, ebd, etc) sem afetar dados
             from sqlalchemy import text, inspect
             inspector = inspect(db.engine)
             if 'users' in inspector.get_table_names():
