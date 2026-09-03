@@ -100,7 +100,7 @@ body {
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: var(--sigi-shadow-md);
-  padding: 0.65rem 1.5rem;
+  padding: 0.45rem 0.85rem;
   transition: var(--sigi-transition-normal);
   z-index: 1050;
 }
@@ -110,19 +110,19 @@ body {
   display: flex !important;
   align-items: center !important;
   flex-shrink: 0 !important;
-  height: 38px !important;
-  margin-right: 1.25rem !important;
+  height: 36px !important;
+  margin-right: 0.4rem !important;
   text-decoration: none !important;
   padding: 0 !important;
   transition: var(--sigi-transition-fast);
 }
 
 .sigi-brand-img {
-  height: 38px !important;
-  max-height: 38px !important;
+  height: 35px !important;
+  max-height: 35px !important;
   width: auto !important;
-  min-width: 85px !important;
-  max-width: 140px !important;
+  min-width: 80px !important;
+  max-width: 130px !important;
   object-fit: contain !important;
   display: inline-block !important;
   margin: 0 !important;
@@ -149,13 +149,14 @@ body {
 .sigi-navbar .nav-link {
   color: #94a3b8 !important;
   font-weight: 500;
-  font-size: 0.9rem;
-  padding: 0.5rem 0.85rem !important;
+  font-size: 0.875rem;
+  padding: 0.42rem 0.6rem !important;
   border-radius: var(--sigi-radius-md);
   transition: var(--sigi-transition-fast);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
+  white-space: nowrap !important;
 }
 
 .sigi-navbar .nav-link:hover,

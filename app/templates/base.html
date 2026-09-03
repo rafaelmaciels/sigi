@@ -17,7 +17,7 @@
     <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
 
     <!-- CSS Global (Design System Premium) -->
-    <link href="{{ url_for('static', filename='css/base.css') }}?v=3.5" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/base.css') }}?v=4.0" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/editor.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
@@ -26,10 +26,10 @@
     <!-- Navbar SaaS Unificada -->
     {% if not hide_navbar %}
     <nav class="navbar navbar-expand-lg fixed-top sigi-navbar">
-      <div class="container-fluid px-lg-4">
+      <div class="container-fluid px-2 px-xl-3">
         <!-- Brand / Logo -->
-        <a class="sigi-brand navbar-brand" href="{{ url_for('dashboard.dashboard') }}" style="display:flex !important; align-items:center !important; flex-shrink:0 !important; height:38px !important; margin-right:1.25rem !important; text-decoration:none !important;">
-          <img src="{{ url_for('static', filename='img/sidebar.png') }}?v=3.5" alt="SiGI" class="sigi-brand-img" height="38" style="height:38px !important; max-height:38px !important; width:auto !important; min-width:85px !important; max-width:140px !important; object-fit:contain !important; display:inline-block !important;">
+        <a class="sigi-brand navbar-brand" href="{{ url_for('dashboard.dashboard') }}" style="display:flex !important; align-items:center !important; flex-shrink:0 !important; height:36px !important; margin-right:0.4rem !important; text-decoration:none !important;">
+          <img src="{{ url_for('static', filename='img/sidebar.png') }}?v=4.0" alt="SiGI" class="sigi-brand-img" height="35" style="height:35px !important; max-height:35px !important; width:auto !important; min-width:80px !important; max-width:130px !important; object-fit:contain !important; display:inline-block !important;">
         </a>
 
         <!-- Mobile Toggle Button -->
@@ -39,7 +39,7 @@
 
         <!-- Menu Links -->
         <div class="collapse navbar-collapse" id="sigiNavMenu">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-lg-1">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-2 gap-lg-1">
             <!-- Dashboard -->
             <li class="nav-item">
               <a class="nav-link {% block nav_dashboard_active %}{% endblock %}" href="{{ url_for('dashboard.dashboard') }}">
@@ -272,9 +272,9 @@
           </ul>
 
           <!-- Perfil do Usuário -->
-          <ul class="navbar-nav ms-auto align-items-lg-center">
+          <ul class="navbar-nav ms-auto align-items-lg-center flex-shrink-0">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white px-2 py-1" href="#" id="navPerfil" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white px-2 py-1 flex-shrink-0" href="#" id="navPerfil" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="white-space:nowrap;">
                 {% if current_user.foto %}
                   <img src="{{ url_for('static', filename='uploads/' ~ current_user.foto) }}" alt="Foto de {{ current_user.nome }}" class="sigi-avatar">
                 {% else %}
@@ -282,7 +282,7 @@
                     {{ (current_user.nome[0] if current_user.nome else current_user.email[0]) | upper }}
                   </div>
                 {% endif %}
-                <span class="d-none d-sm-inline fw-semibold">{{ current_user.nome or current_user.email.split('@')[0] }}</span>
+                <span class="d-none d-sm-inline fw-semibold text-truncate" style="max-width:115px;">{{ current_user.nome or current_user.email.split('@')[0] }}</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="navPerfil">
                 <li class="px-3 py-2 border-bottom mb-1">
