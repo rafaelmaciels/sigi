@@ -75,6 +75,7 @@ def financeiro():
 
     # 3. Saldo por Conta / Fundo Eclesiástico
     saldos_contas = []
+    total_positivo_fundos = 0.0
     for c in CONTAS_PADRAO:
         ent = db.session.query(func.coalesce(func.sum(Financeiro.valor), 0.0)).filter(
             Financeiro.tipo == "Entrada", Financeiro.conta == c
@@ -84,12 +85,41 @@ def financeiro():
         ).scalar()
         total_conta = float(ent) - float(sai)
         if total_conta != 0 or ent > 0 or sai > 0:
+            if total_conta > 0:
+                total_positivo_fundos += total_conta
             saldos_contas.append({
                 "conta": c,
                 "entradas": float(ent),
                 "saidas": float(sai),
-                "saldo": total_conta
+                "saldo": total_conta,
+                "percentual": 0.0
             })
+
+    divisor_fundos = total_positivo_fundos if total_positivo_fundos > 0 else (saldo_geral if saldo_geral > 0 else 1.0)
+    for sc in saldos_contas:
+        if sc["saldo"] > 0:
+            sc["percentual"] = min(round((sc["saldo"] / divisor_fundos) * 100, 1), 100.0)
+        else:
+            sc["percentual"] = 0.0
+
+    saldos_contas.sort(key=lambda x: x["saldo"], reverse=True)
+
+    # 3.1 Dízimos arrecadados no mês
+    dizimos_mes = db.session.query(func.coalesce(func.sum(Financeiro.valor), 0.0)).filter(
+        Financeiro.tipo == "Entrada",
+        Financeiro.categoria == "Dízimo",
+        extract("month", Financeiro.data) == mes_atual,
+        extract("year", Financeiro.data) == ano_atual
+    ).scalar()
+    dizimos_mes = float(dizimos_mes)
+    pct_dizimos = round((dizimos_mes / float(entradas_mes) * 100), 1) if float(entradas_mes) > 0 else 0.0
+
+    meses_pt = {
+        1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril",
+        5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto",
+        9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
+    }
+    mes_nome = meses_pt.get(mes_atual, "Mês Atual")
 
     # 4. Histórico dos últimos 6 meses para gráfico
     def month_key(d: date):
@@ -155,8 +185,11 @@ def financeiro():
 
     return render_template(
         'financeiro/financeiro.html',
+        mes_nome=mes_nome,
         total_entradas_mes=float(entradas_mes),
         total_saidas_mes=float(saidas_mes),
+        dizimos_mes=dizimos_mes,
+        pct_dizimos=pct_dizimos,
         saldo_mes=saldo_mes,
         saldo_geral=saldo_geral,
         saldos_contas=saldos_contas,
