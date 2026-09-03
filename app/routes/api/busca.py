@@ -445,3 +445,94 @@ def buscar_escalas():
 
     return jsonify(resultados)
 
+
+# ---------------------------------------------------------------------------
+# 📑 Busca de Atas de Reunião e Assembleia
+# ---------------------------------------------------------------------------
+@api_bp.route("/busca/atas", methods=["GET"])
+@login_required
+def buscar_atas():
+    termo = request.args.get("q", "").strip()
+    limite = min(request.args.get("limit", 10, type=int), 50)
+
+    if not termo or len(termo) < 2:
+        return jsonify([])
+
+    termo_norm = remover_acentos(termo)
+    prefixo_2 = termo_norm[:2]
+
+    condicoes = [
+        Ata.titulo.ilike(f"{termo}%"),
+        Ata.titulo.ilike(f"{prefixo_2}%"),
+        Ata.titulo.ilike(f"%{termo}%"),
+        Ata.tipo.ilike(f"{termo}%"),
+        Ata.presidente.ilike(f"{termo}%"),
+        Ata.secretario.ilike(f"{termo}%"),
+    ]
+
+    atas = (
+        Ata.query.filter(or_(*condicoes))
+        .order_by(Ata.data_emissao.desc())
+        .limit(limite * 3)
+        .all()
+    )
+
+    partes_termo = termo_norm.split()
+    resultados = []
+    vistos = set()
+
+    for item in atas:
+        titulo_norm = remover_acentos(item.titulo or "")
+        pres_norm = remover_acentos(item.presidente or "")
+        sec_norm = remover_acentos(item.secretario or "")
+        tipo_norm = remover_acentos(item.tipo or "")
+
+        match = False
+        if len(partes_termo) == 1:
+            match = (
+                titulo_norm.startswith(termo_norm)
+                or termo_norm in titulo_norm
+                or pres_norm.startswith(termo_norm)
+                or sec_norm.startswith(termo_norm)
+                or tipo_norm.startswith(termo_norm)
+            )
+        else:
+            primeira = partes_termo[0]
+            if (
+                titulo_norm.startswith(primeira)
+                or primeira in titulo_norm
+                or pres_norm.startswith(primeira)
+            ):
+                match = all(
+                    parte in titulo_norm or parte in pres_norm or parte in sec_norm
+                    for parte in partes_termo[1:]
+                )
+
+        if match:
+            label = item.titulo
+            if label in vistos:
+                continue
+            vistos.add(label)
+
+            data_str = item.data_emissao.strftime("%d/%m/%Y") if item.data_emissao else ""
+            pres_str = f" • Pres: {item.presidente}" if item.presidente else ""
+            tipo_str = item.tipo or "Ata"
+            subtext = f"{tipo_str} • {data_str}{pres_str}"
+
+            resultados.append({
+                "id": item.id,
+                "value": label,
+                "label": label,
+                "subtext": subtext,
+                "status": item.situacao or "Rascunho",
+                "inicial": label[0].upper() if label else "A",
+                "tipo": item.tipo or "Ata",
+                "data": data_str
+            })
+
+            if len(resultados) >= limite:
+                break
+
+    return jsonify(resultados)
+
+

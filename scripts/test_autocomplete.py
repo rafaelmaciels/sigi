@@ -178,5 +178,52 @@ class TestAutocompleteSystem(unittest.TestCase):
                 self.assertIn("status", dados[0])
             print("[OK] Endpoint /api/busca/escalas respondendo com 200 OK e dados válidos.")
 
+    def test_busca_atas(self):
+        """Testa endpoint de autocomplete de atas de reuniões e assembleias"""
+        with self.app.app_context():
+            from app.models.documento import Ata
+            # Garante ao menos uma ata de teste
+            ata_teste = Ata.query.filter_by(titulo="Assembleia Geral Ordinária de Membros").first()
+            if not ata_teste:
+                ata_teste = Ata(
+                    titulo="Assembleia Geral Ordinária de Membros",
+                    tipo="Assembleia Geral",
+                    situacao="Aprovada",
+                    presidente="Pr. Carlos Eduardo da Silva",
+                    secretario="Presb. Marcos",
+                    data_emissao=datetime.now().date()
+                )
+                db.session.add(ata_teste)
+                db.session.commit()
+
+            self.login()
+            # 1. Busca por prefixo
+            resp = self.client.get("/api/busca/atas?q=Assem")
+            self.assertEqual(resp.status_code, 200)
+            dados = json.loads(resp.get_data(as_text=True))
+            self.assertIsInstance(dados, list)
+            self.assertTrue(len(dados) >= 1)
+            self.assertIn("label", dados[0])
+            self.assertIn("subtext", dados[0])
+            self.assertIn("status", dados[0])
+
+            # 2. Busca tolerante a acentos sem acento (ex: 'assembleia')
+            resp_sem_acento = self.client.get("/api/busca/atas?q=assembleia")
+            self.assertEqual(resp_sem_acento.status_code, 200)
+            dados_sem_acento = json.loads(resp_sem_acento.get_data(as_text=True))
+            self.assertTrue(len(dados_sem_acento) >= 1)
+            self.assertTrue(any("Assembleia" in d["label"] for d in dados_sem_acento))
+
+            # 3. Busca por presidente
+            resp_pres = self.client.get("/api/busca/atas?q=Carlos")
+            self.assertEqual(resp_pres.status_code, 200)
+
+            # 4. Busca com menos de 2 caracteres deve retornar vazio
+            resp_curto = self.client.get("/api/busca/atas?q=A")
+            self.assertEqual(resp_curto.status_code, 200)
+            self.assertEqual(json.loads(resp_curto.get_data(as_text=True)), [])
+
+            print("[OK] Endpoint /api/busca/atas validado com 100% de sucesso.")
+
 if __name__ == "__main__":
     unittest.main()
