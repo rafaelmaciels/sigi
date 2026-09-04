@@ -8,6 +8,7 @@ from .documento import Ata, Certificado, Carta
 from .igreja import Igreja  
 from .ebd import EbdConfig, EbdPeriodo, EbdClasse, EbdProfessor, EbdMatricula, EbdAula, EbdFrequencia
 from .escala import Equipe, EquipeFuncao, EquipeMembro, Escala, EscalaItem
+from .changelog import Changelog
 
 # Exportação unificada dos modelos do SiGI
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "Patrimonio", "Log", "Ata", "Certificado", "Carta", "Igreja",
     "EbdConfig", "EbdPeriodo", "EbdClasse", "EbdProfessor",
     "EbdMatricula", "EbdAula", "EbdFrequencia",
-    "Equipe", "EquipeFuncao", "EquipeMembro", "Escala", "EscalaItem"
+    "Equipe", "EquipeFuncao", "EquipeMembro", "Escala", "EscalaItem",
+    "Changelog"
 ]
 

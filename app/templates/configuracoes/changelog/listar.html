@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block title %}Changelog & Histórico de Atualizações — SiGI{% endblock %}
+{% block nav_configuracoes_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-clock-history text-primary me-2"></i> Changelog do SiGI
+      </h2>
+      <p class="text-muted mb-0">Histórico cronológico de implementações, melhorias, correções e evolução técnica do sistema.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('configuracoes.configuracoes') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Configurações
+      </a>
+      {% if pode_gerenciar %}
+      <a href="{{ url_for('configuracoes.changelog.criar_changelog') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Nova Atualização
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Barra de Pesquisa e Filtros -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" class="row g-2 align-items-center" autocomplete="off">
+        <div class="col-12 col-md-4">
+          <div class="sigi-search-field flex-grow-1">
+            <i class="bi bi-search sigi-search-icon"></i>
+            <input name="q" id="searchInput" type="text" class="form-control form-control-sm sigi-search-input" 
+                   placeholder="Buscar por título ou alteração..." value="{{ termo_busca if termo_busca }}"
+                   data-sigi-autocomplete
+                   data-url="{{ url_for('api.buscar_changelogs') }}"
+                   data-mode="search"
+                   data-min-chars="2">
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <select name="modulo" class="form-select">
+            <option value="">Todos os Módulos</option>
+            {% for mod in modulos_disponiveis %}
+              <option value="{{ mod }}" {% if modulo_filtro == mod %}selected{% endif %}>{{ mod }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-6 col-md-2">
+          <select name="tipo" class="form-select">
+            <option value="">Todos os Tipos</option>
+            {% for t in tipos_disponiveis %}
+              <option value="{{ t }}" {% if tipo_filtro == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if anos_disponiveis %}
+        <div class="col-6 col-md-2">
+          <select name="ano" class="form-select">
+            <option value="">Todos os Anos</option>
+            {% for a in anos_disponiveis %}
+              <option value="{{ a }}" {% if ano_filtro == a|string %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <div class="col-auto d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel me-1"></i> Filtrar
+          </button>
+          {% if termo_busca or modulo_filtro or tipo_filtro or ano_filtro %}
+            <a href="{{ url_for('configuracoes.changelog.listar_changelog') }}" class="btn btn-outline-secondary">Limpar</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Contador e Resumo -->
+  <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
+    <div>
+      <i class="bi bi-layers text-primary me-1"></i>
+      Exibindo <strong>{{ total_registros }}</strong> {{ 'alteração' if total_registros == 1 else 'alterações' }}
+      {% if termo_busca or modulo_filtro or tipo_filtro or ano_filtro %}
+        <span class="badge bg-primary-subtle text-primary ms-1">Filtros aplicados</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Timeline Hierárquica: Ano → Mês → Data -->
+  {% if grupos_anos %}
+    {% for grupo_ano in grupos_anos %}
+      <div class="changelog-ano-section mb-5">
+        <!-- Marcador de Ano -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill shadow-sm">
+            <i class="bi bi-calendar-event me-1"></i> {{ grupo_ano.ano }}
+          </span>
+          <hr class="flex-grow-1 my-0 opacity-25">
+        </div>
+
+        {% for grupo_mes in grupo_ano.meses %}
+          <div class="changelog-mes-section ms-md-3 mb-4">
+            <!-- Cabeçalho do Mês -->
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3 text-primary"></i>
+                {{ grupo_mes.mes_nome }} de {{ grupo_ano.ano }}
+              </h5>
+            </div>
+
+            {% for grupo_data in grupo_mes.datas %}
+              <div class="changelog-data-block ms-md-3 mb-4">
+                <!-- Marcador de Data -->
+                <div class="text-muted small fw-semibold mb-3 d-flex align-items-center gap-2">
+                  <span class="badge bg-light text-dark border px-2 py-1 shadow-xs">
+                    <i class="bi bi-calendar-check text-primary me-1"></i> {{ grupo_data.data_formatada }}
+                  </span>
+                </div>
+
+                <!-- Cards de Alteração dessa Data -->
+                <div class="d-flex flex-column gap-3 ms-md-2">
+                  {% for item in grupo_data.itens %}
+                    <div class="card shadow-sm border-0 changelog-card">
+                      <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                          <!-- Badge do Tipo -->
+                          <span class="badge {{ item.badge_class }} rounded-pill px-2.5 py-1">
+                            <i class="bi {{ item.badge_icon }} me-1"></i> {{ item.tipo }}
+                          </span>
+                          <!-- Badge do Módulo -->
+                          <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1">
+                            <i class="bi {{ item.modulo_icon }} me-1"></i> {{ item.modulo }}
+                          </span>
+                          {% if item.versao %}
+                          <span class="badge bg-dark-subtle text-dark border rounded-pill px-2 py-1">
+                            <i class="bi bi-tag me-1"></i>{{ item.versao }}
+                          </span>
+                          {% endif %}
+                          <!-- Título -->
+                          <h6 class="fw-bold text-dark mb-0 ms-1 d-inline">
+                            {{ item.titulo }}
+                          </h6>
+                        </div>
+
+                        <!-- Autor e Ações Administrativas -->
+                        <div class="d-flex align-items-center gap-2 ms-auto">
+                          <span class="text-muted small">
+                            <i class="bi bi-person-check me-1"></i> Implantado por:
+                            <strong class="text-dark">{{ item.responsavel }}</strong>
+                          </span>
+
+                          {% if pode_gerenciar %}
+                          <div class="d-inline-flex gap-1 ms-2">
+                            <a href="{{ url_for('configuracoes.changelog.editar_changelog', id=item.id) }}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Editar alteração">
+                              <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if pode_excluir %}
+                            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}" title="Excluir alteração">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                          </div>
+                          {% endif %}
+                        </div>
+                      </div>
+
+                      <div class="card-body py-3">
+                        <div class="row g-3">
+                          <!-- O que mudou -->
+                          <div class="col-12 col-lg-7">
+                            <div class="fw-semibold small text-muted text-uppercase mb-1">
+                              <i class="bi bi-pencil-square text-primary me-1"></i> Alteração
+                            </div>
+                            <div class="text-dark ps-2 border-start border-3 border-primary-subtle" style="white-space: pre-line; line-height: 1.55;">
+                              {{ item.descricao }}
+                            </div>
+                          </div>
+
+                          <!-- Por que foi feito -->
+                          <div class="col-12 col-lg-5">
+                            <div class="fw-semibold small text-muted text-uppercase mb-1">
+                              <i class="bi bi-lightbulb text-success me-1"></i> Finalidade & Benefício
+                            </div>
+                            <div class="text-secondary ps-2 border-start border-3 border-success-subtle small" style="white-space: pre-line; line-height: 1.55;">
+                              {{ item.finalidade }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <!-- Paginação (Centralizada no Meio da Tela) -->
+    {% if paginacao.pages > 1 %}
+    <div class="d-flex flex-column align-items-center justify-content-center gap-2 mt-4 mb-5 pt-3 border-top">
+      <nav aria-label="Navegação de páginas do Changelog">
+        <ul class="pagination mb-0 justify-content-center">
+          <!-- Botão Anterior -->
+          <li class="page-item {% if not paginacao.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{% if paginacao.has_prev %}{{ url_for('configuracoes.changelog.listar_changelog', page=paginacao.prev_num, q=termo_busca, modulo=modulo_filtro, tipo=tipo_filtro, ano=ano_filtro) }}{% else %}#{% endif %}">
+              <i class="bi bi-chevron-left me-1"></i> Anterior
+            </a>
+          </li>
+
+          <!-- Páginas numéricas -->
+          {% for p in range(1, paginacao.pages + 1) %}
+            {% if p == 1 or p == paginacao.pages or (p >= paginacao.page - 2 and p <= paginacao.page + 2) %}
+              <li class="page-item {% if p == paginacao.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('configuracoes.changelog.listar_changelog', page=p, q=termo_busca, modulo=modulo_filtro, tipo=tipo_filtro, ano=ano_filtro) }}">{{ p }}</a>
+              </li>
+            {% elif p == paginacao.page - 3 or p == paginacao.page + 3 %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+
+          <!-- Botão Próximo -->
+          <li class="page-item {% if not paginacao.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{% if paginacao.has_next %}{{ url_for('configuracoes.changelog.listar_changelog', page=paginacao.next_num, q=termo_busca, modulo=modulo_filtro, tipo=tipo_filtro, ano=ano_filtro) }}{% else %}#{% endif %}">
+              Próximo <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="text-muted small text-center">
+        Página <strong>{{ paginacao.page }}</strong> de <strong>{{ paginacao.pages }}</strong> (Total: {{ paginacao.total }} alterações)
+      </div>
+    </div>
+    {% endif %}
+  {% else %}
+    <div class="card shadow-sm border-0 py-5 text-center text-muted">
+      <div class="card-body">
+        <i class="bi bi-journal-x fs-1 mb-2 text-secondary d-block"></i>
+        <h5 class="fw-semibold text-dark">Nenhuma alteração encontrada</h5>
+        <p class="mb-3 small">Tente ajustar os filtros selecionados ou limpe a busca para visualizar todo o histórico.</p>
+        {% if termo_busca or modulo_filtro or tipo_filtro or ano_filtro %}
+          <a href="{{ url_for('configuracoes.changelog.listar_changelog') }}" class="btn btn-outline-secondary btn-sm">
+            Limpar Filtros
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block modals %}
+  {% if pode_excluir and grupos_anos %}
+    {% for grupo_ano in grupos_anos %}
+      {% for grupo_mes in grupo_ano.meses %}
+        {% for grupo_data in grupo_mes.datas %}
+          {% for item in grupo_data.itens %}
+            <div class="modal fade" id="deleteModal{{ item.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ item.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger" id="deleteModalLabel{{ item.id }}">
+                      <i class="bi bi-exclamation-triangle-fill me-1"></i> Confirmar Exclusão
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                  </div>
+                  <div class="modal-body">
+                    Tem certeza de que deseja excluir a alteração <strong>"{{ item.titulo }}"</strong>?<br>
+                    <span class="text-muted small">Data da implantação: {{ item.data_implantacao.strftime('%d/%m/%Y') }}. Esta ação não poderá ser desfeita.</span>
+                  </div>
+                  <div class="modal-footer">
+                    <form method="POST" action="{{ url_for('configuracoes.changelog.excluir_changelog', id=item.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Excluir
+                      </button>
+                    </form>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endfor %}
+      {% endfor %}
+    {% endfor %}
+  {% endif %}
+{% endblock %}

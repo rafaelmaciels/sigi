@@ -94,7 +94,7 @@ from app.models import (
     User, Permission, UserPermission, Member, PublicLink, Evento, Financeiro,
     Patrimonio, Log, Ata, Certificado, Carta, Igreja,
     EbdConfig, EbdPeriodo, EbdClasse, EbdProfessor, EbdMatricula, EbdAula, EbdFrequencia,
-    Equipe, EquipeFuncao, EquipeMembro, Escala, EscalaItem
+    Equipe, EquipeFuncao, EquipeMembro, Escala, EscalaItem, Changelog
 )
 
 app = create_app()
@@ -136,7 +136,12 @@ with app.app_context():
             ano_fundacao=1995,
             versiculo_tema="Porque dEle, por Ele e para Ele são todas as coisas. (Romanos 11:36)"
         )
-        db.session.add(igreja)
+    # Garante povoamento do Changelog
+    try:
+        from utils.seed_changelog import seed_changelog
+        seed_changelog()
+    except Exception as e:
+        pass
 
     db.session.commit()
     print('SYNC_OK')

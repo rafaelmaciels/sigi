@@ -53,3 +53,6 @@ logs/
 # Arquivos de SO
 .DS_Store
 Thumbs.db
+
+# Scratch / Scripts temporários de teste
+scratch/

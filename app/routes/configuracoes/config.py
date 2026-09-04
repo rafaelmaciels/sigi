@@ -11,6 +11,7 @@ from .mail.mail import mail_bp
 from .logs.logs import logs_bp
 from .permissoes.permissoes import permissoes_bp
 from .igreja.igreja import igreja_bp
+from .changelog.changelog import changelog_bp
 
 # registra os sub-blueprints dentro do config_bp
 config_bp.register_blueprint(usuarios_bp)
@@ -19,6 +20,7 @@ config_bp.register_blueprint(mail_bp)
 config_bp.register_blueprint(logs_bp)
 config_bp.register_blueprint(permissoes_bp)
 config_bp.register_blueprint(igreja_bp)
+config_bp.register_blueprint(changelog_bp)
 
 # rota de configurações
 @config_bp.route("/")

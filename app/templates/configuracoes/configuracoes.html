@@ -193,6 +193,26 @@
       </div>
     </div>
     {% endif %}
+
+    <!-- Changelog & Atualizações -->
+    <div class="col-sm-6 col-lg-4">
+      <div class="card dashboard-card card-info h-100 p-2">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="dashboard-icon bg-info bg-opacity-10 text-info mb-3">
+              <i class="bi bi-clock-history fs-4"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Changelog & Atualizações</h5>
+            <p class="text-muted small">Histórico cronológico de implementações, melhorias, correções e novidades do SiGI.</p>
+          </div>
+          <div class="pt-3">
+            <a href="{{ url_for('configuracoes.changelog.listar_changelog') }}" class="btn btn-sm btn-outline-primary w-100">
+              Ver Changelog <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

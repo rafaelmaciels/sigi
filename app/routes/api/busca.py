@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import or_
 
 from app.extensions import db
-from app.models import Member, User, Financeiro
+from app.models import Member, User, Financeiro, Changelog
 from app.models.patrimonio import Patrimonio
 from app.models.evento import Evento
 from app.models.documento import Ata, Certificado, Carta
@@ -524,6 +524,93 @@ def buscar_atas():
                 "inicial": label[0].upper() if label else "A",
                 "tipo": item.tipo or "Ata",
                 "data": data_str
+            })
+
+            if len(resultados) >= limite:
+                break
+
+    return jsonify(resultados)
+
+
+# ---------------------------------------------------------------------------
+# 📜 Busca de Changelogs & Atualizações
+# ---------------------------------------------------------------------------
+@api_bp.route("/busca/changelogs", methods=["GET"])
+@login_required
+def buscar_changelogs():
+    termo = request.args.get("q", "").strip()
+    limite = min(request.args.get("limit", 10, type=int), 30)
+
+    if not termo or len(termo) < 2:
+        return jsonify([])
+
+    termo_norm = remover_acentos(termo)
+    partes_termo = termo_norm.split()
+    prefixo_2 = termo_norm[:2]
+
+    # Regra Principal Global: WHERE titulo LIKE 'Termo%' ou prefixo (igual a buscar_membros)
+    condicoes = [
+        Changelog.titulo.ilike(f"{termo}%"),
+        Changelog.titulo.ilike(f"{prefixo_2}%"),
+        Changelog.modulo.ilike(f"{termo}%"),
+        Changelog.modulo.ilike(f"{prefixo_2}%")
+    ]
+
+    itens = (
+        Changelog.query.filter(or_(*condicoes))
+        .order_by(Changelog.data_implantacao.desc(), Changelog.id.desc())
+        .limit(limite * 4)
+        .all()
+    )
+
+    resultados = []
+    vistos = set()
+
+    for item in itens:
+        titulo_norm = remover_acentos(item.titulo or "")
+        modulo_norm = remover_acentos(item.modulo or "")
+        palavras_titulo = titulo_norm.split()
+
+        # O item só deve aparecer se o que foi digitado bater com o início do título,
+        # início de alguma palavra do título, ou início do módulo
+        match = False
+        if len(partes_termo) == 1:
+            match = (
+                titulo_norm.startswith(termo_norm)
+                or any(palavra.startswith(termo_norm) for palavra in palavras_titulo)
+                or modulo_norm.startswith(termo_norm)
+            )
+        else:
+            primeira = partes_termo[0]
+            if (
+                titulo_norm.startswith(primeira)
+                or any(palavra.startswith(primeira) for palavra in palavras_titulo)
+                or modulo_norm.startswith(primeira)
+            ):
+                match = all(
+                    any(p.startswith(parte) for p in palavras_titulo) or parte in titulo_norm
+                    for parte in partes_termo[1:]
+                )
+
+        if match:
+            label = item.titulo
+            if label in vistos:
+                continue
+            vistos.add(label)
+
+            data_str = item.data_implantacao.strftime("%d/%m/%Y") if item.data_implantacao else ""
+            versao_str = f" • {item.versao}" if item.versao else ""
+            subtext = f"{item.modulo} • {item.tipo}{versao_str} • {data_str} • {item.responsavel}"
+
+            resultados.append({
+                "id": item.id,
+                "value": label,
+                "label": label,
+                "subtext": subtext,
+                "status": item.tipo,
+                "inicial": item.tipo[0].upper() if item.tipo else "C",
+                "data": data_str,
+                "modulo": item.modulo
             })
 
             if len(resultados) >= limite:

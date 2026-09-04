@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo_pagina }} — SiGI{% endblock %}
+{% block nav_configuracoes_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-2 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-clock-history text-primary me-2"></i> {{ titulo_pagina }}
+      </h2>
+      <p class="text-muted mb-0">Registre histórico de melhorias, correções ou novidades implementadas no sistema.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('configuracoes.changelog.listar_changelog') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Voltar ao Changelog
+      </a>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <form method="POST" autocomplete="off">
+        {{ form.hidden_tag() }}
+
+        <!-- Seção 1: Identificação & Classificação -->
+        <div class="sigi-form-section-title">
+          <i class="bi bi-info-circle text-primary me-1"></i> Classificação & Data
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-3">
+            {{ form.data_implantacao.label(class="form-label fw-semibold") }}
+            {{ form.data_implantacao(class="form-control" + (" is-invalid" if form.data_implantacao.errors else "")) }}
+            {% for error in form.data_implantacao.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12 col-md-5">
+            {{ form.titulo.label(class="form-label fw-semibold") }}
+            {{ form.titulo(class="form-control" + (" is-invalid" if form.titulo.errors else ""), placeholder="Ex: Novo módulo de Escalas de Voluntários") }}
+            {% for error in form.titulo.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-6 col-md-2">
+            {{ form.modulo.label(class="form-label fw-semibold") }}
+            {{ form.modulo(class="form-select" + (" is-invalid" if form.modulo.errors else "")) }}
+            {% for error in form.modulo.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-6 col-md-2">
+            {{ form.tipo.label(class="form-label fw-semibold") }}
+            {{ form.tipo(class="form-select" + (" is-invalid" if form.tipo.errors else "")) }}
+            {% for error in form.tipo.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-4">
+            {{ form.versao.label(class="form-label fw-semibold") }}
+            {{ form.versao(class="form-control" + (" is-invalid" if form.versao.errors else ""), placeholder="Ex: v4.1 ou release-2026.09") }}
+            {% for error in form.versao.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Seção 2: Conteúdo & Justificativa -->
+        <div class="sigi-form-section-title">
+          <i class="bi bi-file-text text-primary me-1"></i> Detalhamento da Alteração
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-lg-6">
+            {{ form.descricao.label(class="form-label fw-semibold") }}
+            {{ form.descricao(class="form-control" + (" is-invalid" if form.descricao.errors else ""), rows=5, placeholder="Descreva objetivamente o que mudou no sistema...") }}
+            <div class="text-muted small mt-1">Explique o comportamento novo, o que foi corrigido ou o ajuste realizado.</div>
+            {% for error in form.descricao.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12 col-lg-6">
+            {{ form.finalidade.label(class="form-label fw-semibold") }}
+            {{ form.finalidade(class="form-control" + (" is-invalid" if form.finalidade.errors else ""), rows=5, placeholder="Explique a finalidade e o benefício gerado por esta alteração...") }}
+            <div class="text-muted small mt-1">Qual problema isso resolveu? Qual facilidade traz para a liderança ou membros?</div>
+            {% for error in form.finalidade.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Seção 3: Responsável & Auditoria -->
+        <div class="sigi-form-section-title">
+          <i class="bi bi-person-check text-primary me-1"></i> Responsável pela Implantação
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6">
+            {{ form.usuario_id.label(class="form-label fw-semibold") }}
+            {{ form.usuario_id(class="form-select" + (" is-invalid" if form.usuario_id.errors else "")) }}
+            <div class="text-muted small mt-1">Selecione o usuário autenticado que realizou ou implantou a alteração.</div>
+            {% for error in form.usuario_id.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            {{ form.autor_nome.label(class="form-label fw-semibold") }}
+            {{ form.autor_nome(class="form-control" + (" is-invalid" if form.autor_nome.errors else ""), placeholder="Ex: Rafael Maciel ou Paulo Soares") }}
+            <div class="text-muted small mt-1">Utilizado como autor nominal do histórico (caso o responsável não possua conta de usuário no SiGI).</div>
+            {% for error in form.autor_nome.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="d-flex gap-2 pt-3 border-top">
+          {{ form.submit(class_="btn btn-primary px-4") }}
+          <a href="{{ url_for('configuracoes.changelog.listar_changelog') }}" class="btn btn-outline-secondary">
+            Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

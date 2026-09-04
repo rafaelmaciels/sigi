@@ -5,6 +5,20 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ---
 
+## [V1.1.3] — 2026-09-04
+
+### 🚀 Novas Funcionalidades
+- **Módulo de Changelog & Histórico de Atualizações:**
+  - Implantação da funcionalidade de Changelog integrada ao painel em `/configuracoes/changelog/`.
+  - Apresentação cronológica hierárquica por Ano ➔ Mês ➔ Data.
+  - Cada registro responde com clareza: *O que mudou?*, *Quando mudou?*, *Quem implantou?* e *Qual a finalidade?*.
+  - Busca em tempo real com **Autocomplete inteligente** (`/api/busca/changelogs`) seguindo a regra restritiva de correspondência por início de termo, idêntico à página de Membros.
+  - **Paginação centralizada** no meio da tela limitando a exibição a 10 alterações por página, com navegação fluida e preservação de filtros.
+  - Gestão administrativa (Adicionar, Editar, Excluir) protegida por permissões RBAC (`is_admin` ou `config:edit` / `config:delete`) com geração de logs de auditoria e proteção contra CSRF.
+  - Script de povoamento inicial (`utils/seed_changelog.py`) com 19 registros históricos reais mapeados a partir dos commits do repositório Git e sincronização no `update.py`.
+
+---
+
 ## [V1.1.2] — 2026-09-03
 
 ### 🌙 Novas Funcionalidades
